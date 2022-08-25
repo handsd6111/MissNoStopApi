@@ -33,7 +33,7 @@ class TDXAuthController extends TDXBaseController
             );
             $result = json_decode(json_decode($response->getJSON()));
             TDXAuth::setAuthObject($result);
-            return true;
+            return $result;
         } catch (Exception $ex) {
             throw $ex;
             return false;
