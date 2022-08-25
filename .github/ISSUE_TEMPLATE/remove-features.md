@@ -1,7 +1,7 @@
 ---
 name: Remove Features
 about: 欲移除的功能
-title: Remove Features
+title: Remove Features：
 labels: to do
 assignees: ''
 
