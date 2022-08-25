@@ -12,12 +12,9 @@ class TDXAuth
     public static function getAuthObject()
     {
         $TDXAuthObject = CS::cache()->get('TDXAuthObject');
-
         if ($TDXAuthObject === NULL) {
-            TDXAuthController::getAndSetAuthObject();
-            // return false;
+            $TDXAuthObject = TDXAuthController::getAndSetAuthObject();
         }
-
         return $TDXAuthObject;
     }
 
