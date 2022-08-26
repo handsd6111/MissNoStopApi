@@ -15,10 +15,10 @@ class MetroRouteModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'MR_uid',
         'MR_id',
         'MR_name_TC',
-        'MR_name_EN'
+        'MR_name_EN',
+        'MR_system_id'
     ];
 
     // Dates

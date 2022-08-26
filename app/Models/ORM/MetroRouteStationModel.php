@@ -2,21 +2,20 @@
 
 namespace App\Models\ORM;
 
-use CodeIgniter\Model;
 
-class MetroRouteStationModel extends Model
+class MetroRouteStationModel extends CompositeKey
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'metroroutestations';
-    protected $primaryKey       = 'id';
+    protected $table            = 'metro_route_stations';
+    protected $primaryKey       = 'MRS_station_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'MRS_station_uid',
-        'MRS_route_uid'
+        'MRS_station_id',
+        'MRS_route_id'
     ];
 
     // Dates
@@ -42,4 +41,14 @@ class MetroRouteStationModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->builder = $this->builder();
+        $this->compositePrimaryKeys = [
+            'MRS_station_id',
+            'MRS_route_id'
+        ];
+    }
 }
