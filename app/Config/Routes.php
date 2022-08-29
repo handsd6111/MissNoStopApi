@@ -63,10 +63,10 @@ $routes->group('tdx', static function ($routes) {
 
             $routes->cli('duration/(:alphanum)', 'TDXDataController::setMetroDuration/$1'); // 單個捷運系統的運行時間，不包含 TYMC (桃捷)
 
-            $routes->cli('routeStation/all', 'TDXDataController::setMetroRouteStationAll');
-            $routes->cli('routeStation/(:alphanum)', 'TDXDataController::setMetroRouteStation/$1');
+            $routes->cli('routeStation/all', 'TDXDataController::setMetroRouteStationAll'); // 全部捷運系統車站與路線的關聯資料
+            $routes->cli('routeStation/(:alphanum)', 'TDXDataController::setMetroRouteStation/$1'); // 單個捷運系統車站與路線的關聯資料
 
-            $routes->cli('arrival/(:alphanum)', 'TDXDataController::setMetroArrival/$1');
+            $routes->cli('arrival/(:alphanum)', 'TDXDataController::setMetroArrival/$1'); // 單個捷運系統的時刻表
         });
     });
 });
