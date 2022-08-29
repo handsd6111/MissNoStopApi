@@ -11,9 +11,17 @@ class ApiController extends BaseController
 {
     function __construct()
     {
-        // $this->baseModel = new BaseModel();
-        // $this->metroModel = new MetroModel();
-        $this->fakeModel = new FakeModel();
+        try
+        {
+            $this->baseModel = new BaseModel();
+            $this->metroModel = new MetroModel();
+            $this->fakeModel = new FakeModel();
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, "Exception error");
+        }
     }
 
     /**
@@ -24,7 +32,7 @@ class ApiController extends BaseController
     {
         try
         {
-            return $this->send_response($this->baseModel->get_cities()->get());
+            return $this->send_response($this->baseModel->get_cities()->get()->getResult());
         }
         catch (Exception $e)
         {
@@ -41,8 +49,7 @@ class ApiController extends BaseController
     {
         try
         {
-            return $this->send_response($this->fakeModel->get_systems());
-            // return $this->send_response($this->metroModel->get_metro_systems()->get());
+            return $this->send_response($this->metroModel->get_systems()->get()->getResult());
         }
         catch (Exception $e)
         {
@@ -60,6 +67,9 @@ class ApiController extends BaseController
     {
         try
         {
+            // 轉大寫
+            $systemId = strtoupper($systemId);
+
             // 設定 GET 資料驗證格式
             $vData = [
                 "systemId" => $systemId
@@ -75,8 +85,7 @@ class ApiController extends BaseController
             }
 
             // 查詢成功
-            return $this->send_response($this->fakeModel->get_routes($systemId));
-            // return $this->send_response($this->metroModel->get_routes($cityId)->get());
+            return $this->send_response($this->metroModel->get_routes($systemId)->get()->getResult());
         }
         catch (Exception $e)
         {
@@ -95,6 +104,10 @@ class ApiController extends BaseController
     {
         try
         {
+            // 轉大寫
+            $systemId = strtoupper($systemId);
+            $routeId  = strtoupper($routeId);
+
             // 設定 GET 資料驗證格式
             $vData = [
                 "systemId" => $systemId,
@@ -112,8 +125,7 @@ class ApiController extends BaseController
             }
             
             // 查詢成功
-            return $this->send_response($this->fakeModel->get_stations($systemId, $routeId));
-            // return $this->send_response($this->metroModel->get_stations($systemId, $routeId)->get());
+            return $this->send_response($this->metroModel->get_stations($systemId, $routeId)->get()->getResult());
         }
         catch (Exception $e)
         {
@@ -132,6 +144,10 @@ class ApiController extends BaseController
     {
         try
         {
+            // 轉大寫
+            $stationId    = strtoupper($stationId);
+            $endStationId = strtoupper($endStationId);
+
             // 設定 GET 資料驗證格式
             $vData = [
                 "stationId"    => $stationId,
@@ -148,8 +164,7 @@ class ApiController extends BaseController
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
 
-            $response = $this->fakeModel->get_arrivals($stationId, $endStationId);
-            // $response = $this->metroModel->get_arrivals($stationId, $endStationId)->get();
+            $response = $this->metroModel->get_arrivals($stationId, $endStationId)->get()->getResult();
 
             // 取得當前時間
             $nowTime   = explode(":", date("H:i"));
