@@ -66,7 +66,7 @@ class MetroModel extends BaseModel
             return $this->db->table("metro_stations")
                             ->join("metro_route_stations", "MS_id = MRS_station_id")
                             ->join("metro_routes", "MRS_route_id = MR_id")
-                            ->select("*")
+                            ->select("MS_id, MS_name_TC, MS_name_EN, MS_city_id, MS_longitude, MS_latitude")
                             ->where($condition)
                             ->orderBy("MS_id");
         }
