@@ -13,7 +13,6 @@ class ApiController extends BaseController
     {
         // $this->baseModel = new BaseModel();
         // $this->metroModel = new MetroModel();
-        $this->fakeModel = new FakeModel();
     }
 
     /**
