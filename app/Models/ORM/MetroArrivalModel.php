@@ -2,21 +2,19 @@
 
 namespace App\Models\ORM;
 
-use CodeIgniter\Model;
-
-class MetroArrivalModel extends Model
+class MetroArrivalModel extends CompositeKey
 {
     protected $DBGroup          = 'default';
     protected $table            = 'metro_arrivals';
-    protected $primaryKey       = 'MA_station, MA_end_station_uid, MA_sequence';
+    protected $primaryKey       = 'MA_end_station_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'MA_station_uid',
-        'MA_end_station_uid',
+        'MA_station_id',
+        'MA_end_station_id',
         'MA_sequence',
         'MA_arrival_time',
         'MA_departure_time'
@@ -45,4 +43,15 @@ class MetroArrivalModel extends Model
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->builder = $this->builder();
+        $this->compositePrimaryKeys = [
+            'MA_station_id',
+            'MA_end_station_id',
+            'MA_sequence',
+        ];
+    }
 }
