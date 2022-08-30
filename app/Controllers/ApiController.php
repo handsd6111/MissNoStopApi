@@ -76,12 +76,8 @@ class ApiController extends BaseController
             $vData = [
                 "systemId" => $systemId
             ];
-            $vRules = [
-                "systemId" => "alpha|max_length[4]"
-            ];
 
-            // 如果 GET 資料驗證失敗則回傳錯誤訊息
-            if (!$this->validateData($vData, $vRules))
+            if (!$this->metro_validation($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -117,13 +113,9 @@ class ApiController extends BaseController
                 "systemId" => $systemId,
                 "routeId"  => $routeId
             ];
-            $vRules = [
-                "systemId" => "alpha|max_length[4]",
-                "routeId"  => "max_length[12]"
-            ];
 
             // 如果 GET 資料驗證失敗則回傳錯誤訊息
-            if (!$this->validateData($vData, $vRules))
+            if (!$this->metro_validation($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -159,13 +151,9 @@ class ApiController extends BaseController
                 "stationId"    => $stationId,
                 "endStationId" => $endStationId
             ];
-            $vRules = [
-                "stationId"    => "alpha_numeric_punct|max_length[12]",
-                "endStationId" => "alpha_numeric_punct|max_length[12]"
-            ];
             
             // 如果 GET 資料驗證失敗則回傳錯誤訊息
-            if (!$this->validateData($vData, $vRules))
+            if (!$this->metro_validation($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -190,6 +178,73 @@ class ApiController extends BaseController
 
             // 查詢成功
             return $this->send_response($response);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, "Exception error");
+        }
+    }
+
+    /**
+     * 取得指定捷運系統、路線、經度及緯度的最近捷運車站
+     * @param string $systemId 捷運系統代碼
+     * @param string $routeId 捷運路線代碼
+     * @param float $longitude 經度（-180 ~ 180）
+     * @param float $latitude 緯度（-90 ~ 90）
+     */
+    function get_metro_nearest_station($systemId, $routeId, $longitude, $latitude)
+    {
+        try
+        {
+            // 轉大寫
+            $systemId = strtoupper($systemId);
+            $routeId  = strtoupper($routeId);
+
+            // 設定 GET 資料驗證格式
+            $vData = [
+                "systemId"  => $systemId,
+                "routeId"   => $routeId,
+                "longitude" => $longitude,
+                "latitude"  => $latitude
+            ];
+
+            // 如果 GET 資料驗證失敗則回傳錯誤訊息
+            if (!$this->metro_validation($vData))
+            {
+                return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
+            }
+
+            helper("getDistance");
+
+            $longitude = floatval($longitude);
+            $latitude  = floatval($latitude);
+
+            // 取得指定捷運系統及路線的所有車站
+            $stations = $this->metroModel->get_stations($systemId, $routeId)->get()->getResult();
+
+            // return var_dump($stations);
+
+            // 最近車站代碼
+            $nearestStationIndex = -1;
+            // 已知最短距離
+            $shortestDistance = PHP_INT_MAX;
+
+            for ($i = 0; $i < sizeof($stations); $i++)
+            {
+                // 取得兩座標直線距離
+                $distance = get_distance($stations[$i]->MS_longitude, $stations[$i]->MS_latitude, $longitude, $latitude);
+                // 若發現更近的車站則更新已知最短距離
+                if ($distance >= $shortestDistance)
+                {
+                    continue;
+                }
+                $shortestDistance = $distance;
+                $nearestStationIndex = $i;
+            }
+            
+            // 查詢成功
+            return $this->send_response($stations[$nearestStationIndex]);
         }
         catch (Exception $e)
         {
