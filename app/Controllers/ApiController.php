@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Models\BaseModel;
-use App\Models\FakeModel;
 use App\Models\MetroModel;
 use Exception;
 
@@ -15,7 +14,6 @@ class ApiController extends BaseController
         {
             $this->baseModel  = new BaseModel();
             $this->metroModel = new MetroModel();
-            $this->fakeModel  = new FakeModel();
         }
         catch (Exception $e)
         {
