@@ -76,6 +76,56 @@ class MetroModel extends BaseModel
             throw $e;
         }
     }
+
+    /**
+     * 取得指定捷運站資料查詢類別
+     * @param string $stationId 捷運站代碼
+     * @return mixed 查詢類別
+     */
+    function get_station_sequence($stationId)
+    {
+        try
+        {
+            $condition = [
+                "MS_id" => $stationId
+            ];
+            return $this->db->table("metro_stations")
+                            ->select("MS_sequence")
+                            ->where($condition);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定捷運站能開往的所有終點站查詢類別
+     * @param string $stationId 捷運站代碼
+     * @return mixed 查詢類別
+     */
+    function get_end_stations($stationId)
+    {
+        try
+        {
+            $condition = [
+                "MA_station_id" => $stationId
+            ];
+            return $this->db->table("metro_arrivals")
+                            ->join("metro_stations", "MA_end_station_id = MS_id")
+                            ->select("MA_end_station_id, MS_sequence")
+                            ->where($condition)
+                            ->groupBy("MA_end_station_id")
+                            ->orderBy("MS_sequence");
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
     /**
      * 取得指定車站及終點站方向的時刻表查詢類別（未執行 Query）
      * @param string $stationId 車站代碼
