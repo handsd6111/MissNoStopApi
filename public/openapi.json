@@ -1,16 +1,16 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "My First API",
-        "version": "0.1"
+        "title": "MissNoStopApi",
+        "description": "MissNoStopApi",
+        "version": "1.0.0"
     },
     "paths": {
-        "/api/data.json": {
+        "/api/metro/system": {
             "get": {
-                "operationId": "b8ee56fbf2e8f0ea50b54a5ec2e13882",
                 "responses": {
                     "200": {
-                        "description": "The data"
+                        "description": "An example endpoint"
                     }
                 }
             }

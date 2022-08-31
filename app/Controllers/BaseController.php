@@ -10,15 +10,12 @@ use CodeIgniter\HTTP\ResponseInterface;
 use Exception;
 use Psr\Log\LoggerInterface;
 
-/**
- * Class BaseController
- *
- * BaseController provides a convenient place for loading components
- * and performing functions that are needed by all your controllers.
- * Extend this class in any new controllers:
- *     class Home extends BaseController
- *
- * For security be sure to declare any new methods as protected or private.
+ /**
+ * @OA\Info(
+ *      version="1.0.0",
+ *      title="MissNoStopApi",
+ *      description="MissNoStopApi"
+ * )
  */
 abstract class BaseController extends Controller
 {

@@ -40,6 +40,18 @@ class ApiController extends BaseController
     }
 
     /**
+     * @OA\Get(
+     *      path="/api/metro/system",
+     *      @OA\Response(
+     *          response="200",
+     *          description="取得所有捷運系統資料。"
+     *          @OA\Parameter(
+     *              in="query", name="param", ...
+     *          )
+     *      )
+     * )
+     */
+    /**
      * 捷運：取得所有捷運系統資料
      * 
      * 格式：/api/metro/system
@@ -160,6 +172,7 @@ class ApiController extends BaseController
 
             // 回傳資料
             $response = $this->metroModel->get_arrivals($stationId, $endStationId)->get()->getResult();
+
 
             // 取得當前時間
             $nowTime   = explode(":", date("H:i"));
