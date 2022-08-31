@@ -91,7 +91,7 @@ class MetroModel extends BaseModel
                 "MA_end_station_id" => $endStationId
             ];
             return $this->db->table("metro_arrivals")
-                            ->select("MA_sequence, MA_arrival_time, MA_departure_time")
+                            ->select("MA_sequence, MA_remain_time, MA_departure_time")
                             ->where($condition)
                             ->orderBy("MA_sequence");
         }

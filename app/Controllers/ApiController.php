@@ -169,11 +169,11 @@ class ApiController extends BaseController
             for ($i = 0; $i < sizeof($response); $i++)
             {
                 // 將到站時間資料分割為：時、分、秒
-                $arrivalTime   = explode(":", $response[$i]->MA_arrival_time);
+                $arrivalTime   = explode(":", $response[$i]->MA_remain_time);
                 // 將到站時間「時」的格式轉為「分」的格式
                 $arrivalMinute = intval($arrivalTime[0]) * 60 + intval($arrivalTime[1]);
                 // 將回傳資料的欄位「到站時間」設為「到站時間 - 當前時間」，故應更其名為「剩餘時間」
-                $response[$i]->MA_arrival_time = $arrivalMinute - $nowMinute;
+                $response[$i]->MA_remain_time = $arrivalMinute - $nowMinute;
             }
 
             // 查詢成功
