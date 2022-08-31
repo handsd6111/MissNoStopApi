@@ -14,7 +14,6 @@ class TDXBaseController extends BaseController
      */
     protected function getAccessToken()
     {
-        var_dump(TDXAuth::getAuthObject());
         return TDXAuth::getAuthObject()->access_token;
     }
 
