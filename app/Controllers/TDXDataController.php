@@ -353,8 +353,9 @@ class TDXDataController extends TDXBaseController
      */
     public function setMetroRouteStation($railSystem)
     {
-        return var_dump($result = $this->getMetroRouteStation($railSystem));
+        $result = $this->getMetroRouteStation($railSystem);
         $metroRouteStationModel = new MetroRouteStationModel();
+        $metroStationModel = new MetroStationModel();
 
         foreach ($result as $value) {
             $routeId = $railSystem . '-' . $value->LineNo; // 取得路線
@@ -366,6 +367,7 @@ class TDXDataController extends TDXBaseController
                     'MRS_station_id' => $stationId,
                     'MRS_route_id' => $routeId
                 ]);
+                $metroStationModel->save(['MS_id' => $stationId, 'MS_sequence' => $station->Sequence]);
             }
         }
 
@@ -462,7 +464,7 @@ class TDXDataController extends TDXBaseController
                         'MA_station_id' => $stationId,
                         'MA_end_station_id' => $endStationId,
                         'MA_sequence' => $timeTable->Sequence,
-                        'MA_arrival_time' => $timeTable->ArrivalTime,
+                        'MA_remain_time' => $timeTable->ArrivalTime,
                         'MA_departure_time' => $timeTable->DepartureTime
                     ]);
                 }
