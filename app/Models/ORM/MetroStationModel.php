@@ -15,13 +15,13 @@ class MetroStationModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'MS_uid',
         'MS_id',
         'MS_city_id',
         'MS_name_TC',
         'MS_name_EN',
         'MS_longitude',
-        'MS_latitude'
+        'MS_latitude',
+        'MS_sequence'
     ];
 
     // Dates
