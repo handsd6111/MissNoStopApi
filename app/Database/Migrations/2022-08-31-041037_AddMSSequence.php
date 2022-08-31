@@ -10,8 +10,7 @@ class AddMSSequence extends Migration
     {
         $fields = [
             "MS_sequence" => [
-                "type"       => "VARCHAR",
-                "constraint" => "SMALLINT",
+                "type"       => "SMALLINT",
                 "after"      => "MS_name_EN"
             ]
         ];
