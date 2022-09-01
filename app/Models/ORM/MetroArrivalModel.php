@@ -16,7 +16,7 @@ class MetroArrivalModel extends CompositeKey
         'MA_station_id',
         'MA_end_station_id',
         'MA_sequence',
-        'MA_arrival_time',
+        'MA_remain_time',
         'MA_departure_time'
     ];
 
