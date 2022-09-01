@@ -133,38 +133,53 @@ class ApiController extends BaseController
     /**
      * 捷運：取得指定車站及終點車站的時刻表
      * 
-     * 格式：/api/metro/arrival/station/{StationId}/end-station/{EndStationId}
-     * @param string $stationId 車站代碼
-     * @param string $endStationId 終點車站代碼（用於表示運行方向）
+     * 格式：/api/metro/arrival/from/{StationId}/to/{StationId}
+     * @param string $fromStationId 車站代碼
+     * @param string $toStationId 終點車站代碼（用於表示運行方向）
      * @return array 時刻表資料陣列
      */
-    function get_metro_arrivals($stationId, $endStationId)
+    function get_metro_arrivals($fromStationId, $toStationId)
     {
         try
         {
             // 轉大寫
-            $stationId    = strtoupper($stationId);
-            $endStationId = strtoupper($endStationId);
+            $fromStationId = strtoupper($fromStationId);
+            $toStationId   = strtoupper($toStationId);
 
             // 設定 GET 資料驗證格式
             $vData = [
-                "stationId"    => $stationId,
-                "endStationId" => $endStationId
+                "stationId" => $fromStationId,
+                "stationId" => $toStationId
             ];
             
-            // 如果 GET 資料驗證失敗則回傳錯誤訊息
+            // 若 GET 資料驗證失敗則回傳錯誤訊息
             if (!$this->metro_validation($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
 
-            // 回傳資料
-            $response = $this->metroModel->get_arrivals($stationId, $endStationId)->get()->getResult();
+            helper("getTimeMinute");
 
-            // 取得當前時間
-            $nowTime   = explode(":", date("H:i"));
-            $nowMinute = intval($nowTime[0]) * 60 + intval($nowTime[1]);
+            // 取得起點站序號
+            $fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)->get()->getResult()[0]->MS_sequence;
+            // 取得目的站序號
+            $toStationSeq   = $this->metroModel->get_station_sequence($toStationId)->get()->getResult()[0]->MS_sequence;
+            // 取得起點站能到達的所有終點站
+            $endStations    = $this->metroModel->get_end_stations($fromStationId)->get()->getResult();
 
+            // 若起點站序號小於目的站序號，則代表終點站為序號較大的一方
+            if ($fromStationSeq < $toStationSeq)
+            {
+                $endStationId = $endStations[0]->MA_end_station_id;
+            }
+            else
+            {
+                $endStationId = $endStations[1]->MA_end_station_id;
+            }
+
+            // 取得指定車站及終點站方向的時刻表
+            $response  = $this->metroModel->get_arrivals($fromStationId, $endStationId)->get()->getResult();
+            $nowMinute = get_time_minute();
             // 將剩餘時間寫入回傳資料陣列
             for ($i = 0; $i < sizeof($response); $i++)
             {
@@ -175,7 +190,6 @@ class ApiController extends BaseController
                 // 將回傳資料的欄位「到站時間」設為「到站時間 - 當前時間」，故應更其名為「剩餘時間」
                 $response[$i]->MA_remain_time = $arrivalMinute - $nowMinute;
             }
-
             // 查詢成功
             return $this->send_response($response);
         }
@@ -188,6 +202,8 @@ class ApiController extends BaseController
 
     /**
      * 取得指定捷運系統、路線、經度及緯度的最近捷運車站
+     * 
+     * 格式：/api/metro/system/{MetroSystemId}/route/{MetroRouteId}/long/{Longitude}/lat/{Latitude}
      * @param string $systemId 捷運系統代碼
      * @param string $routeId 捷運路線代碼
      * @param float $longitude 經度（-180 ~ 180）
@@ -222,8 +238,6 @@ class ApiController extends BaseController
 
             // 取得指定捷運系統及路線的所有車站
             $stations = $this->metroModel->get_stations($systemId, $routeId)->get()->getResult();
-
-            // return var_dump($stations);
 
             // 最近車站代碼
             $nearestStationIndex = -1;
