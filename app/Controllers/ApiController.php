@@ -158,40 +158,34 @@ class ApiController extends BaseController
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
 
-            helper("getTimeMinute");
-
             // 取得起點站序號
-            $fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)->get()->getResult()[0]->MS_sequence;
+            $fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)
+                                               ->get()
+                                               ->getResult()[0]
+                                               ->MS_sequence;
             // 取得目的站序號
-            $toStationSeq   = $this->metroModel->get_station_sequence($toStationId)->get()->getResult()[0]->MS_sequence;
-            // 取得起點站能到達的所有終點站
-            $endStations    = $this->metroModel->get_end_stations($fromStationId)->get()->getResult();
+            $toStationSeq   = $this->metroModel->get_station_sequence($toStationId)
+                                               ->get()
+                                               ->getResult()[0]
+                                               ->MS_sequence;
+            // 取得起點站與目的站都能到達的終點站
+            $endStations    = $this->metroModel->get_end_stations($fromStationId, $toStationId)
+                                               ->get()
+                                               ->getResult();
 
-            // 若起點站序號小於目的站序號，則代表終點站為序號較大的一方
-            if ($fromStationSeq < $toStationSeq)
+            // 若起點站序號大於目的站序號，則代表終點站為序號較小的一方。反之亦然
+            if (intval($fromStationSeq) > intval($toStationSeq))
             {
                 $endStationId = $endStations[0]->MA_end_station_id;
             }
             else
             {
-                $endStationId = $endStations[1]->MA_end_station_id;
-            }
-
-            // 取得指定車站及終點站方向的時刻表
-            $response  = $this->metroModel->get_arrivals($fromStationId, $endStationId)->get()->getResult();
-            $nowMinute = get_time_minute();
-            // 將剩餘時間寫入回傳資料陣列
-            for ($i = 0; $i < sizeof($response); $i++)
-            {
-                // 將到站時間資料分割為：時、分、秒
-                $arrivalTime   = explode(":", $response[$i]->MA_remain_time);
-                // 將到站時間「時」的格式轉為「分」的格式
-                $arrivalMinute = intval($arrivalTime[0]) * 60 + intval($arrivalTime[1]);
-                // 將回傳資料的欄位「到站時間」設為「到站時間 - 當前時間」，故應更其名為「剩餘時間」
-                $response[$i]->MA_remain_time = $arrivalMinute - $nowMinute;
+                $endStationId = $endStations[sizeof($endStations) -1]->MA_end_station_id;
             }
             // 查詢成功
-            return $this->send_response($response);
+            return $this->send_response($this->metroModel->get_arrivals($fromStationId, $endStationId)
+                                                         ->get()
+                                                         ->getResult());
         }
         catch (Exception $e)
         {
