@@ -159,22 +159,23 @@ class ApiController extends BaseController
             }
 
             // 取得起點站序號
-            $fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)
-                                               ->get()
-                                               ->getResult()[0]
-                                               ->MS_sequence;
+            $fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)->get()->getResult();
             // 取得目的站序號
-            $toStationSeq   = $this->metroModel->get_station_sequence($toStationId)
-                                               ->get()
-                                               ->getResult()[0]
-                                               ->MS_sequence;
+            $toStationSeq   = $this->metroModel->get_station_sequence($toStationId)->get()->getResult();
             // 取得起點站與目的站都能到達的終點站
-            $endStations    = $this->metroModel->get_end_stations($fromStationId, $toStationId)
-                                               ->get()
-                                               ->getResult();
-
+            $endStations    = $this->metroModel->get_end_stations($fromStationId, $toStationId)->get()->getResult();
+            // 若查無起點站則回傳錯誤訊息      
+            if (sizeof($fromStationSeq) == 0)
+            {
+                return $this->send_response(["notFound" => $fromStationId], 400, lang("Query.metroStationNotFound"));
+            } 
+            // 若查無目的站則回傳錯誤訊息      
+            if (sizeof($toStationSeq) == 0)
+            {
+                return $this->send_response(["notFound" => $toStationId], 400, lang("Query.metroStationNotFound"));
+            }
             // 若起點站序號大於目的站序號，則代表終點站為序號較小的一方。反之亦然
-            if (intval($fromStationSeq) > intval($toStationSeq))
+            if (intval($fromStationSeq[0]->MS_sequence) > intval($toStationSeq[0]->MS_sequence))
             {
                 $endStationId = $endStations[0]->MA_end_station_id;
             }
@@ -182,10 +183,15 @@ class ApiController extends BaseController
             {
                 $endStationId = $endStations[sizeof($endStations) -1]->MA_end_station_id;
             }
+            // 回傳資料
+            $result = $this->metroModel->get_arrivals($fromStationId, $endStationId)->get()->getResult();
+            // 若查無資料則代表起點站及目的站需跨線或跨支線，將回傳尚未開放訊息
+            if (sizeof($result) == 0)
+            {
+                return $this->send_response([], 400, lang("Query.metroCrossBranchNotAvailable"));
+            }
             // 查詢成功
-            return $this->send_response($this->metroModel->get_arrivals($fromStationId, $endStationId)
-                                                         ->get()
-                                                         ->getResult());
+            return $this->send_response($result);
         }
         catch (Exception $e)
         {
