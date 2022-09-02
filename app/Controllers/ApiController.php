@@ -158,40 +158,40 @@ class ApiController extends BaseController
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
 
-            helper("getTimeMinute");
-
             // 取得起點站序號
-            $fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)->get()->getResult()[0]->MS_sequence;
+            $fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)->get()->getResult();
             // 取得目的站序號
-            $toStationSeq   = $this->metroModel->get_station_sequence($toStationId)->get()->getResult()[0]->MS_sequence;
-            // 取得起點站能到達的所有終點站
-            $endStations    = $this->metroModel->get_end_stations($fromStationId)->get()->getResult();
-
-            // 若起點站序號小於目的站序號，則代表終點站為序號較大的一方
-            if ($fromStationSeq < $toStationSeq)
+            $toStationSeq   = $this->metroModel->get_station_sequence($toStationId)->get()->getResult();
+            // 取得起點站與目的站都能到達的終點站
+            $endStations    = $this->metroModel->get_end_stations($fromStationId, $toStationId)->get()->getResult();
+            // 若查無起點站則回傳錯誤訊息      
+            if (sizeof($fromStationSeq) == 0)
+            {
+                return $this->send_response(["notFound" => $fromStationId], 400, lang("Query.metroStationNotFound"));
+            } 
+            // 若查無目的站則回傳錯誤訊息      
+            if (sizeof($toStationSeq) == 0)
+            {
+                return $this->send_response(["notFound" => $toStationId], 400, lang("Query.metroStationNotFound"));
+            }
+            // 若起點站序號大於目的站序號，則代表終點站為序號較小的一方。反之亦然
+            if (intval($fromStationSeq[0]->MS_sequence) > intval($toStationSeq[0]->MS_sequence))
             {
                 $endStationId = $endStations[0]->MA_end_station_id;
             }
             else
             {
-                $endStationId = $endStations[1]->MA_end_station_id;
+                $endStationId = $endStations[sizeof($endStations) -1]->MA_end_station_id;
             }
-
-            // 取得指定車站及終點站方向的時刻表
-            $response  = $this->metroModel->get_arrivals($fromStationId, $endStationId)->get()->getResult();
-            $nowMinute = get_time_minute();
-            // 將剩餘時間寫入回傳資料陣列
-            for ($i = 0; $i < sizeof($response); $i++)
+            // 回傳資料
+            $result = $this->metroModel->get_arrivals($fromStationId, $endStationId)->get()->getResult();
+            // 若查無資料則代表起點站及目的站需跨線或跨支線，將回傳尚未開放訊息
+            if (sizeof($result) == 0)
             {
-                // 將到站時間資料分割為：時、分、秒
-                $arrivalTime   = explode(":", $response[$i]->MA_remain_time);
-                // 將到站時間「時」的格式轉為「分」的格式
-                $arrivalMinute = intval($arrivalTime[0]) * 60 + intval($arrivalTime[1]);
-                // 將回傳資料的欄位「到站時間」設為「到站時間 - 當前時間」，故應更其名為「剩餘時間」
-                $response[$i]->MA_remain_time = $arrivalMinute - $nowMinute;
+                return $this->send_response([], 400, lang("Query.metroCrossBranchNotAvailable"));
             }
             // 查詢成功
-            return $this->send_response($response);
+            return $this->send_response($result);
         }
         catch (Exception $e)
         {

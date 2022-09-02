@@ -101,16 +101,18 @@ class MetroModel extends BaseModel
     }
 
     /**
-     * 取得指定捷運站能開往的所有終點站查詢類別
-     * @param string $stationId 捷運站代碼
+     * 取得指定起點站及目的站都能開往的所有終點站查詢類別
+     * @param string $stationId 起點站代碼
+     * @param string $stationId 目的站代碼
      * @return mixed 查詢類別
      */
-    function get_end_stations($stationId)
+    function get_end_stations($fromStationId, $toStationId)
     {
         try
         {
             $condition = [
-                "MA_station_id" => $stationId
+                "MA_station_id" => $fromStationId,
+                "MA_station_id" => $toStationId
             ];
             return $this->db->table("metro_arrivals")
                             ->join("metro_stations", "MA_end_station_id = MS_id")
@@ -136,12 +138,17 @@ class MetroModel extends BaseModel
     {
         try
         {
+            helper("getTimeMinute");
             $condition = [
                 "MA_station_id"     => $stationId,
                 "MA_end_station_id" => $endStationId
             ];
+            // 在此使用 get_time_minute() 而不是 MySQL 內建的 NOW() 是因為時區的問題。
+            // 最後有個「-2」是因為 MySQL 與 PHP 的時間似乎有誤差， -2 就是為了修正此誤差。
             return $this->db->table("metro_arrivals")
-                            ->select("MA_sequence, MA_remain_time, MA_departure_time")
+                            ->select("MA_sequence,
+                                      (HOUR(MA_remain_time) * 60 + MINUTE(MA_remain_time)) - ". get_time_minute() ." -2 AS MS_remain_time,
+                                      MA_departure_time")
                             ->where($condition)
                             ->orderBy("MA_sequence");
         }
