@@ -43,6 +43,8 @@ $routes->get('/api/metro/system/(:alpha)', 'ApiController::get_metro_routes/$1')
 $routes->get('/api/metro/system/(:alpha)/route/(:segment)', 'ApiController::get_metro_stations/$1/$2');
 // 取得指定捷運起點站與目的站的時刻表
 $routes->get('/api/metro/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_metro_arrivals/$1/$2');
+// 取得指定捷運起點站與目的站的時刻表
+$routes->get('/api/metro/duration/from/(:segment)/to/(:segment)', 'ApiController::get_metro_durations/$1/$2');
 // 取得指定捷運系統、路線、經度及緯度的最近捷運車站
 $routes->get('/api/metro/system/(:alpha)/route/(:segment)/long/(:segment)/lat/(:segment)', 'ApiController::get_metro_nearest_station/$1/$2/$3/$4');
 // tdx
