@@ -66,7 +66,7 @@ class MetroModel extends BaseModel
             return $this->db->table("metro_stations")
                             ->join("metro_route_stations", "MS_id = MRS_station_id")
                             ->join("metro_routes", "MRS_route_id = MR_id")
-                            ->select("MS_id, MS_name_TC, MS_name_EN, MS_city_id, MS_longitude, MS_latitude")
+                            ->select("MS_id, MS_name_TC, MS_name_EN, MS_sequence, MS_city_id, MS_longitude, MS_latitude")
                             ->where($condition)
                             ->orderBy("MS_id");
         }
@@ -145,10 +145,9 @@ class MetroModel extends BaseModel
                 "MA_end_station_id" => $endStationId
             ];
             // 在此使用 get_time_minute() 而不是 MySQL 內建的 NOW() 是因為時區的問題。
-            // 最後有個「-2」是因為 MySQL 與 PHP 的時間似乎有誤差， -2 就是為了修正此誤差。
             return $this->db->table("metro_arrivals")
                             ->select("MA_sequence,
-                                      (HOUR(MA_remain_time) * 60 + MINUTE(MA_remain_time)) - ". get_time_minute() ." -2 AS MS_remain_time,
+                                      (HOUR(MA_remain_time) * 60 + MINUTE(MA_remain_time)) - ". get_time_minute() ." AS MS_remain_time,
                                       MA_departure_time")
                             ->where($condition)
                             ->orderBy("MA_sequence");
@@ -180,6 +179,42 @@ class MetroModel extends BaseModel
                             ->groupBy("MRS_route_id");
         }
         catch (\Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定捷運系統及路線上所有車站的查詢類別（未執行 Query）
+     * @param string $systemId 捷運系統代碼
+     * @param string $routeId 路線代碼
+     * @return mixed 查詢類別
+     */
+    function get_nearest_station($systemId, $routeId, $longitude, $latitude)
+    {
+        try
+        {
+            $condition = [
+                "MR_system_id" => $systemId,
+                "MR_id"        => $routeId
+            ];
+            return $this->db->table("metro_stations")
+                            ->join("metro_route_stations", "MS_id = MRS_station_id")
+                            ->join("metro_routes", "MRS_route_id = MR_id")
+                            ->select("MS_id,
+                                      MS_name_TC,
+                                      MS_name_EN,
+                                      MS_sequence,
+                                      MS_city_id,
+                                      MS_longitude,
+                                      MS_latitude,
+                                      FLOOR( SQRT( POWER( ABS( MS_longitude - $longitude ), 2 ) + POWER( ABS( MS_latitude - $latitude ), 2 ) ) * 11100 ) / 100 AS MS_distance")
+                            ->where($condition)
+                            ->orderBy("MS_distance")
+                            ->limit(1);
+        }
+        catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
             throw $e;

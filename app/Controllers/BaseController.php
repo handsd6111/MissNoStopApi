@@ -9,6 +9,8 @@ use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Exception;
 use Psr\Log\LoggerInterface;
+use App\Models\BaseModel;
+use App\Models\MetroModel;
 
 /**
  * Class BaseController
