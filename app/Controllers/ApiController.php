@@ -266,4 +266,47 @@ class ApiController extends BaseController
             return $this->send_response([], 500, "Exception error");
         }
     }
+
+    /**
+     * 取得指定起點站及目的站之間的總運行時間
+     * @param string $fromStationId 起點站代碼
+     * @param string $toStationId 目的站代碼
+     * @return int 總運行時間
+     */
+    function get_metro_durations($fromStationId, $toStationId)
+    {
+        try
+        {
+            // 轉大寫
+            $fromStationId = strtoupper($fromStationId);
+            $toStationId   = strtoupper($toStationId);
+            // 驗證參數
+            if (!$this->metro_validation_stations($fromStationId, $toStationId))
+            {
+                return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
+            }
+
+            // 取得捷運起點站及目的站序號
+            $seq = $this->get_metro_sequences($fromStationId, $toStationId);
+            // 若其一查無資料
+            if (!$seq["hasResult"])
+            {
+                return $this->send_response(["notFound" => $seq["notFound"]], 400, lang("Query.metroStationNotFound"));
+            }
+
+            // 取得終點站
+            $endStationId = $this->get_metro_end_station($fromStationId, $toStationId, $seq["from"], $seq["to"]);
+            
+            // 取得總運行時間
+            $duration = $this->metroModel->get_durations($seq["from"], $seq["to"], $endStationId)->get()->getResult();
+            
+            // 查詢成功
+            return $this->send_response($duration[0]);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, "Exception error");
+        }
+    }
 }

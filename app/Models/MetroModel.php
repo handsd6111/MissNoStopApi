@@ -110,16 +110,17 @@ class MetroModel extends BaseModel
     {
         try
         {
-            $condition = [
-                "MA_station_id" => $fromStationId,
+            $condition1 = [
+                "MA_station_id" => $fromStationId
+            ];
+            $condition2 = [
                 "MA_station_id" => $toStationId
             ];
             return $this->db->table("metro_arrivals")
-                            ->join("metro_stations", "MA_end_station_id = MS_id")
-                            ->select("MA_end_station_id, MS_sequence")
-                            ->where($condition)
-                            ->groupBy("MA_end_station_id")
-                            ->orderBy("MS_sequence");
+                            ->select("MA_end_station_id")
+                            ->where($condition1)
+                            ->orWhere($condition2)
+                            ->groupBy("MA_end_station_id");
         }
         catch (Exception $e)
         {
@@ -151,6 +152,70 @@ class MetroModel extends BaseModel
                                       MA_departure_time")
                             ->where($condition)
                             ->orderBy("MA_sequence");
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定起點站及目的站所屬的捷運路線的查詢類別
+     * @param string $stationId 起點站代碼
+     * @param string $stationId 目的站代碼
+     * @return mixed 查詢類別
+     */
+    function get_route_by_station($fromStationId, $toStationId)
+    {
+        try
+        {
+            $condition = [
+                "MRS_station_id" => $fromStationId,
+                "MRS_station_id" => $toStationId
+            ];
+            return$this->db->table("metro_route_stations")
+                            ->select("MRS_route_id")
+                            ->where($condition)
+                            ->groupBy("MRS_route_id");
+        }
+        catch (\Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定起點站及終點站之間的總運行時間查詢類別（未執行 Query）
+     * @param string $fromStationSeq 起點站序號
+     * @param string $toStationSeq 目的站序號
+     * @param string $endStationId 終點站代碼
+     * @return mixed 查詢類別
+     */
+    function get_durations($fromStationSeq, $toStationSeq, $endStationId)
+    {
+        try
+        {
+            if ($fromStationSeq > $toStationSeq)
+            {
+                $condition = [
+                    "MD_end_station_id =" => $endStationId,
+                    "MS_sequence <="      => $fromStationSeq,
+                    "MS_sequence >"       => $toStationSeq
+                ];
+            }
+            else {
+                $condition = [
+                    "MD_end_station_id =" => $endStationId,
+                    "MS_sequence >="      => $fromStationSeq,
+                    "MS_sequence <"       => $toStationSeq
+                ];
+            }
+            return $this->db->table("metro_durations")
+                            ->join("metro_stations", "MD_station_id = MS_id")
+                            ->select("SUM(MD_duration) AS MD_duration")
+                            ->where($condition);
         }
         catch (Exception $e)
         {
