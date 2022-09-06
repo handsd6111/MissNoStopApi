@@ -195,6 +195,7 @@ abstract class BaseController extends Controller
      * @param string $seq1 起點站序號
      * @param string $seq2 目的站序號
      * @return string 終點站代碼
+     * @return int 若查無終點站則回傳 -1
      */
     function get_metro_end_station($id1, $id2, $seq1, $seq2)
     {
@@ -202,6 +203,12 @@ abstract class BaseController extends Controller
         {
             // 取得起點站與目的站都能到達的終點站
             $endStations = $this->metroModel->get_end_stations($id1, $id2)->get()->getResult();
+            
+            // 若查無終點站則回傳 -1
+            if (sizeof($endStations) == 0)
+            {
+                return -1;
+            }
 
             // 若起點站序號大於目的站序號，則代表終點站為序號較小的一方。反之亦然
             if ($seq1 > $seq2)

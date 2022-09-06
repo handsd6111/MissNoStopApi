@@ -171,6 +171,11 @@ class ApiController extends BaseController
             // 取得終點站
             $endStationId = $this->get_metro_end_station($fromStationId, $toStationId, $seq["from"], $seq["to"]);
 
+            if ($endStationId == -1)
+            {
+                return $this->send_response([], 400, lang("Query.dataNotAvailable"));
+            }
+
             // 回傳資料
             $arrivals = $this->metroModel->get_arrivals($fromStationId, $endStationId)->get()->getResult();
 
@@ -271,6 +276,11 @@ class ApiController extends BaseController
             // 取得終點站
             $endStationId = $this->get_metro_end_station($fromStationId, $toStationId, $seq["from"], $seq["to"]);
             
+            if ($endStationId == -1)
+            {
+                return $this->send_response([], 400, lang("Query.dataNotAvailable"));
+            }
+
             // 取得總運行時間
             $duration = $this->metroModel->get_durations($seq["from"], $seq["to"], $endStationId)->get()->getResult();
             
