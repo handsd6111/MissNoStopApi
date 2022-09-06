@@ -117,10 +117,12 @@ class MetroModel extends BaseModel
                 "MA_station_id" => $toStationId
             ];
             return $this->db->table("metro_arrivals")
-                            ->select("MA_end_station_id")
+                            ->join("metro_stations", "MS_id = MA_end_station_id")
+                            ->select("MA_end_station_id, MS_sequence")
                             ->where($condition1)
                             ->orWhere($condition2)
-                            ->groupBy("MA_end_station_id");
+                            ->groupBy("MA_end_station_id")
+                            ->orderBy("MS_sequence");
         }
         catch (Exception $e)
         {
