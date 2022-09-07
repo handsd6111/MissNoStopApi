@@ -35,18 +35,30 @@ $routes->set404Override();
 
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
-// 取得所有捷運系統
+
+// 取得所有縣市資料 /api/city
+$routes->get('city', 'ApiController::get_cities');
+
+// 取得所有捷運系統資料
 $routes->get('/api/metro/system', 'ApiController::get_metro_systems');
-// 取得指定捷運系統上的所有路線
+// 取得指定捷運系統上的所有路線資料
 $routes->get('/api/metro/system/(:alpha)', 'ApiController::get_metro_routes/$1');
-// 取得指定捷運系統及路線上的所有車站
+// 取得指定捷運系統及路線上的所有捷運站資料
 $routes->get('/api/metro/system/(:alpha)/route/(:segment)', 'ApiController::get_metro_stations/$1/$2');
-// 取得指定捷運起點站與目的站的時刻表
-$routes->get('/api/metro/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_metro_arrivals/$1/$2');
-// 取得指定捷運起點站與目的站的時刻表
-$routes->get('/api/metro/duration/from/(:segment)/to/(:segment)', 'ApiController::get_metro_durations/$1/$2');
-// 取得指定捷運系統、路線、經度及緯度的最近捷運車站
+// 取得指定捷運系統、路線及經緯度的最近捷運站資料
 $routes->get('/api/metro/system/(:alpha)/route/(:segment)/long/(:segment)/lat/(:segment)', 'ApiController::get_metro_nearest_station/$1/$2/$3/$4');
+// 取得指定捷運起訖站的時刻表資料
+$routes->get('/api/metro/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_metro_arrivals/$1/$2');
+// 取得指定捷運起訖站的運行時間資料
+$routes->get('/api/metro/duration/from/(:segment)/to/(:segment)', 'ApiController::get_metro_durations/$1/$2');
+
+// 取得所有高鐵站資料
+$routes->get('/api/THSR/station', '');
+// 取得指定高鐵起訖站的時刻表資料
+$routes->get('/api/THSR/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_thsr_arrivals/$1/$2');
+// 取得指定經緯度的最近高鐵站資料
+$routes->get('/api/THSR/station/long/(:segment)/lat/(:segment)', 'ApiController::get_thsr_nearest_station/$1/$2');
+
 // tdx
 $routes->group('tdx', static function ($routes) {
 

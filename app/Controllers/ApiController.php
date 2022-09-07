@@ -293,4 +293,21 @@ class ApiController extends BaseController
             return $this->send_response([], 500, "Exception error");
         }
     }
+
+    /**
+     * 取得所有高鐵車站資料
+     * @return array 高鐵站資料陣列
+     */
+    function get_THSR_stations()
+    {
+        try
+        {
+            
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, "Exception error");
+        }
+    }
 }
