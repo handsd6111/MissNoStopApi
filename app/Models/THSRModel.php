@@ -29,7 +29,7 @@ class THSRModel extends BaseModel
      * 取得高鐵指定起訖站時刻表查詢類別
      * 
      * *列車需於當日行經起訖站並以訖站升序排列
-     * @param string $fromStationId 起代碼
+     * @param string $fromStationId 起站代碼
      * @param string $toStringId 訖站代碼
      * @return mixed 查詢類別
      */
@@ -37,15 +37,7 @@ class THSRModel extends BaseModel
     {
         try
         {
-            // 取得於當日行經起訖站的列車
-            // return $this->db->table("THSR_arrivals")
-            //                 ->join("THSR_trains", "HT_id = HA_train_id")
-            //                 ->select("HA_train_id, HA_station_id, HA_arrival_time")
-            //                 ->where("DATE(HT_departure_date) = CURDATE()")
-            //                 ->where("HA_station_id", $fromStationId)
-            //                 ->orWhere("HA_station_id", $toStationId)
-            //                 ->groupBy("HA_train_id")
-            //                 ->having("COUNT(HA_train_id) >= 2");
+            // 未完成
         }
         catch (Exception $e)
         {

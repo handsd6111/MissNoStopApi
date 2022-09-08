@@ -300,7 +300,7 @@ class ApiController extends BaseController
      * 取得高鐵所有車站資料
      * @return array 高鐵站資料陣列
      */
-    function get_THSR_stations()
+    function get_thsr_stations()
     {
         try
         {
@@ -323,13 +323,12 @@ class ApiController extends BaseController
      * @param string $toStationId 訖站代碼
      * @return array 起訖站時刻表資料
      */
-    function get_THSR_arrivals($fromStationId, $toStationId)
+    function get_thsr_arrivals($fromStationId, $toStationId)
     {
         try
         {
             // 取得高鐵指定起訖站時刻表資料
-            // $arrivals = $this->THSRModel->get_arrivals($fromStationId, $toStationId)->get()->getResult();
-
+            // return $this->THSRModel->get_arrivals($fromStationId, $toStationId)->get()->getResult();
         }
         catch (Exception $e)
         {
@@ -344,12 +343,12 @@ class ApiController extends BaseController
      * @param float $latitude 緯度（-90 ~ 90）
      * @return array 最近高鐵站資料陣列
      */
-    function get_THSR_nearest_station($longitude, $latitude)
+    function get_thsr_nearest_station($longitude, $latitude)
     {
         try
         {
             // 取得高鐵所有車站資料
-            $station = $this->THSRModel->get_nearest_station()->get()->getResult();
+            $station = $this->THSRModel->get_nearest_station($longitude, $latitude)->get()->getResult();
 
             // 回傳資料
             return $this->send_response($station);
