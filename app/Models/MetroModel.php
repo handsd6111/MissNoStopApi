@@ -149,7 +149,7 @@ class MetroModel extends BaseModel
             // 在此使用 get_time_minute() 而不是 MySQL 內建的 NOW() 是因為時區的問題。
             return $this->db->table("metro_arrivals")
                             ->select("MA_sequence,
-                                      (HOUR(MA_remain_time) * 60 + MINUTE(MA_remain_time)) - ". get_time_minute() ." AS MS_remain_time,
+                                      (HOUR(MA_arrival_time) * 60 + MINUTE(MA_arrival_time)) - ". get_time_minute() ." AS MS_remain_time,
                                       MA_departure_time")
                             ->where($condition)
                             ->orderBy("MA_sequence");
