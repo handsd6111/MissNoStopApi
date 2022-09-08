@@ -327,14 +327,53 @@ class ApiController extends BaseController
     {
         try
         {
-            // 取得高鐵指定起訖站時刻表資料
-            // return $this->THSRModel->get_arrivals($fromStationId, $toStationId)->get()->getResult();
+            // 取得指定高鐵行經起訖站的所有車次
+            $trainId = $this->THSRModel->get_trains_by_stations($fromStationId, $toStationId)->get()->getResult();
+
+            $arrivals = [];
+
+            $temp = [
+                0 => [
+                    "train_id" => "",
+                    "start_station_id" => "",
+                    "start_arrival_time" => "",
+                    "end_station_id" => "",
+                    "end_arrival_time" => ""
+                ],
+                1 => [
+                    "HA_train_id" => "",
+                    "arrivals" => [
+                        "start_station_id" => "",
+                        "end_station_id" => ""
+                    ]
+                ]
+            ];
+
+            for ($i = 0; $i < sizeof($trainId); $i++)
+            {
+                $arrivals[$i] = $this->THSRModel->get_arrivals($trainId[$i]->HA_train_id)->get()->getResult();
+            }
+
+
         }
         catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
             return $this->send_response([], 500, "Exception error");
         }
+    }
+
+    function compare( $a, $b )
+    {
+        if ( $a->last_nom < $b->last_nom )
+        {
+          return -1;
+        }
+        if ( $a->last_nom > $b->last_nom )
+        {
+          return 1;
+        }
+        return 0;
     }
 
     /**

@@ -26,18 +26,41 @@ class THSRModel extends BaseModel
     }
 
     /**
-     * 取得高鐵指定起訖站時刻表查詢類別
-     * 
-     * *列車需於當日行經起訖站並以訖站升序排列
+     * 取得指定高鐵行經起訖站的所有車次
      * @param string $fromStationId 起站代碼
      * @param string $toStringId 訖站代碼
      * @return mixed 查詢類別
      */
-    function get_arrivals($fromStationId, $toStationId)
+    function get_trains_by_stations($fromStationId, $toStationId)
     {
         try
         {
-            // 未完成
+            return $this->db->table("THSR_arrivals")
+                            ->select("HA_train_id")
+                            ->where("HA_station_id", $fromStationId)
+                            ->orWhere("HA_station_id", $toStationId)
+                            ->groupBy("HA_train_id")
+                            ->having("COUNT(HA_train_id) > 1");
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得高鐵指定車站的時刻表查詢類別
+     * @param string $stationId 車站代碼
+     * @return mixed 查詢類別
+     */
+    function get_arrivals($stationId)
+    {
+        try
+        {
+            return $this->db->table("metro_arrivals")
+                            ->select("HA_train_id, HA_station_id, HA_arrival_time")
+                            ->where("HA_station_id", $stationId);
         }
         catch (Exception $e)
         {
@@ -63,7 +86,20 @@ class THSRModel extends BaseModel
                                       HS_city_id,
                                       HS_longitude,
                                       HS_latitude,
-                                      FLOOR( SQRT( POWER( ABS( HS_longitude - $longitude ), 2 ) + POWER( ABS( HS_latitude - $latitude ), 2 ) ) * 11100 ) / 100 AS HS_distance")
+                                      FLOOR(
+                                        SQRT(
+                                            POWER(
+                                                ABS(
+                                                    HS_longitude - $longitude
+                                                ), 2
+                                            ) +
+                                            POWER(
+                                                ABS(
+                                                    HS_latitude - $latitude
+                                                ), 2
+                                            )
+                                        ) * 11100
+                                    ) / 100 AS HS_distance")
                             ->orderBy("HS_distance")
                             ->limit(1);
         }
