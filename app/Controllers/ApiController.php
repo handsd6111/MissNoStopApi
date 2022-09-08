@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\BaseModel;
 use App\Models\MetroModel;
+use App\Models\THSRModel;
 use Exception;
 
 class ApiController extends BaseController
@@ -14,6 +15,7 @@ class ApiController extends BaseController
         {
             $this->baseModel  = new BaseModel();
             $this->metroModel = new MetroModel();
+            $this->THSRModel  = new THSRModel();
         }
         catch (Exception $e)
         {
@@ -295,14 +297,62 @@ class ApiController extends BaseController
     }
 
     /**
-     * 取得所有高鐵車站資料
+     * 取得高鐵所有車站資料
      * @return array 高鐵站資料陣列
      */
     function get_THSR_stations()
     {
         try
         {
-            
+            // 取得高鐵所有車站資料
+            $stations = $this->THSRModel->get_stations()->get()->getResult();
+
+            // 回傳資料
+            return $this->send_response($stations);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, "Exception error");
+        }
+    }
+
+    /**
+     * 取得高鐵指定起訖站時刻表資料
+     * @param string $fromStationId 起暫代碼
+     * @param string $toStationId 訖站代碼
+     * @return array 起訖站時刻表資料
+     */
+    function get_THSR_arrivals($fromStationId, $toStationId)
+    {
+        try
+        {
+            // 取得高鐵指定起訖站時刻表資料
+            // $arrivals = $this->THSRModel->get_arrivals($fromStationId, $toStationId)->get()->getResult();
+
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, "Exception error");
+        }
+    }
+
+    /**
+     * 取得高鐵指定經緯度最近車站
+     * @param float $longitude 經度（-180 ~ 180）
+     * @param float $latitude 緯度（-90 ~ 90）
+     * @return array 最近高鐵站資料陣列
+     */
+    function get_THSR_nearest_station($longitude, $latitude)
+    {
+        try
+        {
+            // 取得高鐵所有車站資料
+            $station = $this->THSRModel->get_nearest_station()->get()->getResult();
+
+            // 回傳資料
+            return $this->send_response($station);
         }
         catch (Exception $e)
         {
