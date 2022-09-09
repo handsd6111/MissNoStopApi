@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use App\Controllers\TDXAuthController;
+use App\Controllers\TdxAuthController;
 use CodeIgniter\Model;
 use Config\Services as CS;
 use DateTime;
 
-class TDXAuth
+class TdxAuth
 {
     /**
-     * 取得快取中的 TDXAuthObject。
+     * 取得快取中的 TdxAuthObject。
      * 
      * @return object(stdClass) 
      * {
@@ -24,22 +24,22 @@ class TDXAuth
      */
     public static function getAuthObject()
     {
-        $TDXAuthObject = CS::cache()->get('TDXAuthObject');
-        if ($TDXAuthObject === NULL) {
-            $TDXAuthObject = TDXAuthController::getAndSetAuthObject();
+        $TdxAuthObject = CS::cache()->get('TdxAuthObject');
+        if ($TdxAuthObject === NULL) {
+            $TdxAuthObject = TdxAuthController::getAndSetAuthObject();
         }
-        return $TDXAuthObject;
+        return $TdxAuthObject;
     }
 
     /**
-     * 將 TDXAuthObject 放入 cache 中。
+     * 將 TdxAuthObject 放入 cache 中。
      * 
-     * @param object $authObject TDXAuthObject
+     * @param object $authObject TdxAuthObject
      */
     public static function setAuthObject($authObject)
     {
         $expires_in = $authObject->expires_in;
         $authObject->expires_in = time() + $expires_in;
-        CS::cache()->save('TDXAuthObject', $authObject, $expires_in);
+        CS::cache()->save('TdxAuthObject', $authObject, $expires_in);
     }
 }

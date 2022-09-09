@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Models\ORM\CityModel;
+use Exception;
+use App\Controllers\BaseController;
+use App\Models\TdxAuth;
+use \Config\Services as CS;
+
+class TdxBaseController extends BaseController
+{
+    /**
+     * 從 AuthObject 中取出 Access Token。
+     * @return string
+     */
+    protected function getAccessToken()
+    {
+        return TdxAuth::getAuthObject()->access_token;
+    }
+
+    /**
+     * 從 TDX 取得城市資料，並且利用 ORM Model 寫入 SQL 內。
+     * 
+     * @return boolean true | false
+     */
+    public function getAndSetCities()
+    {
+        try {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Basic/City?%24format=JSON";
+            $result = $this->curlGet($url, $accessToken);
+            var_dump($result[0]->CityID);
+            foreach ($result as $value) {
+
+                $saveData = [
+                    'C_id' => $value->CityCode,
+                    'C_name_TC' => $value->CityName,
+                    'C_name_EN' => $value->City
+                ];
+
+                $cityModel = new CityModel();
+                $cityModel->save($saveData); //orm save data
+            }
+        } catch (Exception $ex) {
+            log_message("critical", $ex->getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 包裝原本 Codeigniter 中有的 curl Request 為TDX使用時預先帶入 Token。
+     */
+    protected function curlGet($url, $accessToken, $headers = null)
+    {
+        if ($headers === null) {
+            $headers = [
+                'accept' => 'application/json',
+                'authorization' => 'Bearer ' . $accessToken
+            ];
+        }
+        $client = CS::curlrequest(); // 建立CURL instance
+        $response = $client->request(
+            'GET', // method
+            $url, // url
+            [
+                'headers' => $headers
+            ] // option
+        );
+
+        // 先取得回傳的JSON字串，不過是亂的編碼，做第一次deocde時會將亂的編碼變成正確的編碼，第二次decode才會將JSON字串轉成物件
+        $result = json_decode(json_decode($response->getJSON()));
+        return $result;
+    }
+}
