@@ -2,18 +2,16 @@
 
 namespace App\Controllers;
 
-use App\Models\ORM\CityModel;
+
 use App\Models\ORM\MetroArrivalModel;
 use App\Models\ORM\MetroDurationModel;
 use App\Models\ORM\MetroRouteModel;
 use App\Models\ORM\MetroRouteStationModel;
 use App\Models\ORM\MetroStationModel;
 use App\Models\ORM\MetroSystemModel;
-use App\Models\TDXAuth;
 use Exception;
-use \Config\Services as CS;
 
-class TDXDataController extends TDXBaseController
+class TdxMetroController extends TdxBaseController
 {
 
     // ============== Metro System ==============
@@ -34,39 +32,6 @@ class TDXDataController extends TDXBaseController
         $metroSystemModel = new MetroSystemModel();
         $result = $metroSystemModel->get()->getResult();
         return $result;
-    }
-
-    // ============== City ==============
-
-    /**
-     * 從 TDX 取得城市資料，並且利用 ORM Model 寫入 SQL 內。
-     * 
-     * @return boolean true | false
-     */
-    public function getAndSetCities()
-    {
-        try {
-            $accessToken = $this->getAccessToken();
-            $url = "https://tdx.transportdata.tw/api/basic/v2/Basic/City?%24format=JSON";
-            $result = $this->curlGet($url, $accessToken);
-            var_dump($result[0]->CityID);
-            foreach ($result as $value) {
-
-                $saveData = [
-                    'C_id' => $value->CityCode,
-                    'C_name_TC' => $value->CityName,
-                    'C_name_EN' => $value->City
-                ];
-
-                $cityModel = new CityModel();
-                $cityModel->save($saveData); //orm save data
-            }
-        } catch (Exception $ex) {
-            log_message("critical", $ex->getMessage());
-            return false;
-        }
-
-        return true;
     }
 
     // ============== Metro Route ==============
@@ -185,7 +150,7 @@ class TDXDataController extends TDXBaseController
     public function setMetroStation($railSystem)
     {
         $result = $this->getMetroStation($railSystem);
-
+        
         foreach ($result as $value) {
             $saveData = [
                 'MS_id' => $value->StationUID,
