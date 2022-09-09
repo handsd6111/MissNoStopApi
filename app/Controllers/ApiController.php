@@ -319,6 +319,13 @@ class ApiController extends BaseController
 
     /**
      * 取得高鐵指定起訖站時刻表資料
+     * 1 => [
+     *      "HA_train_id" => "",
+     *      "arrivals"    => [
+     *          "start_station_id" => "",
+     *          "end_station_id"   => ""
+     *      ]
+     * ]
      * @param string $fromStationId 起暫代碼
      * @param string $toStationId 訖站代碼
      * @return array 起訖站時刻表資料
@@ -328,38 +335,40 @@ class ApiController extends BaseController
         try
         {
             // 取得指定高鐵行經起訖站的所有車次
-            $trainId = $this->THSRModel->get_trains_by_stations($fromStationId, $toStationId)->get()->getResult();
+            $trainIds = $this->THSRModel->get_trains_by_stations($fromStationId, $toStationId)->get()->getResult();
 
             $arrivals = [];
 
-            $temp = [
-                0 => [
-                    "train_id" => "",
-                    "start_station_id" => "",
-                    "start_arrival_time" => "",
-                    "end_station_id" => "",
-                    "end_arrival_time" => ""
-                ],
-                1 => [
-                    "HA_train_id" => "",
-                    "arrivals" => [
-                        "start_station_id" => "",
-                        "end_station_id" => ""
-                    ]
-                ]
-            ];
+            // return var_dump($this->THSRModel->get_arrivals($trainIds[0]->HA_train_id, $fromStationId, $toStationId)->get()->getResult());
 
-            for ($i = 0; $i < sizeof($trainId); $i++)
+            for ($i = 0; $i < sizeof($trainIds); $i++)
             {
-                $arrivals[$i] = $this->THSRModel->get_arrivals($trainId[$i]->HA_train_id)->get()->getResult();
+                $arrivalData   = $this->THSRModel->get_arrivals($trainIds[$i]->HA_train_id, $fromStationId, $toStationId)->get()->getResult();
+                
+                if (!sizeof($arrivalData))
+                {
+                    continue;
+                }
+
+                $trainId            = $arrivalData[0]->HA_train_id;
+                $fromStationArrival = $arrivalData[0]->HA_arrival_time;
+                $toStationArrival   = $arrivalData[1]->HA_arrival_time;
+
+                $arrivals[$i] = [
+                    "train_id" => $trainId,
+                    "arrivals" => [
+                        "from_station_id" => $fromStationArrival,
+                        "to_station_id"   => $toStationArrival
+                    ]
+                ];
             }
 
-
+            return $this->send_response($arrivals);
         }
         catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, "Exception error");
+            return $this->send_response([$e->getMessage()], 500, "Exception error");
         }
     }
 

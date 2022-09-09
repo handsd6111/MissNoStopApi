@@ -50,17 +50,25 @@ class THSRModel extends BaseModel
     }
 
     /**
-     * 取得高鐵指定車站的時刻表查詢類別
-     * @param string $stationId 車站代碼
+     * 取得高鐵指定車次及起訖站的時刻表查詢類別
+     * @param string $trainId 車次代碼
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
      * @return mixed 查詢類別
      */
-    function get_arrivals($stationId)
+    function get_arrivals($trainId, $fromStationId, $toStationId)
     {
         try
         {
-            return $this->db->table("metro_arrivals")
+            $stations = [
+                $fromStationId,
+                $toStationId
+            ];
+            return $this->db->table("THSR_arrivals")
                             ->select("HA_train_id, HA_station_id, HA_arrival_time")
-                            ->where("HA_station_id", $stationId);
+                            ->where("HA_train_id", $trainId)
+                            ->whereIn("HA_station_id", $stations)
+                            ->orderBy("HA_arrival_time");
         }
         catch (Exception $e)
         {
