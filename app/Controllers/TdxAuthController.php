@@ -3,15 +3,15 @@
 namespace App\Controllers;
 
 use App\Controllers\BaseController;
-use App\Models\TDXAuth;
+use App\Models\TdxAuth;
 use \Config\Services as CS;
 use Exception;
 
-class TDXAuthController extends TDXBaseController
+class TdxAuthController extends TDXBaseController
 {
 
     /**
-     * 從 TDX 的 Auth2 Server 取得 AuthObject 並且呼叫 TDXAuth 中的 setAuthObject 將之寫入 cache 中。
+     * 從 TDX 的 Auth2 Server 取得 AuthObject 並且呼叫 TdxAuth 中的 setAuthObject 將之寫入 cache 中。
      * @return false | object(stdClass)
      * {
      *      access_token => string
@@ -45,7 +45,7 @@ class TDXAuthController extends TDXBaseController
                 ]
             );
             $result = json_decode(json_decode($response->getJSON()));
-            TDXAuth::setAuthObject($result);
+            TdxAuth::setAuthObject($result);
             return $result;
         } catch (Exception $ex) {
             throw $ex;
