@@ -2,11 +2,13 @@
 
 namespace App\Controllers;
 
+use App\Models\ORM\CityModel;
+use Exception;
 use App\Controllers\BaseController;
-use App\Models\TDXAuth;
+use App\Models\TdxAuth;
 use \Config\Services as CS;
 
-class TDXBaseController extends BaseController
+class TdxBaseController extends BaseController
 {
     /**
      * 從 AuthObject 中取出 Access Token。
@@ -14,17 +16,45 @@ class TDXBaseController extends BaseController
      */
     protected function getAccessToken()
     {
-        return TDXAuth::getAuthObject()->access_token;
+        return TdxAuth::getAuthObject()->access_token;
+    }
+
+    /**
+     * 從 TDX 取得城市資料，並且利用 ORM Model 寫入 SQL 內。
+     * 
+     * @return boolean true | false
+     */
+    public function getAndSetCities()
+    {
+        try {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Basic/City?%24format=JSON";
+            $result = $this->curlGet($url, $accessToken);
+            var_dump($result[0]->CityID);
+            foreach ($result as $value) {
+
+                $saveData = [
+                    'C_id' => $value->CityCode,
+                    'C_name_TC' => $value->CityName,
+                    'C_name_EN' => $value->City
+                ];
+
+                $cityModel = new CityModel();
+                $cityModel->save($saveData); //orm save data
+            }
+        } catch (Exception $ex) {
+            log_message("critical", $ex->getMessage());
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * 包裝原本 Codeigniter 中有的 curl Request 為TDX使用時預先帶入 Token。
      */
-    protected function curlGet(
-        $url,
-        $accessToken,
-        $headers = null
-    ) {
+    protected function curlGet($url, $accessToken, $headers = null)
+    {
         if ($headers === null) {
             $headers = [
                 'accept' => 'application/json',
