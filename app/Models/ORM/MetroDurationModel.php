@@ -2,11 +2,7 @@
 
 namespace App\Models\ORM;
 
-use Config\Database;
-use CodeIgniter\Model;
-// use App\Models\ORM\CompositeKey;
-
-class MetroDurationModel extends Model
+class MetroDurationModel extends CompositeKey
 {
 
     // protected $this->compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
@@ -48,60 +44,10 @@ class MetroDurationModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    // protected $compositePrimaryKeys = [];
-    protected $_builder;
-
-
     public function __construct()
     {
         parent::__construct();
-        // $db      = \Config\Database::connect();
-        // $this->_builder = $db->table('metro_durations');
-        // $this->compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
-        // var_dump($this->_builder->get());
+        $this->builder = $this->builder();
+        $this->compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
     }
-
-    /**
-     * @param $data array 要輸入的資料
-     */
-    public function isKeyInTable($data)
-    {
-        $compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
-        $db      = \Config\Database::connect();
-        $_builder = $db->table('metro_durations');
-        // $_builder->where('MD_station_id', 'TRTC-BL22')->where('MD_end_station_id', 'TRTC-BL23');
-
-        foreach ($compositePrimaryKeys as $key) {
-            $_builder->where($key, $data[$key]);
-        }
-
-        return $_builder->countAllResults() > 0 ? true : false;
-    }
-
-    public function save($data): bool
-    {
-        $db      = \Config\Database::connect();
-        $_builder = $db->table('metro_durations');
-        $compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
-
-        if (empty($data)) {
-            return true;
-        }
-        if ($this->isKeyInTable($data) === true) {
-            foreach ($compositePrimaryKeys as $key) {
-                $_builder->where($key, $data[$key]);
-            }
-            $response = $_builder->update($data);
-        } else {
-            $response = $_builder->insert($data);
-
-            if ($response !== false) {
-                $response = true;
-            }
-        }
-
-        return $response;
-    }
-
-    // use CompositeKey;
 }

@@ -35,25 +35,53 @@ $routes->set404Override();
 
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
-// 取得所有捷運系統
+
+// 取得所有縣市資料 /api/city
+$routes->get('/api/city', 'ApiController::get_cities');
+
+// 取得所有捷運系統資料
 $routes->get('/api/metro/system', 'ApiController::get_metro_systems');
-// 取得指定捷運系統上的所有路線
+// 取得指定捷運系統上的所有路線資料
 $routes->get('/api/metro/system/(:alpha)', 'ApiController::get_metro_routes/$1');
-// 取得指定捷運系統及路線上的所有車站
+// 取得指定捷運系統及路線上的所有捷運站資料
 $routes->get('/api/metro/system/(:alpha)/route/(:segment)', 'ApiController::get_metro_stations/$1/$2');
-// 取得指定車站及終點車站方向的時刻表
-$routes->get('/api/metro/arrival/station/(:segment)/end-station/(:segment)', 'ApiController::get_metro_arrivals/$1/$2');
+// 取得指定捷運系統、路線及經緯度的最近捷運站資料
+$routes->get('/api/metro/system/(:alpha)/route/(:segment)/long/(:segment)/lat/(:segment)', 'ApiController::get_metro_nearest_station/$1/$2/$3/$4');
+// 取得指定捷運起訖站的時刻表資料
+$routes->get('/api/metro/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_metro_arrivals/$1/$2');
+// 取得指定捷運起訖站的運行時間資料
+$routes->get('/api/metro/duration/from/(:segment)/to/(:segment)', 'ApiController::get_metro_durations/$1/$2');
 
+// 取得所有高鐵站資料
+$routes->get('/api/THSR/station', 'ApiController::get_thsr_stations');
+// 取得指定高鐵起訖站的時刻表資料
+$routes->get('/api/THSR/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_thsr_arrivals/$1/$2');
+// 取得指定經緯度的最近高鐵站資料
+$routes->get('/api/THSR/station/long/(:segment)/lat/(:segment)', 'ApiController::get_thsr_nearest_station/$1/$2');
+
+// tdx
 $routes->group('tdx', static function ($routes) {
-    // $routes->cli('auth', 'TDXAuthController::getAndSetAuthObject');
-    $routes->group('data', static function ($routes) {
-        $routes->cli('cities', 'TDXDataController::getAndSetCities');
 
+    // tdx/data
+    $routes->group('data', static function ($routes) {
+        $routes->cli('cities', 'TDXDataController::getAndSetCities'); // tdx/data/cities 城市資料
+
+        //tdx/data/metro
         $routes->group('metro', static function ($routes) {
-            $routes->cli('station/(:alphanum)', 'TDXDataController::getAndSetMetroStation/$1');
-            $routes->cli('route/(:alphanum)', 'TDXDataController::getAndSetMetroRoute/$1');
-            $routes->cli('duration/TYMC', 'TDXDataController::getAndSetMetroDurationForTYMC');
-            $routes->cli('duration/(:alphanum)', 'TDXDataController::getAndSetMetroDuration/$1');
+
+            //tdx/data/metro/route
+            $routes->cli('route/all', 'TDXDataController::setMetroRouteAll'); // 全部捷運系統路線
+            $routes->cli('route/(:alphanum)', 'TDXDataController::setMetroRoute/$1'); // 單筆捷運系統的路線
+
+            $routes->cli('station/all', 'TDXDataController::setMetroStationAll'); // 全部捷運系統的站點
+            $routes->cli('station/(:alphanum)', 'TDXDataController::setMetroStation/$1'); // 單個捷運系統的站點 
+
+            $routes->cli('duration/(:alphanum)', 'TDXDataController::setMetroDuration/$1'); // 單個捷運系統的運行時間，不包含 TYMC (桃捷)
+
+            $routes->cli('routeStation/all', 'TDXDataController::setMetroRouteStationAll'); // 全部捷運系統車站與路線的關聯資料
+            $routes->cli('routeStation/(:alphanum)', 'TDXDataController::setMetroRouteStation/$1'); // 單個捷運系統車站與路線的關聯資料
+
+            $routes->cli('arrival/(:alphanum)', 'TDXDataController::setMetroArrival/$1'); // 單個捷運系統的時刻表
         });
     });
 });

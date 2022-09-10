@@ -2,23 +2,19 @@
 
 namespace App\Models\ORM;
 
-class MetroArrivalModel extends CompositeKey
+use CodeIgniter\Model;
+
+class MetroSystemModel extends Model
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'metro_arrivals';
-    protected $primaryKey       = 'MA_end_station_id';
+    protected $table            = 'metro_systems';
+    protected $primaryKey       = 'MST_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = [
-        'MA_station_id',
-        'MA_end_station_id',
-        'MA_sequence',
-        'MA_remain_time',
-        'MA_departure_time'
-    ];
+    protected $allowedFields    = ['MST_id', 'MST_name_TC', 'MST_name_EN'];
 
     // Dates
     protected $useTimestamps = false;
@@ -43,15 +39,4 @@ class MetroArrivalModel extends CompositeKey
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->builder = $this->builder();
-        $this->compositePrimaryKeys = [
-            'MA_station_id',
-            'MA_end_station_id',
-            'MA_sequence',
-        ];
-    }
 }
