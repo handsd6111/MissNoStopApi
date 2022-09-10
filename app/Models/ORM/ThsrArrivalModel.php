@@ -17,7 +17,8 @@ class ThsrArrivalModel extends CompositeKey
     protected $allowedFields    = [
         'HA_train_id',
         'HA_station_id',
-        'HA_arrival_time'
+        'HA_arrival_time',
+        'HA_direction'
     ];
 
     // Dates

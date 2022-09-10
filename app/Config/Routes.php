@@ -64,7 +64,7 @@ $routes->group('tdx', static function ($routes) {
 
     // tdx/data
     $routes->group('data', static function ($routes) {
-        $routes->cli('city', 'TDXDataController::getAndSetCities'); // tdx/data/cities 城市資料
+        $routes->cli('city', 'TdxBaseController::getAndSetCities'); // tdx/data/cities 城市資料
 
         // tdx/data/thsr
         $routes->group('thsr', static function ($routes) {
@@ -80,8 +80,8 @@ $routes->group('tdx', static function ($routes) {
         // tdx/data/metro
         $routes->group('metro', static function ($routes) {
 
-            $routes->cli('route/all', 'TDXDataController::setMetroRouteAll'); // 全部捷運系統路線
-            $routes->cli('route/(:alphanum)', 'TDXDataController::setMetroRoute/$1'); // 單筆捷運系統的路線
+            $routes->cli('route/all', 'TdxMetroController::setMetroRouteAll'); // 全部捷運系統路線
+            $routes->cli('route/(:alphanum)', 'TdxMetroController::setMetroRoute/$1'); // 單筆捷運系統的路線
 
             $routes->cli('station/all', 'TdxMetroController::setMetroStationAll'); // 全部捷運系統的站點
             $routes->cli('station/(:alphanum)', 'TdxMetroController::setMetroStation/$1'); // 單個捷運系統的站點 
