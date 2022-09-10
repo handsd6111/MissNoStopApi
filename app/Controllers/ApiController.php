@@ -334,8 +334,29 @@ class ApiController extends BaseController
     {
         try
         {
+            // 驗證參數
+            $vData = [
+                "THSR_from_station" => $fromStationId,
+                "THSR_to_station"   => $toStationId
+            ];
+            $vRule = [
+                "THSR_from_station" => "alpha_numeric_punct|max_length[11]",
+                "THSR_to_station"   => "alpha_numeric_punct|max_length[11]",
+            ];
+            if (!$this->validateData($vData, $vRule))
+            {
+                return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
+            }
+
+            // 取得行駛方向（0：南下；1：北上）
+            $direction = 0;
+            if (intval(str_replace("THSR-", "", $fromStationId)) > intval(str_replace("THSR-", "", $toStationId)))
+            {
+                $direction = 1;
+            }
+
             // 取得指定高鐵行經起訖站的所有車次
-            $trainIds = $this->THSRModel->get_trains_by_stations($fromStationId, $toStationId)->get()->getResult();
+            $trainIds = $this->THSRModel->get_trains_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
 
             $arrivals = [];
 
@@ -343,7 +364,7 @@ class ApiController extends BaseController
 
             for ($i = 0; $i < sizeof($trainIds); $i++)
             {
-                $arrivalData   = $this->THSRModel->get_arrivals($trainIds[$i]->HA_train_id, $fromStationId, $toStationId)->get()->getResult();
+                $arrivalData = $this->THSRModel->get_arrivals($trainIds[$i]->HA_train_id, $fromStationId, $toStationId)->get()->getResult();
                 
                 if (!sizeof($arrivalData))
                 {
@@ -363,6 +384,9 @@ class ApiController extends BaseController
                 ];
             }
 
+            // 以 from_station_id 為時刻表排序
+            usort($arrivals, [ApiController::class, "compare"]);
+
             return $this->send_response($arrivals);
         }
         catch (Exception $e)
@@ -372,17 +396,15 @@ class ApiController extends BaseController
         }
     }
 
-    function compare( $a, $b )
+    /**
+     * 比對高鐵時刻表資料大小
+     * @param string $a 項目 A
+     * @param string $b 項目 B
+     * @return int 大小 0、1 或 2
+     */
+    function compare($a, $b)
     {
-        if ( $a->last_nom < $b->last_nom )
-        {
-          return -1;
-        }
-        if ( $a->last_nom > $b->last_nom )
-        {
-          return 1;
-        }
-        return 0;
+        return strcmp($a["arrivals"]["from_station_id"], $b["arrivals"]["from_station_id"]);
     }
 
     /**

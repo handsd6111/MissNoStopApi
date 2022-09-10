@@ -29,16 +29,25 @@ class THSRModel extends BaseModel
      * 取得指定高鐵行經起訖站的所有車次
      * @param string $fromStationId 起站代碼
      * @param string $toStringId 訖站代碼
+     * @param int $direction 行車方向（0：南下；1：北上）
      * @return mixed 查詢類別
      */
-    function get_trains_by_stations($fromStationId, $toStationId)
+    function get_trains_by_stations($fromStationId, $toStationId, $direction)
     {
         try
         {
+            $condition1 = [
+                "HA_train_id"  => $fromStationId,
+                "HA_direction" => $direction
+            ];
+            $condition2 = [
+                "HA_train_id"  => $toStationId,
+                "HA_direction" => $direction
+            ];
             return $this->db->table("THSR_arrivals")
                             ->select("HA_train_id")
-                            ->where("HA_station_id", $fromStationId)
-                            ->orWhere("HA_station_id", $toStationId)
+                            ->where($condition1)
+                            ->orWhere($condition2)
                             ->groupBy("HA_train_id")
                             ->having("COUNT(HA_train_id) > 1");
         }
