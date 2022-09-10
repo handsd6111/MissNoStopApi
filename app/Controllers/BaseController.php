@@ -41,7 +41,7 @@ abstract class BaseController extends Controller
     protected $helpers = [];
 
     
-    public function __construct()
+    function __construct()
     {
         try
         {
@@ -58,7 +58,7 @@ abstract class BaseController extends Controller
     /**
      * Constructor.
      */
-    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
+    function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
         // Do Not Edit This Line
         parent::initController($request, $response, $logger);
@@ -69,16 +69,18 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * 參數驗證規則：$metroValidationRules[參數名稱] = 規則
+     * 參數驗證規則：$validationRules[參數名稱] = 規則
      */
-    protected $metroValidationRules = [
-        "systemId"     => "alpha|max_length[4]",
-        "routeId"      => "alpha_numeric_punct|max_length[12]",
-        "stationId"    => "alpha_numeric_punct|max_length[12]",
-        "fromStationId" => "alpha_numeric_punct|max_length[12]",
-        "toStationId"  => "alpha_numeric_punct|max_length[12]",
-        "longitude"    => "alpha_numeric_punct|max_length[12]",
-        "latitude"     => "alpha_numeric_punct|max_length[12]"
+    protected $validationRules = [
+        "longitude"             => "alpha_numeric_punct|max_length[12]",
+        "latitude"              => "alpha_numeric_punct|max_length[12]",
+        "metro_system_id"       => "alpha|max_length[4]",
+        "metro_route_id"        => "alpha_numeric_punct|max_length[12]",
+        "metro_station_id"      => "alpha_numeric_punct|max_length[12]",
+        "metro_from_Station_id" => "alpha_numeric_punct|max_length[12]",
+        "metro_to_Station_id"   => "alpha_numeric_punct|max_length[12]",
+        "THSR_from_station_id"  => "alpha_numeric_punct|max_length[11]",
+        "THSR_to_station_id"    => "alpha_numeric_punct|max_length[11]",
     ];
 
     /**
@@ -86,7 +88,7 @@ abstract class BaseController extends Controller
      * @param array $vData 參數陣列
      * @param bool 驗證結果
      */
-    public function metro_validation($vData)
+    function validate_data(&$vData)
     {
         try
         {
@@ -95,12 +97,19 @@ abstract class BaseController extends Controller
             // 此次所需的驗證規則
             $vRules = [];
 
-            // 對照 $this->metroValidationRules 的驗證資料及 $vData 的參數名稱，並寫入 $vRules
+            // 對照 $this->validationRules 的驗證資料及 $vData 的參數名稱，並寫入 $vRules
             for ($i = 0; $i < sizeof($vData); $i++)
             {
                 $vRule = $vDataKeys[$i];
-                $vRules[$vRule] = $this->metroValidationRules[$vRule];
+                $vRules[$vRule] = $this->validationRules[$vRule];
             }
+
+            // 將參數轉大寫
+            foreach ($vData as $key => $value)
+            {
+                $vData[$key] = strtoupper($value);
+            }
+
             // 回傳驗證結果
             if (!$this->validateData($vData, $vRules))
             {
@@ -115,39 +124,13 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * 驗證捷運起點站及目的站代碼
-     * @param string $fromStationId 起點站代碼
-     * @param string $toStationId 目的站代碼
-     * @return bool 驗證結果
-     */
-    public function metro_validation_stations($fromStationId, $toStationId)
-    {
-        try
-        {
-            $vData = [
-                "fromStationId" => $fromStationId,
-                "toStationId"   => $toStationId
-            ];
-            if (!$this->metro_validation($vData))
-            {
-                return false;
-            }
-            return true;
-        }
-        catch (\Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
      * 取得捷運起點站及目的站序號
      * @param string $fromStationId 起點站代碼
      * @param string $toStationId 目的站代碼
      * @return array true（0）及兩站序號（1、2）
      * @return array false（0）及查無資料的捷運站代碼（1）
      */
-    public function get_metro_sequences($fromStationId, $toStationId)
+    function get_metro_sequences($fromStationId, $toStationId)
     {
         try
         {
@@ -182,7 +165,7 @@ abstract class BaseController extends Controller
                 "to"   =>$toStationSeq
             ];
         }
-        catch (\Exception $e)
+        catch (Exception $e)
         {
             throw $e;
         }
@@ -217,7 +200,7 @@ abstract class BaseController extends Controller
             }
             return $endStations[sizeof($endStations) -1]->MA_end_station_id;
         }
-        catch (\Exception $e)
+        catch (Exception $e)
         {
             throw $e;
         }
@@ -231,7 +214,7 @@ abstract class BaseController extends Controller
      * @param array $headers 標頭，預設為空
      * @return mixed 回傳資料
      */
-    public function send_response($data = [], $status = 200, $message = "OK", $headers = [])
+    function send_response($data = [], $status = 200, $message = "OK", $headers = [])
     {
         $result = [
             "data" => $data,
