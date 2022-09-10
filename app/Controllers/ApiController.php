@@ -71,16 +71,11 @@ class ApiController extends BaseController
     {
         try
         {
-            // 轉大寫
-            $systemId = strtoupper($systemId);
-
-            // 設定 GET 資料驗證格式
-            $vData = [
-                "systemId" => $systemId
-            ];
-
             // 驗證參數
-            if (!$this->metro_validation($vData))
+            $vData = [
+                "metro_system_id" => $systemId
+            ];
+            if (!$this->validate_data($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -110,18 +105,12 @@ class ApiController extends BaseController
     {
         try
         {
-            // 轉大寫
-            $systemId = strtoupper($systemId);
-            $routeId  = strtoupper($routeId);
-
-            // 設定 GET 資料驗證格式
+            // 驗證參數
             $vData = [
-                "systemId" => $systemId,
-                "routeId"  => $routeId
+                "metro_system_id" => $systemId,
+                "metro_route_id"  => $routeId
             ];
-
-            // 如果 GET 資料驗證失敗則回傳錯誤訊息
-            if (!$this->metro_validation($vData))
+            if (!$this->validate_data($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -151,12 +140,12 @@ class ApiController extends BaseController
     {
         try
         {
-            // 轉大寫
-            $fromStationId = strtoupper($fromStationId);
-            $toStationId   = strtoupper($toStationId);
-
             // 驗證參數
-            if (!$this->metro_validation_stations($fromStationId, $toStationId))
+            $vData = [
+                "metro_from_station_id" => $fromStationId,
+                "metro_to_station_id"   => $toStationId
+            ];
+            if (!$this->validate_data($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -210,20 +199,14 @@ class ApiController extends BaseController
     {
         try
         {
-            // 轉大寫
-            $systemId = strtoupper($systemId);
-            $routeId  = strtoupper($routeId);
-
-            // 設定 GET 資料驗證格式
+            // 驗證參數
             $vData = [
-                "systemId"  => $systemId,
-                "routeId"   => $routeId,
+                "metro_system_id"  => $systemId,
+                "metro_route_id"   => $routeId,
                 "longitude" => $longitude,
                 "latitude"  => $latitude
             ];
-
-            // 如果 GET 資料驗證失敗則回傳錯誤訊息
-            if (!$this->metro_validation($vData))
+            if (!$this->validate_data($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -256,12 +239,12 @@ class ApiController extends BaseController
     {
         try
         {
-            // 轉大寫
-            $fromStationId = strtoupper($fromStationId);
-            $toStationId   = strtoupper($toStationId);
-
             // 驗證參數
-            if (!$this->metro_validation_stations($fromStationId, $toStationId))
+            $vData = [
+                "metro_from_station_id" => $fromStationId,
+                "metro_to_station_id"   => $toStationId
+            ];
+            if (!$this->validate_data($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -351,14 +334,10 @@ class ApiController extends BaseController
         {
             // 驗證參數
             $vData = [
-                "THSR_from_station" => $fromStationId,
-                "THSR_to_station"   => $toStationId
+                "THSR_from_station_id" => $fromStationId,
+                "THSR_to_station_id"   => $toStationId
             ];
-            $vRule = [
-                "THSR_from_station" => "alpha_numeric_punct|max_length[11]",
-                "THSR_to_station"   => "alpha_numeric_punct|max_length[11]",
-            ];
-            if (!$this->validateData($vData, $vRule))
+            if (!$this->validate_data($vData))
             {
                 return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
             }
@@ -401,6 +380,8 @@ class ApiController extends BaseController
 
                 $arrivals[$i] = [
                     "train_id" => $arrivalData[0]->HA_train_id,
+                    "from_station_id" => $arrivalData[0]->HA_station_id,
+                    "to_station_id" => $arrivalData[1]->HA_station_id,
                     "arrivals" => [
                         "from" => $arrivalData[0]->HA_arrival_time,
                         "to"   => $arrivalData[1]->HA_arrival_time
@@ -435,6 +416,16 @@ class ApiController extends BaseController
     {
         try
         {
+            // 驗證參數
+            $vData = [
+                "longitude" => $longitude,
+                "latitude"  => $latitude
+            ];
+            if (!$this->validate_data($vData))
+            {
+                return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
+            }
+
             // 取得高鐵所有車站資料
             $stationTemp = $this->THSRModel->get_nearest_station($longitude, $latitude)->get()->getResult()[0];
 
