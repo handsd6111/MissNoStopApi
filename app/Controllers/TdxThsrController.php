@@ -7,7 +7,7 @@ use App\Models\ORM\ThsrStationModel;
 use App\Models\ORM\ThsrTrainModel;
 use Exception;
 
-class TdxThsrController extends TDXBaseController
+class TdxThsrController extends TdxBaseController
 {
     // ============== Station ==============
 
@@ -128,7 +128,7 @@ class TdxThsrController extends TDXBaseController
         foreach ($result as $value) {
             $thsrTrainModel->save([
                 'HT_id' => $value->DailyTrainInfo->TrainNo,
-                'HT_departure_time' => $value->TrainDate
+                'HT_departure_time' => $value->DailyTrainInfo->TrainDate
             ]);
         }
 
@@ -150,7 +150,8 @@ class TdxThsrController extends TDXBaseController
                 $thsrArrivalModel->save([
                     'HA_train_id' => $value->DailyTrainInfo->TrainNo,
                     'HA_station_id' => 'THSR-' . $stopTime->StationID,
-                    'HA_arrival_time' => $stopTime->ArrivalTime
+                    'HA_arrival_time' => $stopTime->ArrivalTime,
+                    'HA_direction' => $value->Direction
                 ]);
             }
         }
@@ -176,10 +177,10 @@ class TdxThsrController extends TDXBaseController
                 $thsrArrivalModel->save([
                     'HA_train_id' => $value->DailyTrainInfo->TrainNo,
                     'HA_station_id' => 'THSR-' . $stopTime->StationID,
-                    'HA_arrival_time' => $stopTime->ArrivalTime
+                    'HA_arrival_time' => $stopTime->ArrivalTime,
+                    'HA_direction' => $value->DailyTrainInfo->Direction
                 ]);
             }
         }
     }
-
 }
