@@ -298,14 +298,34 @@ class ApiController extends BaseController
 
     /**
      * 取得高鐵所有車站資料
+     * 
+     * 格式：/api/THSR/station
      * @return array 高鐵站資料陣列
      */
-    function get_THSR_stations()
+    function get_thsr_stations()
     {
         try
         {
             // 取得高鐵所有車站資料
             $stations = $this->THSRModel->get_stations()->get()->getResult();
+
+            // 重新排列資料
+            foreach ($stations as $key => $value)
+            {
+                $temp = $value;
+                $stations[$key] = [
+                    "station_id"   => $temp->HS_id,
+                    "station_name" => [
+                        "TC" => $temp->HS_name_TC,
+                        "EN" => $temp->HS_name_EN
+                    ],
+                    "station_location" => [
+                        "city_id"   => $temp->HS_city_id,
+                        "longitude" => $temp->HS_longitude,
+                        "latitude"  => $temp->HS_latitude,
+                    ]
+                ];
+            }
 
             // 回傳資料
             return $this->send_response($stations);
@@ -319,17 +339,82 @@ class ApiController extends BaseController
 
     /**
      * 取得高鐵指定起訖站時刻表資料
-     * @param string $fromStationId 起暫代碼
+     * 
+     * 格式：/api/THSR/arrival/from/{StationId}/to/{StationId}
+     * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
      * @return array 起訖站時刻表資料
      */
-    function get_THSR_arrivals($fromStationId, $toStationId)
+    function get_thsr_arrivals($fromStationId, $toStationId)
     {
         try
         {
-            // 取得高鐵指定起訖站時刻表資料
-            // $arrivals = $this->THSRModel->get_arrivals($fromStationId, $toStationId)->get()->getResult();
+            // 驗證參數
+            $vData = [
+                "THSR_from_station" => $fromStationId,
+                "THSR_to_station"   => $toStationId
+            ];
+            $vRule = [
+                "THSR_from_station" => "alpha_numeric_punct|max_length[11]",
+                "THSR_to_station"   => "alpha_numeric_punct|max_length[11]",
+            ];
+            if (!$this->validateData($vData, $vRule))
+            {
+                return $this->send_response((array) $this->validator->getErrors(), 400, lang("Validation.validation_error"));
+            }
 
+            // 取得行駛方向（0：南下；1：北上）
+            $direction = 0;
+            if (intval(str_replace("THSR-", "", $fromStationId)) > intval(str_replace("THSR-", "", $toStationId)))
+            {
+                $direction = 1;
+            }
+
+            // 取得指定高鐵行經起訖站的所有車次
+            $trainIds = $this->THSRModel->get_trains_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
+
+            // 整理後的時刻表陣列
+            $arrivals = [];
+
+            for ($i = 0; $i < sizeof($trainIds); $i++)
+            {
+                /**
+                 * @var array $arrivalData = [
+                 *      {
+                 *          "HA_train_id"     => 列車代碼,
+                 *          "HA_station_id"   => 起站代碼,
+                 *          "HA_arrival_time" => 到站時間
+                 *      },
+                 *      {
+                 *          "HA_train_id"     => 列車代碼,
+                 *          "HA_station_id"   => 訖站代碼,
+                 *          "HA_arrival_time" => 到站時間
+                 *      }
+                 * ]
+                 */
+                $arrivalData = $this->THSRModel->get_arrivals($trainIds[$i]->HA_train_id, $fromStationId, $toStationId)->get()->getResult();
+                
+                if (sizeof($arrivalData) < 2)
+                {
+                    continue;
+                }
+
+                $arrivals[$i] = [
+                    "train_id" => $arrivalData[0]->HA_train_id,
+                    "arrivals" => [
+                        "from" => $arrivalData[0]->HA_arrival_time,
+                        "to"   => $arrivalData[1]->HA_arrival_time
+                    ]
+                ];
+            }
+
+            // 以 from_station_id 為 $arrivals 由小到大排序
+            usort($arrivals, function ($a, $b) 
+            {
+                return strcmp($a["arrivals"]["from"], $b["arrivals"]["to"]);
+            });
+
+            return $this->send_response($arrivals);
         }
         catch (Exception $e)
         {
@@ -340,16 +425,32 @@ class ApiController extends BaseController
 
     /**
      * 取得高鐵指定經緯度最近車站
+     * 
+     * 格式：/api/THSR/station/long/{Longitude}/lat/{Latitude}
      * @param float $longitude 經度（-180 ~ 180）
      * @param float $latitude 緯度（-90 ~ 90）
      * @return array 最近高鐵站資料陣列
      */
-    function get_THSR_nearest_station($longitude, $latitude)
+    function get_thsr_nearest_station($longitude, $latitude)
     {
         try
         {
             // 取得高鐵所有車站資料
-            $station = $this->THSRModel->get_nearest_station()->get()->getResult();
+            $stationTemp = $this->THSRModel->get_nearest_station($longitude, $latitude)->get()->getResult()[0];
+
+            // 重新排列資料
+            $station = [
+                "station_id"   => $stationTemp->HS_id,
+                "station_name" => [
+                    "TC" => $stationTemp->HS_name_TC,
+                    "EN" => $stationTemp->HS_name_EN
+                ],
+                "station_location" => [
+                    "city_id"   => $stationTemp->HS_city_id,
+                    "longitude" => $stationTemp->HS_longitude,
+                    "latitude"  => $stationTemp->HS_latitude,
+                ]
+            ];
 
             // 回傳資料
             return $this->send_response($station);

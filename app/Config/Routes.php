@@ -37,7 +37,7 @@ $routes->set404Override();
 // route since we don't have to scan directories.
 
 // 取得所有縣市資料 /api/city
-$routes->get('city', 'ApiController::get_cities');
+$routes->get('/api/city', 'ApiController::get_cities');
 
 // 取得所有捷運系統資料
 $routes->get('/api/metro/system', 'ApiController::get_metro_systems');
@@ -53,7 +53,7 @@ $routes->get('/api/metro/arrival/from/(:segment)/to/(:segment)', 'ApiController:
 $routes->get('/api/metro/duration/from/(:segment)/to/(:segment)', 'ApiController::get_metro_durations/$1/$2');
 
 // 取得所有高鐵站資料
-$routes->get('/api/THSR/station', '');
+$routes->get('/api/THSR/station', 'ApiController::get_thsr_stations');
 // 取得指定高鐵起訖站的時刻表資料
 $routes->get('/api/THSR/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_thsr_arrivals/$1/$2');
 // 取得指定經緯度的最近高鐵站資料

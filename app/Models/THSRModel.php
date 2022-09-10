@@ -26,26 +26,58 @@ class THSRModel extends BaseModel
     }
 
     /**
-     * 取得高鐵指定起訖站時刻表查詢類別
-     * 
-     * *列車需於當日行經起訖站並以訖站升序排列
-     * @param string $fromStationId 起代碼
+     * 取得指定高鐵行經起訖站的所有車次
+     * @param string $fromStationId 起站代碼
      * @param string $toStringId 訖站代碼
+     * @param int $direction 行車方向（0：南下；1：北上）
      * @return mixed 查詢類別
      */
-    function get_arrivals($fromStationId, $toStationId)
+    function get_trains_by_stations($fromStationId, $toStationId, $direction)
     {
         try
         {
-            // 取得於當日行經起訖站的列車
-            // return $this->db->table("THSR_arrivals")
-            //                 ->join("THSR_trains", "HT_id = HA_train_id")
-            //                 ->select("HA_train_id, HA_station_id, HA_arrival_time")
-            //                 ->where("DATE(HT_departure_date) = CURDATE()")
-            //                 ->where("HA_station_id", $fromStationId)
-            //                 ->orWhere("HA_station_id", $toStationId)
-            //                 ->groupBy("HA_train_id")
-            //                 ->having("COUNT(HA_train_id) >= 2");
+            $condition1 = [
+                "HA_train_id"  => $fromStationId,
+                "HA_direction" => $direction
+            ];
+            $condition2 = [
+                "HA_train_id"  => $toStationId,
+                "HA_direction" => $direction
+            ];
+            return $this->db->table("THSR_arrivals")
+                            ->select("HA_train_id")
+                            ->where($condition1)
+                            ->orWhere($condition2)
+                            ->groupBy("HA_train_id")
+                            ->having("COUNT(HA_train_id) > 1");
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得高鐵指定車次及起訖站的時刻表查詢類別
+     * @param string $trainId 車次代碼
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     * @return mixed 查詢類別
+     */
+    function get_arrivals($trainId, $fromStationId, $toStationId)
+    {
+        try
+        {
+            $stations = [
+                $fromStationId,
+                $toStationId
+            ];
+            return $this->db->table("THSR_arrivals")
+                            ->select("HA_train_id, HA_station_id, HA_arrival_time")
+                            ->where("HA_train_id", $trainId)
+                            ->whereIn("HA_station_id", $stations)
+                            ->orderBy("HA_arrival_time");
         }
         catch (Exception $e)
         {
@@ -71,7 +103,20 @@ class THSRModel extends BaseModel
                                       HS_city_id,
                                       HS_longitude,
                                       HS_latitude,
-                                      FLOOR( SQRT( POWER( ABS( HS_longitude - $longitude ), 2 ) + POWER( ABS( HS_latitude - $latitude ), 2 ) ) * 11100 ) / 100 AS HS_distance")
+                                      FLOOR(
+                                        SQRT(
+                                            POWER(
+                                                ABS(
+                                                    HS_longitude - $longitude
+                                                ), 2
+                                            ) +
+                                            POWER(
+                                                ABS(
+                                                    HS_latitude - $latitude
+                                                ), 2
+                                            )
+                                        ) * 11100
+                                    ) / 100 AS HS_distance")
                             ->orderBy("HS_distance")
                             ->limit(1);
         }
