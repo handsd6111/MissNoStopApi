@@ -64,7 +64,7 @@ $routes->get('/api/TRA/route', 'ApiController::get_tra_routes');
 // 取得指定臺鐵路線的所有臺鐵站資料
 $routes->get('/api/TRA/route/(:segment)', 'ApiController::get_tra_stations/$1');
 // 取得指定臺鐵路線及經緯度的最近臺鐵站資料
-$routes->get('/api/TRA/route/(:segment)/station/(:segment)/long/(:segment)/lat/(:segment)', 'ApiController::get_tra_nearest_station/$1/$2');
+$routes->get('/api/TRA/route/(:segment)/long/(:segment)/lat/(:segment)', 'ApiController::get_tra_nearest_station/$1/$2/$3');
 // 取得指定臺鐵起訖站的時刻表資料
 $routes->get('/api/TRA/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_tra_arrivals/$1/$2');
 
