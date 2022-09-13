@@ -54,10 +54,19 @@ $routes->get('/api/metro/duration/from/(:segment)/to/(:segment)', 'ApiController
 
 // 取得所有高鐵站資料
 $routes->get('/api/THSR/station', 'ApiController::get_thsr_stations');
-// 取得指定高鐵起訖站的時刻表資料
-$routes->get('/api/THSR/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_thsr_arrivals/$1/$2');
 // 取得指定經緯度的最近高鐵站資料
 $routes->get('/api/THSR/station/long/(:segment)/lat/(:segment)', 'ApiController::get_thsr_nearest_station/$1/$2');
+// 取得指定高鐵起訖站的時刻表資料
+$routes->get('/api/THSR/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_thsr_arrivals/$1/$2');
+
+// 取得所有臺鐵路線資料
+$routes->get('/api/TRA/route', 'ApiController::get_tra_routes');
+// 取得指定臺鐵路線的所有臺鐵站資料
+$routes->get('/api/TRA/route/(:segment)', 'ApiController::get_tra_stations/$1');
+// 取得指定臺鐵路線及經緯度的最近臺鐵站資料
+$routes->get('/api/TRA/route/(:segment)/station/(:segment)/long/(:segment)/lat/(:segment)', 'ApiController::get_tra_nearest_station/$1/$2');
+// 取得指定臺鐵起訖站的時刻表資料
+$routes->get('/api/TRA/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_tra_arrivals/$1/$2');
 
 // tdx
 $routes->group('tdx', static function ($routes) {
