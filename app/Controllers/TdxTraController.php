@@ -47,6 +47,11 @@ class TdxTraController extends TdxBaseController
         return $this->curlGet($url, $accessToken);
     }
 
+    /**
+     * 利用 ORM Model 寫入台鐵車站資料至 SQL 內。
+     * 
+     * @return boolean true | false
+     */
     public function setTraStation()
     {
         $result = $this->getTraStation();
@@ -90,6 +95,11 @@ class TdxTraController extends TdxBaseController
         return $this->curlGet($url, $accessToken);
     }
 
+    /**
+     * 利用 ORM Model 寫入台鐵路線資料至 SQL 內。
+     * 
+     * @return boolean true | false
+     */
     public function setTraRoute()
     {
         $result = $this->getTraRoute();
@@ -129,6 +139,11 @@ class TdxTraController extends TdxBaseController
         return $this->curlGet($url, $accessToken);
     }
 
+    /**
+     * 利用 ORM Model 寫入台鐵車站與路線關聯的資料至 SQL 內。
+     * 
+     * @return boolean true | false
+     */
     public function setTraRouteStation()
     {
         $result = $this->getTraRouteStation();
@@ -209,6 +224,11 @@ class TdxTraController extends TdxBaseController
         return $this->curlGet($url, $accessToken);
     }
 
+    /**
+     * 利用 ORM Model 寫入台鐵車次資料至 SQL 內。
+     * 
+     * @return boolean true | false
+     */
     public function setTraTrain()
     {
         $result = $this->getTraTrainAndArrival();
@@ -224,6 +244,11 @@ class TdxTraController extends TdxBaseController
         return 1;
     }
 
+    /**
+     * 利用 ORM Model 寫入台鐵時刻表資料至 SQL 內。
+     * 
+     * @return boolean true | false
+     */
     public function setTraArrival()
     {
         $result = $this->getTraTrainAndArrival();
@@ -243,6 +268,11 @@ class TdxTraController extends TdxBaseController
         return 1;
     }
 
+    /**
+     * 利用 ORM Model 寫入台鐵車次與時刻表資料至 SQL 內。
+     * 
+     * @return boolean true | false
+     */
     public function setTraTrainANdArrival()
     {
         $result = $this->getTraTrainAndArrival();
