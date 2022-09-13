@@ -77,6 +77,20 @@ $routes->group('tdx', static function ($routes) {
             $routes->cli('trainAndArrival', 'TdxThsrController::setThsrTrainAndArrival'); // 高鐵時刻表與車次
         });
 
+        $routes->group('tra', static function ($routes) {
+            $routes->cli('station', 'TdxTraController::setTraStation');
+
+            $routes->cli('route', 'TdxTraController::setTraRoute');
+
+            $routes->cli('routeStation', 'TdxTraController::setTraRouteStation');
+
+            $routes->cli('train', 'TdxTraController::setTraTrain');
+
+            $routes->cli('arrival', 'TdxTraController::setTraArrival');
+
+            $routes->cli('trainAndArrival', 'TdxTraController::setTraTrainAndArrival');
+        });
+
         // tdx/data/metro
         $routes->group('metro', static function ($routes) {
 
