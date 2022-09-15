@@ -15,7 +15,9 @@ class TRAModel extends BaseModel
         try
         {
             return $this->db->table("TRA_routes")
-                            ->select("RR_id, RR_name_TC, RR_name_EN");
+                            ->select("RR_id AS route_id,
+                                      RR_name_TC AS name_TC,
+                                      RR_name_EN AS name_EN");
         }
         catch (Exception $e)
         {
@@ -37,7 +39,13 @@ class TRAModel extends BaseModel
             ];
             return $this->db->table("TRA_route_stations")
                             ->join("TRA_stations", "RS_id = RRS_station_id")
-                            ->select("RRS_sequence, RS_id, RS_name_TC, RS_name_EN, RS_city_id, RS_longitude, RS_latitude")
+                            ->select("RRS_sequence,
+                                      RS_id AS station_id,
+                                      RS_name_TC AS name_TC,
+                                      RS_name_EN AS name_EN,
+                                      RS_city_id AS city_id,
+                                      RS_longitude AS longitude,
+                                      RS_latitude AS latitude")
                             ->where($condition)
                             ->orderBy("RRS_sequence");
         }
@@ -62,12 +70,12 @@ class TRAModel extends BaseModel
             return $this->db->table("TRA_route_stations")
                             ->join("TRA_stations", "RS_id = RRS_station_id")
                             ->select(
-                               "RS_id,
-                                RS_name_TC,
-                                RS_name_EN,
-                                RS_city_id,
-                                RS_longitude,
-                                RS_latitude,
+                               "RS_id AS station_id,
+                                RS_name_TC AS name_TC,
+                                RS_name_EN AS name_EN,
+                                RS_city_id AS city_id,
+                                RS_longitude AS longitude,
+                                RS_latitude AS latitude,
                                 FLOOR(
                                     SQRT(
                                         POWER(
@@ -140,7 +148,9 @@ class TRAModel extends BaseModel
                 $toStationId
             ];
             return $this->db->table("TRA_arrivals")
-                            ->select("RA_train_id, RA_station_id, RA_arrival_time")
+                            ->select("RA_train_id AS train_id,
+                                      RA_station_id AS station_id,
+                                      RA_arrival_time AS arrival_time")
                             ->where("RA_train_id", $trainId)
                             ->whereIn("RA_station_id", $stations)
                             ->orderBy("RA_arrival_time");

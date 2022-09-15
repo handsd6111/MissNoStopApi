@@ -82,7 +82,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_system_route($systemId, "a"))
+            if (!$this->validate_system_route($systemId, $systemId))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -281,22 +281,7 @@ class ApiController extends BaseController
             $stations = $this->THSRModel->get_stations()->get()->getResult();
 
             // 重新排列資料
-            foreach ($stations as $key => $value)
-            {
-                $temp = $value;
-                $stations[$key] = [
-                    "station_id"   => $temp->HS_id,
-                    "station_name" => [
-                        "TC" => $temp->HS_name_TC,
-                        "EN" => $temp->HS_name_EN
-                    ],
-                    "station_location" => [
-                        "city_id"   => $temp->HS_city_id,
-                        "longitude" => $temp->HS_longitude,
-                        "latitude"  => $temp->HS_latitude,
-                    ]
-                ];
-            }
+            $this->restructure_stations($stations);
 
             // 回傳資料
             return $this->send_response($stations);
@@ -339,45 +324,19 @@ class ApiController extends BaseController
             // 整理後的時刻表陣列
             $arrivals = [];
 
+            // 透過列車代碼及起訖站來查詢時刻表
             for ($i = 0; $i < sizeof($trainIds); $i++)
             {
-                /**
-                 * @var array $arrivalData = [
-                 *      {
-                 *          "HA_train_id"     => 列車代碼,
-                 *          "HA_station_id"   => 起站代碼,
-                 *          "HA_arrival_time" => 到站時間
-                 *      },
-                 *      {
-                 *          "HA_train_id"     => 列車代碼,
-                 *          "HA_station_id"   => 訖站代碼,
-                 *          "HA_arrival_time" => 到站時間
-                 *      }
-                 * ]
-                 */
                 $arrivalData = $this->THSRModel->get_arrivals($trainIds[$i]->HA_train_id, $fromStationId, $toStationId)->get()->getResult();
                 
-                if (sizeof($arrivalData) < 2)
+                if (sizeof($arrivalData) == 2)
                 {
-                    continue;
+                    $arrivals[$i] = $arrivalData;
                 }
-
-                $arrivals[$i] = [
-                    "train_id" => $arrivalData[0]->HA_train_id,
-                    "from_station_id" => $arrivalData[0]->HA_station_id,
-                    "to_station_id" => $arrivalData[1]->HA_station_id,
-                    "arrivals" => [
-                        "from" => $arrivalData[0]->HA_arrival_time,
-                        "to"   => $arrivalData[1]->HA_arrival_time
-                    ]
-                ];
             }
 
-            // 以 from_station_id 為 $arrivals 由小到大排序
-            usort($arrivals, function ($a, $b) 
-            {
-                return strcmp($a["arrivals"]["from"], $b["arrivals"]["to"]);
-            });
+            // 重新排列時刻表資料
+            $this->restructure_arrivals($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);
@@ -408,21 +367,10 @@ class ApiController extends BaseController
             }
 
             // 取得高鐵所有車站資料
-            $stationTemp = $this->THSRModel->get_nearest_station($longitude, $latitude)->get()->getResult()[0];
+            $station = $this->THSRModel->get_nearest_station($longitude, $latitude)->get()->getResult();
 
             // 重新排列資料
-            $station = [
-                "station_id"   => $stationTemp->HS_id,
-                "station_name" => [
-                    "TC" => $stationTemp->HS_name_TC,
-                    "EN" => $stationTemp->HS_name_EN
-                ],
-                "station_location" => [
-                    "city_id"   => $stationTemp->HS_city_id,
-                    "longitude" => $stationTemp->HS_longitude,
-                    "latitude"  => $stationTemp->HS_latitude,
-                ]
-            ];
+            $this->restructure_stations($station. false);
 
             // 回傳資料
             return $this->send_response($station);
@@ -445,17 +393,7 @@ class ApiController extends BaseController
             $routes = $this->TRAModel->get_routes()->get()->getResult();
 
             // 重新排列資料
-            foreach ($routes as $key => $value)
-            {
-                $temp = $value;
-                $routes[$key] = [
-                    "route_id"   => $temp->RR_id,
-                    "route_name" => [
-                        "TC" => $temp->RR_name_TC,
-                        "EN" => $temp->RR_name_EN
-                    ],
-                ];
-            }
+            $this->restructure_routes($routes);
 
             // 回傳資料
             return $this->send_response($routes);
@@ -475,7 +413,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_system_route("a", $routeId, 12, 5))
+            if (!$this->validate_system_route($routeId, $routeId, 5, 5))
             {
                 return $this->send_response([], 400, (array) $this->validator->getErrors());
             }
@@ -484,22 +422,7 @@ class ApiController extends BaseController
             $stations = $this->TRAModel->get_stations($routeId)->get()->getResult();
 
             // 重新排列資料
-            foreach ($stations as $key => $value)
-            {
-                $temp = $value;
-                $stations[$key] = [
-                    "station_id"   => $temp->RS_id,
-                    "station_name" => [
-                        "TC" => $temp->RS_name_TC,
-                        "EN" => $temp->RS_name_EN
-                    ],
-                    "station_location" => [
-                        "city_id"   => $temp->RS_city_id,
-                        "longitude" => $temp->RS_longitude,
-                        "latitude"  => $temp->RS_latitude,
-                    ]
-                ];
-            }
+            $this->restructure_stations($stations);
 
             // 回傳資料
             return $this->send_response($stations);
@@ -525,21 +448,10 @@ class ApiController extends BaseController
             }
 
             // 取得臺鐵所有車站資料
-            $stationTemp = $this->TRAModel->get_nearest_station($routeId, $longitude, $latitude)->get()->getResult()[0];
+            $station = $this->TRAModel->get_nearest_station($routeId, $longitude, $latitude)->get()->getResult()[0];
 
             // 重新排列資料
-            $station = [
-                "station_id"   => $stationTemp->RS_id,
-                "station_name" => [
-                    "TC" => $stationTemp->RS_name_TC,
-                    "EN" => $stationTemp->RS_name_EN
-                ],
-                "station_location" => [
-                    "city_id"   => $stationTemp->RS_city_id,
-                    "longitude" => $stationTemp->RS_longitude,
-                    "latitude"  => $stationTemp->RS_latitude,
-                ]
-            ];
+            $this->restructure_stations($station, false);
 
             // 回傳資料
             return $this->send_response($station);
@@ -577,25 +489,15 @@ class ApiController extends BaseController
             // 整理後的時刻表陣列
             $arrivals = [];
 
-            // 重新排列資料
+            // 透過列車代碼及起訖站來查詢時刻表
             for ($i = 0; $i < sizeof($trainIds); $i++)
             {
                 $arrivalData = $this->TRAModel->get_arrivals($trainIds[$i]->RA_train_id, $fromStationId, $toStationId)->get()->getResult();
                 
-                if (sizeof($arrivalData) < 2)
+                if (sizeof($arrivalData) == 2)
                 {
-                    continue;
+                    $arrivals[$i] = $arrivalData;
                 }
-
-                $arrivals[$i] = [
-                    "train_id" => $arrivalData[0]->RA_train_id,
-                    "from_station_id" => $arrivalData[0]->RA_station_id,
-                    "to_station_id" => $arrivalData[1]->RA_station_id,
-                    "arrivals" => [
-                        "from" => $arrivalData[0]->RA_arrival_time,
-                        "to"   => $arrivalData[1]->RA_arrival_time
-                    ]
-                ];
             }
 
             // 若查無資料則回傳「查無此路線資料」
@@ -604,11 +506,8 @@ class ApiController extends BaseController
                 return $this->send_response([], 200, lang("Query.dataNotAvailable"));
             }
 
-            // 以 from_station_id 為 $arrivals 由小到大排序
-            usort($arrivals, function ($a, $b) 
-            {
-                return strcmp($a["arrivals"]["from"], $b["arrivals"]["to"]);
-            });
+            // 重新排序時刻表資料
+            $this->restructure_arrivals($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);
