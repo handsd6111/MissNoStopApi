@@ -15,7 +15,12 @@ class THSRModel extends BaseModel
         try
         {
             return $this->db->table("THSR_stations")
-                            ->select("HS_id, HS_name_TC, HS_name_EN, HS_city_id, HS_longitude, HS_latitude")
+                            ->select("HS_id AS station_id,
+                                      HS_name_TC AS name_TC,
+                                      HS_name_EN AS name_EN,
+                                      HS_city_id AS city_id,
+                                      HS_longitude AS longitude,
+                                      HS_latitude AS latitude")
                             ->orderBy("HS_id");
         }
         catch (Exception $e)
@@ -74,7 +79,9 @@ class THSRModel extends BaseModel
                 $toStationId
             ];
             return $this->db->table("THSR_arrivals")
-                            ->select("HA_train_id, HA_station_id, HA_arrival_time")
+                            ->select("HA_train_id AS train_id,
+                                      HA_station_id AS station_id,
+                                      HA_arrival_time AS arrival_time")
                             ->where("HA_train_id", $trainId)
                             ->whereIn("HA_station_id", $stations)
                             ->orderBy("HA_arrival_time");
@@ -97,12 +104,12 @@ class THSRModel extends BaseModel
         try
         {
             return $this->db->table("THSR_stations")
-                            ->select("HS_id,
-                                      HS_name_TC,
-                                      HS_name_EN,
-                                      HS_city_id,
-                                      HS_longitude,
-                                      HS_latitude,
+                            ->select("HS_id AS station_id,
+                                      HS_name_TC AS name_TC,
+                                      HS_name_EN AS name_EN,
+                                      HS_city_id AS city_id,
+                                      HS_longitude AS longitude,
+                                      HS_latitude AS latitude,
                                       FLOOR(
                                         SQRT(
                                             POWER(

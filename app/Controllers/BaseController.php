@@ -72,8 +72,8 @@ abstract class BaseController extends Controller
 
     /**
      * 驗證經緯度參數
-     * @param string $longitude 經度字串
-     * @param string $latitude 緯度字串
+     * @param string &$longitude 經度字串
+     * @param string &$latitude 緯度字串
      * @param int $longLength 經度長度限制
      * @param int $latLength 緯度長度限制
      * @return bool 驗證結果
@@ -127,8 +127,8 @@ abstract class BaseController extends Controller
 
     /**
      * 驗證系統及路線
-     * @param string $systemId 系統代碼
-     * @param string $routeId 路線代碼
+     * @param string &$systemId 系統代碼
+     * @param string &$routeId 路線代碼
      * @param int $systemLength 系統長度限制
      * @param int $routeLength 路線長度限制
      * @return bool 驗證結果
@@ -172,8 +172,8 @@ abstract class BaseController extends Controller
 
     /**
      * 驗證起訖站代碼
-     * @param string $fromStationId 起站代碼
-     * @param string $toStationId 訖站代碼
+     * @param string &$fromStationId 起站代碼
+     * @param string &$toStationId 訖站代碼
      * @param int $fromLength 起站長度限制
      * @param int $toLength 訖站長度限制
      * @return bool 驗證結果
@@ -291,6 +291,124 @@ abstract class BaseController extends Controller
                 return $endStations[0]->MA_end_station_id;
             }
             return $endStations[sizeof($endStations) -1]->MA_end_station_id;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列路線資料
+     * @param array &$routes 路線資料
+     * @return void 不回傳值
+     */
+    function restructure_routes(&$routes)
+    {
+        try
+        {
+            // 重新排列資料
+            foreach ($routes as $key => $value)
+            {
+                $temp = $value;
+                $routes[$key] = [
+                    "route_id"   => $temp->id,
+                    "route_name" => [
+                        "TC" => $temp->name_TC,
+                        "EN" => $temp->name_EN
+                    ],
+                ];
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列車站資料
+     * @param array &$stations 車站資料
+     * @param bool $isArray 是否為陣列
+     * @return void 不回傳值
+     */
+    function restructure_stations(&$stations, $isArray = true)
+    {
+        try
+        {
+            // 重新排列資料
+            foreach ($stations as $key => $value)
+            {
+                $temp = $value;
+                $stations[$key] = [
+                    "station_id"   => $temp->station_id,
+                    "station_name" => [
+                        "TC" => $temp->name_TC,
+                        "EN" => $temp->name_EN
+                    ],
+                    "station_location" => [
+                        "city_id"   => $temp->city_id,
+                        "longitude" => $temp->longitude,
+                        "latitude"  => $temp->latitude,
+                    ]
+                ];
+            }
+
+            // 若此資料非陣列則取第一筆資料
+            if (!$isArray)
+            {
+                $stations = $stations[0];
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列時刻表資料
+     * @param array &$arrivals 時刻表陣列
+     * @return void 不回傳值
+     */
+    function restructure_arrivals(&$arrivals)
+    {
+        try
+        {
+            // 重新排列時刻表資料
+            foreach ($arrivals as $key => $value)
+            {
+                /**
+                 * @var array $temp = [
+                 *      {
+                 *          "HA_train_id"     => 列車代碼,
+                 *          "HA_station_id"   => 起站代碼,
+                 *          "HA_arrival_time" => 到站時間
+                 *      },
+                 *      {
+                 *          "HA_train_id"     => 列車代碼,
+                 *          "HA_station_id"   => 訖站代碼,
+                 *          "HA_arrival_time" => 到站時間
+                 *      }
+                 * ]
+                 */
+                $temp = $value;
+                $arrivals[$key] = [
+                    "train_id"        => $temp[0]->train_id,
+                    "from_station_id" => $temp[0]->station_id,
+                    "to_station_id"   => $temp[1]->station_id,
+                    "arrivals" => [
+                        "from" => $temp[0]->arrival_time,
+                        "to"   => $temp[1]->arrival_time
+                    ]
+                ];
+            }
+
+            // 以 from_station_id 為 $arrivals 由小到大排序
+            usort($arrivals, function ($a, $b) 
+            {
+                return strcmp($a["arrivals"]["from"], $b["arrivals"]["to"]);
+            });
         }
         catch (Exception $e)
         {
