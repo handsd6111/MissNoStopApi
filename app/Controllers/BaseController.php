@@ -81,6 +81,9 @@ abstract class BaseController extends Controller
         "metro_to_Station_id"   => "alpha_numeric_punct|max_length[12]",
         "THSR_from_station_id"  => "alpha_numeric_punct|max_length[11]",
         "THSR_to_station_id"    => "alpha_numeric_punct|max_length[11]",
+        "TRA_route_id"          => "alpha_numeric_punct|max_length[5]",
+        "TRA_from_station_id"   => "alpha_numeric_punct|max_length[11]",
+        "TRA_to_station_id"     => "alpha_numeric_punct|max_length[11]",
     ];
 
     /**
