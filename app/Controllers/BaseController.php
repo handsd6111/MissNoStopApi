@@ -312,7 +312,7 @@ abstract class BaseController extends Controller
             {
                 $temp = $value;
                 $routes[$key] = [
-                    "route_id"   => $temp->id,
+                    "route_id"   => $temp->route_id,
                     "route_name" => [
                         "TC" => $temp->name_TC,
                         "EN" => $temp->name_EN
@@ -395,8 +395,6 @@ abstract class BaseController extends Controller
                 $temp = $value;
                 $arrivals[$key] = [
                     "train_id"        => $temp[0]->train_id,
-                    "from_station_id" => $temp[0]->station_id,
-                    "to_station_id"   => $temp[1]->station_id,
                     "arrivals" => [
                         "from" => $temp[0]->arrival_time,
                         "to"   => $temp[1]->arrival_time
@@ -407,7 +405,15 @@ abstract class BaseController extends Controller
             // 以 from_station_id 為 $arrivals 由小到大排序
             usort($arrivals, function ($a, $b) 
             {
-                return strcmp($a["arrivals"]["from"], $b["arrivals"]["to"]);
+                if ($a["arrivals"]["from"] > $b["arrivals"]["from"])
+                {
+                    return 1;
+                }
+                else if ($a["arrivals"]["from"] < $b["arrivals"]["from"])
+                {
+                    return -1;
+                }
+                return 0;
             });
         }
         catch (Exception $e)

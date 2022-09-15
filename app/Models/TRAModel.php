@@ -114,14 +114,17 @@ class TRAModel extends BaseModel
         try
         {
             $condition1 = [
+                "RT_departure_date" => date("Y-m-d H:i:s"),
                 "RA_train_id"  => $fromStationId,
                 "RA_direction" => $direction
             ];
             $condition2 = [
+                "RT_departure_date" => date("Y-m-d H:i:s"),
                 "RA_train_id"  => $toStationId,
                 "RA_direction" => $direction
             ];
             return $this->db->table("TRA_arrivals")
+                            ->join("TRA_trains", "RT_id = RA_train_id")
                             ->select("RA_train_id")
                             ->where($condition1)
                             ->orWhere($condition2)
