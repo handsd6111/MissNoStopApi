@@ -68,56 +68,145 @@ abstract class BaseController extends Controller
         // E.g.: $this->session = \Config\Services::session();
     }
 
-    /**
-     * 參數驗證規則：$validationRules[參數名稱] = 規則
-     */
-    protected $validationRules = [
-        "longitude"             => "alpha_numeric_punct|max_length[12]",
-        "latitude"              => "alpha_numeric_punct|max_length[12]",
-        "metro_system_id"       => "alpha|max_length[4]",
-        "metro_route_id"        => "alpha_numeric_punct|max_length[12]",
-        "metro_station_id"      => "alpha_numeric_punct|max_length[12]",
-        "metro_from_Station_id" => "alpha_numeric_punct|max_length[12]",
-        "metro_to_Station_id"   => "alpha_numeric_punct|max_length[12]",
-        "THSR_from_station_id"  => "alpha_numeric_punct|max_length[11]",
-        "THSR_to_station_id"    => "alpha_numeric_punct|max_length[11]",
-        "TRA_route_id"          => "alpha_numeric_punct|max_length[5]",
-        "TRA_from_station_id"   => "alpha_numeric_punct|max_length[11]",
-        "TRA_to_station_id"     => "alpha_numeric_punct|max_length[11]",
-    ];
+    protected $validateErrMsg = "";
 
     /**
-     * 驗證參數
-     * @param array $vData 參數陣列
-     * @param bool 驗證結果
+     * 驗證經緯度參數
+     * @param string $longitude 經度字串
+     * @param string $latitude 緯度字串
+     * @param int $longLength 經度長度限制
+     * @param int $latLength 緯度長度限制
+     * @return bool 驗證結果
      */
-    function validate_data(&$vData)
+    function validate_coordinates(&$longitude, &$latitude, $longLength = 12, $latLength = 12)
     {
         try
         {
-            // 參數名稱
-            $vDataKeys = array_keys($vData);
-            // 此次所需的驗證規則
-            $vRules = [];
+            // 重置驗證錯誤訊息
+            $this->validateErrMsg = "";
 
-            // 對照 $this->validationRules 的驗證資料及 $vData 的參數名稱，並寫入 $vRules
-            for ($i = 0; $i < sizeof($vData); $i++)
-            {
-                $vRule = $vDataKeys[$i];
-                $vRules[$vRule] = $this->validationRules[$vRule];
-            }
+            // 設定參數與驗證規則
+            $data = [
+                "longitude" => $longitude,
+                "latitude"  => $latitude,
+            ];
+            $rules = [
+                "longitude" => "alpha_numeric_punct|max_length[$longLength]",
+                "latitude"  => "alpha_numeric_punct|max_length[$latLength]",
+            ];
 
-            // 將參數轉大寫
-            foreach ($vData as $key => $value)
+            // 若參數有異狀則回傳錯誤
+            if ($longitude != floatval($longitude))
             {
-                $vData[$key] = strtoupper($value);
-            }
-
-            // 回傳驗證結果
-            if (!$this->validateData($vData, $vRules))
-            {
+                $this->validateErrMsg = lang("Validation.longitudeInvalid");
                 return false;
             }
+            if ($latitude != floatval($latitude))
+            {
+                $this->validateErrMsg = lang("Validation.latitudeInvalid");
+                return false;
+            }
+            if (!$this->validateData($data, $rules))
+            {
+                $this->validateErrMsg = $this->validator->getError();
+                return false;
+            }
+
+            // 轉經緯度型別為浮點數
+            $longitude = floatval($longitude);
+            $latitude  = floatval($latitude);
+
+            // 回傳成功
+            return true;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 驗證系統及路線
+     * @param string $systemId 系統代碼
+     * @param string $routeId 路線代碼
+     * @param int $systemLength 系統長度限制
+     * @param int $routeLength 路線長度限制
+     * @return bool 驗證結果
+     */
+    function validate_system_route(&$systemId, &$routeId, $systemLength = 12, $routeLength = 12)
+    {
+        try
+        {
+            // 重置驗證錯誤訊息
+            $this->validateErrMsg = "";
+
+            // 將參數轉為大寫
+            $systemId = strtoupper($systemId);
+            $routeId  = strtoupper($routeId);
+
+            // 設定參數與驗證規則
+            $data = [
+                "systemId" => $systemId,
+                "routeId"  => $routeId
+            ];
+            $rules = [
+                "systemId" => "alpha|max_length[$systemLength]",
+                "routeId"  => "alpha_numeric_punct|max_length[$routeLength]",
+            ];
+            
+            // 若參數有異狀則回傳錯誤
+            if (!$this->validateData($data, $rules))
+            {
+                $this->validateErrMsg = $this->validator->getError();
+                return false;
+            }
+
+            // 回傳成功
+            return true;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 驗證起訖站代碼
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     * @param int $fromLength 起站長度限制
+     * @param int $toLength 訖站長度限制
+     * @return bool 驗證結果
+     */
+    function validate_stations(&$fromStationId, &$toStationId, $fromLength = 12, $toLength = 12)
+    {
+        try
+        {
+            // 重置驗證錯誤訊息
+            $this->validateErrMsg = "";
+            
+            // 將參數轉為大寫
+            $fromStationId = strtoupper($fromStationId);
+            $toStationId   = strtoupper($toStationId);
+            
+            // 設定參數與驗證規則
+            $data = [
+                "fromStationId" => $fromStationId,
+                "toStationId"   => $toStationId
+            ];
+            $rules = [
+                "fromStationId" => "alpha_numeric_punct|max_length[$fromLength]",
+                "toStationId"   => "alpha_numeric_punct|max_length[$toLength]",
+            ];
+            
+            // 若參數有異狀則回傳錯誤
+            if (!$this->validateData($data, $rules))
+            {
+                $this->validateErrMsg = $this->validator->getError();
+                return false;
+            }
+            
+            // 回傳成功
             return true;
         }
         catch (Exception $e)
