@@ -173,9 +173,9 @@ class ApiController extends BaseController
             $arrivals = $this->metroModel->get_arrivals($fromStationId, $endStationId)->get()->getResult();
 
             // 若查無資料則代表起點站及目的站需跨線或跨支線，將回傳尚未開放訊息
-            if (sizeof($arrivals) == 0)
+            if (!sizeof($arrivals))
             {
-                return $this->send_response([], 400, lang("Query.metroCrossBranchNotAvailable"));
+                return $this->send_response([], 200, lang("Query.metroCrossBranchNotAvailable"));
             }
 
             // 查詢成功
@@ -265,7 +265,7 @@ class ApiController extends BaseController
             
             if ($endStationId == -1)
             {
-                return $this->send_response([], 400, lang("Query.dataNotAvailable"));
+                return $this->send_response([], 200, lang("Query.dataNotAvailable"));
             }
 
             // 取得總運行時間
@@ -626,6 +626,12 @@ class ApiController extends BaseController
                         "to"   => $arrivalData[1]->RA_arrival_time
                     ]
                 ];
+            }
+
+            // 若查無資料則回傳「查無此路線資料」
+            if (!sizeof($arrivals))
+            {
+                return $this->send_response([], 200, lang("Query.dataNotAvailable"));
             }
 
             // 以 from_station_id 為 $arrivals 由小到大排序
