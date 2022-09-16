@@ -394,7 +394,7 @@ abstract class BaseController extends Controller
                  */
                 $temp = $value;
                 $arrivals[$key] = [
-                    "train_id"        => $temp[0]->train_id,
+                    "train_id" => $temp[0]->train_id,
                     "arrivals" => [
                         "from" => $temp[0]->arrival_time,
                         "to"   => $temp[1]->arrival_time
@@ -405,15 +405,8 @@ abstract class BaseController extends Controller
             // 以 from_station_id 為 $arrivals 由小到大排序
             usort($arrivals, function ($a, $b) 
             {
-                if ($a["arrivals"]["from"] > $b["arrivals"]["from"])
-                {
-                    return 1;
-                }
-                else if ($a["arrivals"]["from"] < $b["arrivals"]["from"])
-                {
-                    return -1;
-                }
-                return 0;
+                // Spaceship Operator
+                return $a["arrivals"]["from"] <=> $b["arrivals"]["from"];
             });
         }
         catch (Exception $e)
