@@ -71,6 +71,83 @@ abstract class BaseController extends Controller
     protected $validateErrMsg = "";
 
     /**
+     * 驗證底層
+     * @param array $paramData 參數資料
+     * @return bool 驗證結果
+     */
+    function validate_base($paramData)
+    {
+        $this->validateErrMsg = "";
+
+        // 檢查每一份參數資料
+        foreach ($paramData as $key => $value)
+        {
+            // 個別取得參數名稱、參數及限制長度
+            $name   = $key;
+            $param  = $value[0];
+            $length = $value[1];
+
+            // 設定參數與驗證規則
+            $data = [
+                "$name" => $param,
+            ];
+            $rules = [
+                "$name" => "alpha_numeric_punct|max_length[$length]"
+            ];
+
+            // 若參數驗證失敗則回傳錯誤
+            if (!$this->validateData($data, $rules))
+            {
+                $this->validateErrMsg = $this->validator->getError();
+                return false;
+            }
+
+            // 若參數非經緯度則繼續下一筆參數
+            if ($name != "longitude" && $name != "latitude")
+            {
+                continue;
+            }
+
+            // 若經緯度數值有異則回傳錯誤
+            if ($param != floatval($param))
+            {
+                $this->validateErrMsg = lang("Validation.longLatInvalid");
+                return false;
+            }
+        }
+
+        // 回傳成功
+        return true;
+    }
+
+    /**
+     * 驗證縣市參數
+     * @param string &$cityId 縣市代碼
+     * @return bool 驗證結果
+     */
+    function validate_city(&$cityId)
+    {
+        try
+        {
+            // 轉大寫
+            $cityId = strtoupper($cityId);
+
+            // 設定驗證預設值
+            $paramData = [
+                "cityId" => [$cityId, 3]
+            ];
+
+            // 回傳驗證結果
+            return $this->validate_base($paramData);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    /**
      * 驗證經緯度參數
      * @param string &$longitude 經度字串
      * @param string &$latitude 緯度字串
@@ -82,42 +159,41 @@ abstract class BaseController extends Controller
     {
         try
         {
-            // 重置驗證錯誤訊息
-            $this->validateErrMsg = "";
-
-            // 設定參數與驗證規則
-            $data = [
-                "longitude" => $longitude,
-                "latitude"  => $latitude,
-            ];
-            $rules = [
-                "longitude" => "alpha_numeric_punct|max_length[$longLength]",
-                "latitude"  => "alpha_numeric_punct|max_length[$latLength]",
+            // 設定驗證預設值
+            $paramData = [
+                "longitude" => [$longitude, $longLength],
+                "latitude"  => [$latitude, $latLength]
             ];
 
-            // 若參數有異狀則回傳錯誤
-            if ($longitude != floatval($longitude))
-            {
-                $this->validateErrMsg = lang("Validation.longitudeInvalid");
-                return false;
-            }
-            if ($latitude != floatval($latitude))
-            {
-                $this->validateErrMsg = lang("Validation.latitudeInvalid");
-                return false;
-            }
-            if (!$this->validateData($data, $rules))
-            {
-                $this->validateErrMsg = $this->validator->getError();
-                return false;
-            }
+            // 回傳驗證結果
+            return $this->validate_base($paramData);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
 
-            // 轉經緯度型別為浮點數
-            $longitude = floatval($longitude);
-            $latitude  = floatval($latitude);
+    /**
+     * 驗證系統及路線
+     * @param string $routeId 路線代碼
+     * @param int $routeLength 路線長度限制
+     * @return bool 驗證結果
+     */
+    function validate_route(&$routeId, $routeLength = 12)
+    {
+        try
+        {
+            // 轉大寫
+            $routeId = strtoupper($routeId);
 
-            // 回傳成功
-            return true;
+            // 設定驗證預設值
+            $paramData = [
+                "routeId" => [$routeId, $routeLength]
+            ];
+
+            // 回傳驗證結果
+            return $this->validate_base($paramData);
         }
         catch (Exception $e)
         {
@@ -133,36 +209,20 @@ abstract class BaseController extends Controller
      * @param int $routeLength 路線長度限制
      * @return bool 驗證結果
      */
-    function validate_system_route(&$systemId, &$routeId, $systemLength = 12, $routeLength = 12)
+    function validate_system(&$systemId, $systemLength = 12)
     {
         try
         {
-            // 重置驗證錯誤訊息
-            $this->validateErrMsg = "";
-
-            // 將參數轉為大寫
+            // 轉大寫
             $systemId = strtoupper($systemId);
-            $routeId  = strtoupper($routeId);
 
-            // 設定參數與驗證規則
-            $data = [
-                "systemId" => $systemId,
-                "routeId"  => $routeId
+            // 設定驗證預設值
+            $paramData = [
+                "systemId" => [$systemId, $systemLength]
             ];
-            $rules = [
-                "systemId" => "alpha|max_length[$systemLength]",
-                "routeId"  => "alpha_numeric_punct|max_length[$routeLength]",
-            ];
-            
-            // 若參數有異狀則回傳錯誤
-            if (!$this->validateData($data, $rules))
-            {
-                $this->validateErrMsg = $this->validator->getError();
-                return false;
-            }
 
-            // 回傳成功
-            return true;
+            // 回傳驗證結果
+            return $this->validate_base($paramData);
         }
         catch (Exception $e)
         {
@@ -182,32 +242,18 @@ abstract class BaseController extends Controller
     {
         try
         {
-            // 重置驗證錯誤訊息
-            $this->validateErrMsg = "";
-            
-            // 將參數轉為大寫
+            // 轉大寫
             $fromStationId = strtoupper($fromStationId);
             $toStationId   = strtoupper($toStationId);
-            
-            // 設定參數與驗證規則
-            $data = [
-                "fromStationId" => $fromStationId,
-                "toStationId"   => $toStationId
+
+            // 設定驗證預設值
+            $paramData = [
+                "fromStationId" => [$fromStationId, $fromLength],
+                "toStationId"   => [$toStationId, $toLength]
             ];
-            $rules = [
-                "fromStationId" => "alpha_numeric_punct|max_length[$fromLength]",
-                "toStationId"   => "alpha_numeric_punct|max_length[$toLength]",
-            ];
-            
-            // 若參數有異狀則回傳錯誤
-            if (!$this->validateData($data, $rules))
-            {
-                $this->validateErrMsg = $this->validator->getError();
-                return false;
-            }
-            
-            // 回傳成功
-            return true;
+
+            // 回傳驗證結果
+            return $this->validate_base($paramData);
         }
         catch (Exception $e)
         {
@@ -381,14 +427,14 @@ abstract class BaseController extends Controller
                 /**
                  * @var array $temp = [
                  *      {
-                 *          "HA_train_id"     => 列車代碼,
-                 *          "HA_station_id"   => 起站代碼,
-                 *          "HA_arrival_time" => 到站時間
+                 *          "train_id"     => 列車代碼,
+                 *          "station_id"   => 起站代碼,
+                 *          "arrival_time" => 到站時間
                  *      },
                  *      {
-                 *          "HA_train_id"     => 列車代碼,
-                 *          "HA_station_id"   => 訖站代碼,
-                 *          "HA_arrival_time" => 到站時間
+                 *          "train_id"     => 列車代碼,
+                 *          "station_id"   => 訖站代碼,
+                 *          "arrival_time" => 到站時間
                  *      }
                  * ]
                  */

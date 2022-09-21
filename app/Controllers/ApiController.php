@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\BaseModel;
+use App\Models\BusModel;
 use App\Models\MetroModel;
 use App\Models\THSRModel;
 use App\Models\TRAModel;
@@ -18,6 +19,7 @@ class ApiController extends BaseController
             $this->metroModel = new MetroModel();
             $this->THSRModel  = new THSRModel();
             $this->TRAModel   = new TRAModel();
+            $this->busModel   = new BusModel();
         }
         catch (Exception $e)
         {
@@ -82,7 +84,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_system_route($systemId, $systemId))
+            if (!$this->validate_system($systemId))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -113,7 +115,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_system_route($systemId, $routeId))
+            if (!$this->validate_system($systemId) || !$this->validate_route($routeId))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -200,7 +202,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_system_route($systemId, $routeId) || !$this->validate_coordinates($longitude, $latitude))
+            if (!$this->validate_system($systemId) || !$this->validate_route($routeId) || !$this->validate_coordinates($longitude, $latitude))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -413,7 +415,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_system_route($routeId, $routeId, 5, 5))
+            if (!$this->validate_route($routeId, 5))
             {
                 return $this->send_response([], 400, (array) $this->validator->getErrors());
             }
@@ -493,6 +495,161 @@ class ApiController extends BaseController
             for ($i = 0; $i < sizeof($trainIds); $i++)
             {
                 $arrivalData = $this->TRAModel->get_arrivals($trainIds[$i]->RA_train_id, $fromStationId, $toStationId)->get()->getResult();
+                
+                if (sizeof($arrivalData) == 2)
+                {
+                    $arrivals[$i] = $arrivalData;
+                }
+            }
+
+            // 若查無資料則回傳「查無此路線資料」
+            if (!sizeof($arrivals))
+            {
+                return $this->send_response([], 200, lang("Query.dataNotAvailable"));
+            }
+
+            // 重新排序時刻表資料
+            $this->restructure_arrivals($arrivals);
+
+            // 回傳資料
+            return $this->send_response($arrivals);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    /**
+     * 取得指定公車縣市的所有路線資料
+     * @param string $cityId 縣市代碼
+     * @return array 公車路線資料
+     */
+    function get_bus_routes($cityId)
+    {
+        try
+        {
+            // 驗證參數
+            if (!$this->validate_city($cityId))
+            {
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+
+            // 取得指定公車縣市的所有路線資料
+            $routes = $this->busModel->get_routes($cityId)->get()->getResult();
+
+            // 重新排列公車路線資料
+            $this->restructure_routes($routes);
+
+            // 回傳資料
+            return $this->send_response($routes);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    /**
+     * 取得指定公車路線的所有車站資料
+     * @param string $routeId 路線代碼
+     * @return array 公車站資料
+     */
+    function get_bus_stations($routeId)
+    {
+        try
+        {
+            // 驗證參數
+            if (!$this->validate_route($routeId))
+            {
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+
+            // 取得指定公車路線的所有車站資料
+            $stations = $this->busModel->get_stations($routeId)->get()->getResult();
+
+            // 重新排列公車站資料
+            $this->restructure_stations($stations);
+
+            // 回傳資料
+            return $this->send_response($stations);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    /**
+     * 取得指定公車路線及經緯度的最近車站資料
+     * @param string $routeId 路線代碼
+     * @param string $longitude 經度
+     * @param string $latitude 緯度
+     * @return array 公車站資料
+     */
+    function get_bus_nearest_station($routeId, $longitude, $latitude)
+    {
+        try
+        {
+            // 驗證參數
+            if (!$this->validate_route($routeId) || !$this->validate_coordinates($longitude, $latitude))
+            {
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+
+            // 取得指定公車路線及經緯度的最近車站資料
+            $station = $this->busModel->get_nearest_station($routeId, $longitude, $latitude)->get()->getResult();
+
+            // 重新排列公車站資料
+            $this->restructure_stations($station, false);
+
+            // 回傳資料
+            return $this->send_response($station);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    /**
+     * 取得指定公車起訖站的時刻表資料
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     * @return array 時刻表資料
+     */
+    function get_bus_arrivals($fromStationId, $toStationId)
+    {
+        try
+        {
+            
+            // 驗證參數
+            if (!$this->validate_stations($fromStationId, $toStationId))
+            {
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+
+            // 取得行駛方向（0：南下；1：北上）
+            $direction = 0;
+            if (intval(str_replace("bus-", "", $fromStationId)) > intval(str_replace("bus-", "", $toStationId)))
+            {
+                $direction = 1;
+            }
+
+            // 取得行經指定公車起訖站的所有車次
+            $busIds = $this->bus->get_bus_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
+
+            // 整理後的時刻表陣列
+            $arrivals = [];
+
+            // 透過公車代碼及起訖站來查詢時刻表
+            for ($i = 0; $i < sizeof($busIds); $i++)
+            {
+                $arrivalData = $this->bus->get_arrivals($busIds[$i]->BC_id, $fromStationId, $toStationId)->get()->getResult();
                 
                 if (sizeof($arrivalData) == 2)
                 {

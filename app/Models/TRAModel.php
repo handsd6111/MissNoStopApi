@@ -115,12 +115,12 @@ class TRAModel extends BaseModel
         {
             $condition1 = [
                 "RT_departure_date" => date("Y-m-d H:i:s"),
-                "RA_train_id"  => $fromStationId,
+                "RA_station_id"  => $fromStationId,
                 "RA_direction" => $direction
             ];
             $condition2 = [
                 "RT_departure_date" => date("Y-m-d H:i:s"),
-                "RA_train_id"  => $toStationId,
+                "RA_station_id"  => $toStationId,
                 "RA_direction" => $direction
             ];
             return $this->db->table("TRA_arrivals")

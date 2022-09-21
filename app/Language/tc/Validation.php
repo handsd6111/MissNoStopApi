@@ -5,6 +5,5 @@ return [
     "alpha"                 => "參數「{field}」只允許英文字元",
     "max_length"            => "參數「{field}」的字串長度不得超過 {param} 個字",
     "alpha_numeric_punct"   => "參數「{field}」內含違規字元。",
-    "longitudeInvalid"      => "經度參數未通過驗證",
-    "latitudeInvalid"       => "緯度參數未通過驗證",
+    "longLatInvalid"      => "經緯度參數未通過驗證",
 ];
