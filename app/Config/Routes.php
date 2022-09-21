@@ -68,6 +68,15 @@ $routes->get('/api/TRA/route/(:segment)/long/(:segment)/lat/(:segment)', 'ApiCon
 // 取得指定臺鐵起訖站的時刻表資料
 $routes->get('/api/TRA/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_tra_arrivals/$1/$2');
 
+// 取得指定公車縣市的所有路線資料
+$routes->get('/api/bus/city/(:alpha)/route', 'ApiController::get_bus_routes/$1');
+// 取得指定公車路線的所有車站資料
+$routes->get('/api/bus/route/(:segment)/station', 'ApiController::get_bus_stations/$1');
+// 取得指定公車路線及經緯度的最近車站資料
+$routes->get('/api/bus/route/(:segment)/station/long/(:segment)/lat/(:segment)', 'ApiController::get_bus_nearest_station/$1/$2/$3');
+// 取得指定公車起訖站的時刻表資料
+$routes->get('/api/bus/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_bus_arrivals/$1/$2');
+
 // tdx
 $routes->group('tdx', static function ($routes) {
 

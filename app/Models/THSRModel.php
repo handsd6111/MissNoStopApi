@@ -42,11 +42,11 @@ class THSRModel extends BaseModel
         try
         {
             $condition1 = [
-                "HA_train_id"  => $fromStationId,
+                "HA_station_id"  => $fromStationId,
                 "HA_direction" => $direction
             ];
             $condition2 = [
-                "HA_train_id"  => $toStationId,
+                "HA_station_id"  => $toStationId,
                 "HA_direction" => $direction
             ];
             return $this->db->table("THSR_arrivals")
