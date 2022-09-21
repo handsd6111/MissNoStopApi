@@ -52,9 +52,9 @@ class BusModel extends BaseModel
                                       BR_city_id AS city_id,
                                       BS_longitude AS longitude,
                                       BS_latitude AS latitude
-                                      BA_sequence")
+                                      BRS_sequence")
                             ->where($condition)
-                            ->orderBy("BA_sequence");
+                            ->orderBy("BRS_sequence");
         }
         catch (Exception $e)
         {
@@ -84,7 +84,7 @@ class BusModel extends BaseModel
                                       BS_name_EN AS name_EN,
                                       BR_city_id AS city_id,
                                       BS_longitude AS longitude,
-                                      BS_latitude AS latitude
+                                      BS_latitude AS latitude,
                                       FLOOR(
                                           SQRT(
                                               POWER(
@@ -124,7 +124,7 @@ class BusModel extends BaseModel
                 "BA_direction"  => $direction
             ];
             $condition2 = [
-                "BA_train_id"   => $toStationId,
+                "BA_station_id" => $toStationId,
                 "BA_direction"  => $direction
             ];
             return $this->db->table("bus_arrivals")
@@ -161,7 +161,7 @@ class BusModel extends BaseModel
                             ->select("BA_train_id AS train_id,
                                       BA_station_id AS station_id,
                                       BA_arrival_time AS arrival_time")
-                            ->where("BA_train_id", $busId)
+                            ->where("BA_car_id", $busId)
                             ->whereIn("BA_station_id", $stations)
                             ->orderBy("BA_arrival_time");
         }

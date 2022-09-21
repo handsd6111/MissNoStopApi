@@ -641,7 +641,7 @@ class ApiController extends BaseController
             }
 
             // 取得行經指定公車起訖站的所有車次
-            $busIds = $this->bus->get_bus_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
+            $busIds = $this->busModel->get_bus_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
 
             // 整理後的時刻表陣列
             $arrivals = [];
@@ -649,7 +649,7 @@ class ApiController extends BaseController
             // 透過公車代碼及起訖站來查詢時刻表
             for ($i = 0; $i < sizeof($busIds); $i++)
             {
-                $arrivalData = $this->bus->get_arrivals($busIds[$i]->BC_id, $fromStationId, $toStationId)->get()->getResult();
+                $arrivalData = $this->busModel->get_arrivals($busIds[$i]->BC_id, $fromStationId, $toStationId)->get()->getResult();
                 
                 if (sizeof($arrivalData) == 2)
                 {

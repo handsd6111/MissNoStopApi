@@ -401,7 +401,7 @@ abstract class BaseController extends Controller
             }
 
             // 若此資料非陣列則取第一筆資料
-            if (!$isArray)
+            if (!$isArray && sizeof($stations) > 0)
             {
                 $stations = $stations[0];
             }
