@@ -9,6 +9,7 @@ use App\Models\ORM\BusStationModel;
 use App\Models\ORM\BusRouteStationModel;
 use App\Models\ORM\BusRouteModel;
 use Exception;
+use stdClass;
 
 class TdxBusController extends TdxBaseController
 {
@@ -79,6 +80,7 @@ class TdxBusController extends TdxBaseController
                     {
                         $route->RouteName->En = $route->RouteUID;
                     }
+
                     $busRouteModel->save([
                         "BR_id"      => $route->RouteUID,
                         "BR_name_TC" => $route->RouteName->Zh_tw,
@@ -155,7 +157,41 @@ class TdxBusController extends TdxBaseController
                 $cityId   = $city["C_id"];
                 $weekday  = get_week_day(true);
 
-                error_log("Running data of " . $cityName . "...");
+                $doneCities = [
+                    "ChanghuaCounty",
+                    "Chiayi",
+                    "ChiayiCounty",
+                    "HsinchuCounty",
+                    "Hsinchu",
+                    "HualienCounty",
+                    "YilanCounty",
+                    "Keelung",
+                    "Kaohsiung",
+                    "KinmenCounty",
+                    "LienchiangCounty",
+                    "MiaoliCounty",
+                    "NantouCounty",
+                    "NewTaipei",
+                    "PenghuCounty",
+                    "PingtungCounty",
+                    "Taoyuan",
+                    "Tainan"
+                ];
+
+                // 金門與連江線的資料不齊全（無車次資料）
+                // 台南資料須從 tdx bus v3 抓
+                $skipCities = [
+                    "KinmenCounty",
+                    "LienchiangCounty",
+                    "Tainan"
+                ];
+                if (in_array($cityName, $skipCities) || in_array($cityName, $doneCities))
+                {
+                    error_log("Skipped $cityName");
+                    continue;
+                }
+
+                error_log("Running data of $cityName...");
                 
                 $arrivals = $this->getBusArrival($cityName);
                 $busArrivalModel = new BusArrivalModel();
@@ -175,6 +211,11 @@ class TdxBusController extends TdxBaseController
                     // 走遍 Timetables 列表
                     foreach ($arrival->Timetables as $value)
                     {
+                        if (!isset($value->ServiceDay))
+                        {
+                            $value->ServiceDay = new stdClass();
+                            $value->ServiceDay->$weekday = 0;
+                        }
                         $busCarModel->save([
                             "BC_id" => $cityId . "-" . $value->TripID
                         ]);
