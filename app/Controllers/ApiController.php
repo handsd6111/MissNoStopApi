@@ -562,7 +562,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_route($routeId))
+            if (!$this->validate_route($routeId, 17))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -595,7 +595,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_route($routeId) || !$this->validate_coordinates($longitude, $latitude))
+            if (!$this->validate_route($routeId, 17) || !$this->validate_coordinates($longitude, $latitude))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -628,7 +628,7 @@ class ApiController extends BaseController
         {
             
             // 驗證參數
-            if (!$this->validate_stations($fromStationId, $toStationId))
+            if (!$this->validate_stations($fromStationId, $toStationId, 17, 17))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
