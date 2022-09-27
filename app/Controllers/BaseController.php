@@ -77,47 +77,54 @@ abstract class BaseController extends Controller
      */
     function validate_base($paramData)
     {
-        $this->validateErrMsg = "";
-
-        // 檢查每一份參數資料
-        foreach ($paramData as $key => $value)
+        try
         {
-            // 個別取得參數名稱、參數及限制長度
-            $name   = $key;
-            $param  = $value[0];
-            $length = $value[1];
+            $this->validateErrMsg = "";
 
-            // 設定參數與驗證規則
-            $data = [
-                "$name" => $param,
-            ];
-            $rules = [
-                "$name" => "alpha_numeric_punct|max_length[$length]"
-            ];
-
-            // 若參數驗證失敗則回傳錯誤
-            if (!$this->validateData($data, $rules))
+            // 檢查每一份參數資料
+            foreach ($paramData as $key => $value)
             {
-                $this->validateErrMsg = $this->validator->getError();
-                return false;
+                // 個別取得參數名稱、參數及限制長度
+                $name   = $key;
+                $param  = $value[0];
+                $length = $value[1];
+
+                // 設定參數與驗證規則
+                $data = [
+                    "$name" => $param,
+                ];
+                $rules = [
+                    "$name" => "alpha_numeric_punct|max_length[$length]"
+                ];
+
+                // 若參數驗證失敗則回傳錯誤
+                if (!$this->validateData($data, $rules))
+                {
+                    $this->validateErrMsg = $this->validator->getError();
+                    return false;
+                }
+
+                // 若參數非經緯度則繼續下一筆參數
+                if ($name != "longitude" && $name != "latitude")
+                {
+                    continue;
+                }
+
+                // 若經緯度數值有異則回傳錯誤
+                if ($param != floatval($param))
+                {
+                    $this->validateErrMsg = lang("Validation.longLatInvalid");
+                    return false;
+                }
             }
 
-            // 若參數非經緯度則繼續下一筆參數
-            if ($name != "longitude" && $name != "latitude")
-            {
-                continue;
-            }
-
-            // 若經緯度數值有異則回傳錯誤
-            if ($param != floatval($param))
-            {
-                $this->validateErrMsg = lang("Validation.longLatInvalid");
-                return false;
-            }
+            // 回傳成功
+            return true;
         }
-
-        // 回傳成功
-        return true;
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     /**
@@ -142,8 +149,7 @@ abstract class BaseController extends Controller
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, lang("Exception.exception"));
+            throw $e;
         }
     }
 

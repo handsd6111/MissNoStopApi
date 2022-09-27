@@ -74,8 +74,8 @@ $routes->get('/api/bus/city/(:alpha)/route', 'ApiController::get_bus_routes/$1')
 $routes->get('/api/bus/route/(:segment)/station', 'ApiController::get_bus_stations/$1');
 // 取得指定公車路線及經緯度的最近車站資料
 $routes->get('/api/bus/route/(:segment)/station/long/(:segment)/lat/(:segment)', 'ApiController::get_bus_nearest_station/$1/$2/$3');
-// 取得指定公車起訖站的時刻表資料
-$routes->get('/api/bus/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_bus_arrivals/$1/$2');
+// 取得指定公車路線及起訖站的時刻表資料
+$routes->get('/api/bus/route/(:segment)/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_bus_arrivals/$1/$2/$3');
 
 // tdx
 $routes->group('tdx', static function ($routes) {

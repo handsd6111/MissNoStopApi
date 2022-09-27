@@ -622,7 +622,7 @@ class ApiController extends BaseController
      * @param string $toStationId 訖站代碼
      * @return array 時刻表資料
      */
-    function get_bus_arrivals($fromStationId, $toStationId)
+    function get_bus_arrivals($route, $fromStationId, $toStationId)
     {
         try
         {
@@ -633,15 +633,18 @@ class ApiController extends BaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得行駛方向（0：南下；1：北上）
+            // 取得行駛方向
             $direction = 0;
-            if (intval(str_replace("bus-", "", $fromStationId)) > intval(str_replace("bus-", "", $toStationId)))
-            {
-                $direction = 1;
-            }
+            $sequences = $this->busModel->get_sequences($route, $fromStationId, $toStationId)->get()->getResult();
+            // if ($sequences[0]->BRS_sequence > $sequences[1]->BRS_sequence)
+            // {
+            //     $direction = 1;
+            // }
+            return json_encode($sequences);
 
             // 取得行經指定公車起訖站的所有車次
-            $busIds = $this->busModel->get_bus_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
+            $busIds = $this->busModel->get_bus_by_stations($route, $fromStationId, $toStationId, $direction)->get()->getResult();
+
 
             // 整理後的時刻表陣列
             $arrivals = [];
@@ -649,7 +652,7 @@ class ApiController extends BaseController
             // 透過公車代碼及起訖站來查詢時刻表
             for ($i = 0; $i < sizeof($busIds); $i++)
             {
-                $arrivalData = $this->busModel->get_arrivals($busIds[$i]->BC_id, $fromStationId, $toStationId)->get()->getResult();
+                $arrivalData = $this->busModel->get_arrivals($busIds[$i]->BA_car_id, $fromStationId, $toStationId)->get()->getResult();
                 
                 if (sizeof($arrivalData) == 2)
                 {
@@ -672,7 +675,7 @@ class ApiController extends BaseController
         catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, lang("Exception.exception"));
+            return $this->send_response([], 500, $e->getMessage());
         }
     }
 }

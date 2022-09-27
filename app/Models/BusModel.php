@@ -51,7 +51,7 @@ class BusModel extends BaseModel
                                       BS_name_EN AS name_EN,
                                       BR_city_id AS city_id,
                                       BS_longitude AS longitude,
-                                      BS_latitude AS latitude
+                                      BS_latitude AS latitude,
                                       BRS_sequence")
                             ->where($condition)
                             ->orderBy("BRS_sequence");
@@ -115,20 +115,24 @@ class BusModel extends BaseModel
      * @param int $direction 行車方向（0：南下；1：北上）
      * @return mixed 查詢類別
      */
-    function get_bus_by_stations($fromStationId, $toStationId, $direction)
+    function get_bus_by_stations($routeId, $fromStationId, $toStationId, $direction)
     {
         try
         {
             $condition1 = [
+                "BRS_route_id"  => $routeId,
                 "BA_station_id" => $fromStationId,
                 "BA_direction"  => $direction
             ];
             $condition2 = [
+                "BRS_route_id"  => $routeId,
                 "BA_station_id" => $toStationId,
                 "BA_direction"  => $direction
             ];
             return $this->db->table("bus_arrivals")
-                            ->join("bus_cars", "BC_id = BA_car_id")
+                            ->join("bus_cars", "BA_car_id = BC_id")
+                            ->join("bus_stations", "BA_station_id = BS_id")
+                            ->join("bus_route_stations", "BS_id = BRS_station_id")
                             ->select("BA_car_id")
                             ->where($condition1)
                             ->orWhere($condition2)
@@ -137,7 +141,29 @@ class BusModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定公車路線及起訖站的序號查詢類別
+     * @param string $routeId 路線代碼
+     * @param string $fromStationId 起站代碼
+     * @param string $toStringId 訖站代碼
+     * @return mixed 查詢類別
+     */
+    function get_sequences($routeId, $fromStationId, $toStationId)
+    {
+        try
+        {
+            return $this->db->table("bus_route_stations")
+                            ->select("BRS_station_id, BRS_sequence")
+                            ->where("BRS_station_id", $fromStationId)
+                            ->orWhere("BRS_station_id", $toStationId)
+                            ->where("BRS_route_id", $routeId);
+        }
+        catch (Exception $e)
+        {
             throw $e;
         }
     }
@@ -158,7 +184,7 @@ class BusModel extends BaseModel
                 $toStationId
             ];
             return $this->db->table("bus_arrivals")
-                            ->select("BA_train_id AS train_id,
+                            ->select("BA_car_id AS train_id,
                                       BA_station_id AS station_id,
                                       BA_arrival_time AS arrival_time")
                             ->where("BA_car_id", $busId)
@@ -167,8 +193,7 @@ class BusModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, "Exception error");
+            throw $e;
         }
     }
 }
