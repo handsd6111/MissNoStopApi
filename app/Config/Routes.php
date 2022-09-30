@@ -132,8 +132,6 @@ $routes->group('tdx', static function ($routes) {
             //$routes->cli('', ''); // 公車
             $routes->cli('routeStation', 'TdxBusController::setBusRouteStation'); // 公車路線車站
 
-            $routes->cli('arrival', 'TdxBusController::setBusArrivalAndCar'); // 公車時刻表
-
         });
     });
 });

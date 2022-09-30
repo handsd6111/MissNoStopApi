@@ -3,27 +3,16 @@
 namespace App\Controllers;
 
 use App\Models\ORM\CityModel;
-use App\Models\ORM\BusCarModel;
-use App\Models\ORM\BusArrivalModel;
 use App\Models\ORM\BusStationModel;
 use App\Models\ORM\BusRouteStationModel;
 use App\Models\ORM\BusRouteModel;
 use Exception;
-use stdClass;
 
 class TdxBusController extends TdxBaseController
 {
-    // /v2/Bus/DisplayStopOfRoute/City/{City} 取得指定[縣市]的市區公車顯示用路線站序資料
-    // /v2/Bus/StopOfRoute/City/{City} 取得指定[縣市]的市區公車路線站序資料
     /**
-     * 利用 ORM Model 取得縣市列表。
-     * 
-     * @return object[](stdClass)
-        {
-            C_id => string,
-            C_name_TC => string,
-            C_name_EN => string,
-        }
+     * 取得縣市列表
+     * @return array 縣市列表
      */
     public function getCities()
     {
@@ -39,6 +28,12 @@ class TdxBusController extends TdxBaseController
         }
     }
 
+    /**
+     * 取得指定縣市的公車路線與車站資料
+     * @param string $cityNameEN 縣市英文名稱
+     * @return mixed 公車路線與車站資料
+     * @see https://tdx.transportdata.tw/api-service/swagger/basic/#/CityBus/CityBusApi_StopOfRoute_2039
+     */
     public function getBusRouteStation($cityNameEN)
     {
         try
@@ -53,19 +48,40 @@ class TdxBusController extends TdxBaseController
         }
     }
 
+    /**
+     * 寫入公車路線與車站資料
+     * @return void 不回傳值
+     */
     public function setBusRouteStation()
     {
         try
         {
             // 因為必須使用縣市作為參數，因此首先查詢縣市列表
-            $cities = $this->getCities();
+            // $cities = $this->getCities();
+
+            $cities = [
+                0 => [
+                    "C_id" => "CHA",
+                    "C_name_EN" => "ChanghuaCounty"
+                ]
+            ];
+
+            // $finishedCities = [
+            // ];
 
             // 走遍縣市列表
             foreach ($cities as $city)
             {
                 $cityName = $city["C_name_EN"];
-                
-                error_log("Running data of " . $cityName . "...");
+                $cityId   = $city["C_id"];
+
+                // if (in_array($cityName, $finishedCities))
+                // {
+                //     error_log("skipped $cityName");
+                //     continue;
+                // }
+
+                error_log("Running data of $cityName ...");
 
                 $routes               = $this->getBusRouteStation($cityName);
                 $busRouteModel        = new BusRouteModel();
@@ -81,32 +97,42 @@ class TdxBusController extends TdxBaseController
                         $route->RouteName->En = $route->RouteUID;
                     }
 
+                    $routeId = $cityId . "-" . $route->RouteID;
+
                     $busRouteModel->save([
-                        "BR_id"      => $route->RouteUID,
+                        "BR_id"      => $routeId,
                         "BR_name_TC" => $route->RouteName->Zh_tw,
-                        "BR_name_EN" => $route->RouteName->En,
-                        "BR_city_id" => $route->CityCode
+                        "BR_name_EN" => $route->RouteName->En
                     ]);
 
                     // 走遍指定路線的車站列表
                     foreach ($route->Stops as $station)
                     {
-                        // 若此車站無英文名子則以車站代碼代替
+                        // 若此車站無英文站名則以中文站名代替
                         if (!isset($station->StopName->En))
                         {
-                            $station->StopName->En = $station->StopUID;
+                            $station->StopName->En = $station->StopName->Zh_tw;
                         }
+                        // 若無車站代碼則直接跳過
+                        if (!isset($station->StationID))
+                        {
+                            continue;
+                        }
+
+                        $stationId = $cityId . "-" . $station->StopID;
+
                         $busStationModel->save([
-                            "BS_id"        => $station->StopUID,
+                            "BS_id"        => $stationId,
                             "BS_name_TC"   => $station->StopName->Zh_tw,
                             "BS_name_EN"   => $station->StopName->En,
+                            "BS_city_id"   => $cityId,
                             "BS_longitude" => $station->StopPosition->PositionLon,
-                            "BS_latitude"  => $station->StopPosition->PositionLat,
+                            "BS_latitude"  => $station->StopPosition->PositionLat
                         ]);
                         $busRouteStationModel->save([
-                            "BRS_station_id" => $station->StopUID,
-                            "BRS_route_id"   => $route->RouteUID,
-                            "BRS_sequence"   => $station->StopSequence,
+                            "BRS_station_id" => $stationId,
+                            "BRS_route_id"   => $routeId,
+                            "BRS_sequence"   => $station->StopSequence
                         ]);
                     }
                 }
@@ -114,126 +140,7 @@ class TdxBusController extends TdxBaseController
         }
         catch (Exception $e)
         {
-            error_log("Found error!");
-            log_message("critical", $e);
-        }
-    }
-
-    /**
-     * 取得指定縣市的公車時刻表資料
-     */
-    public function getBusArrival($cityNameEN)
-    {
-        try
-        {
-            $accessToken = $this->getAccessToken();
-            $url = "https://tdx.transportdata.tw/api/basic/v2/Bus/Schedule/City/$cityNameEN?&%24format=JSON";
-            return $this->curlGet($url, $accessToken);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 利用 ORM Model 寫入公車時刻表及車次資料至 SQL 內。
-     * 
-     * @return boolean true | false
-     */
-    public function setBusArrivalAndCar()
-    {
-        try
-        {
-            // 載入「回傳今天星期幾」幫手
-            helper("getWeekDay");
-
-            // 因為必須使用縣市作為參數，因此首先查詢縣市列表
-            $citieNames = $this->getCities();
-
-            foreach ($citieNames as $city)
-            {
-                $cityName = $city["C_name_EN"];
-                $cityId   = $city["C_id"];
-                $weekday  = get_week_day(true);
-
-                $doneCities = [
-                    "ChanghuaCounty",
-                    "Chiayi",
-                    "ChiayiCounty",
-                    "HsinchuCounty",
-                    "Hsinchu",
-                    "HualienCounty",
-                    "YilanCounty",
-                    "Keelung",
-                    "Kaohsiung",
-                    "KinmenCounty",
-                    "LienchiangCounty",
-                    "MiaoliCounty",
-                    "NantouCounty",
-                    "NewTaipei",
-                    "PenghuCounty",
-                    "PingtungCounty",
-                    "Taoyuan",
-                    "Tainan"
-                ];
-
-                // 金門與連江線的資料不齊全（無車次資料）
-                // 台南資料須從 tdx bus v3 抓
-                $skipCities = [
-                    "KinmenCounty",
-                    "LienchiangCounty",
-                    "Tainan"
-                ];
-                if (in_array($cityName, $skipCities) || in_array($cityName, $doneCities))
-                {
-                    error_log("Skipped $cityName");
-                    continue;
-                }
-
-                error_log("Running data of $cityName...");
-                
-                $arrivals = $this->getBusArrival($cityName);
-                $busArrivalModel = new BusArrivalModel();
-                $busCarModel     = new BusCarModel();
-
-                foreach ($arrivals as $arrival)
-                {
-                    // 若無 Timetables 則跳過
-                    if (!isset($arrival->Timetables))
-                    {
-                        continue;
-                    }
-
-                    // 行駛方向
-                    $direction = $arrival->Direction;
-
-                    // 走遍 Timetables 列表
-                    foreach ($arrival->Timetables as $value)
-                    {
-                        if (!isset($value->ServiceDay))
-                        {
-                            $value->ServiceDay = new stdClass();
-                            $value->ServiceDay->$weekday = 0;
-                        }
-                        $busCarModel->save([
-                            "BC_id" => $cityId . "-" . $value->TripID
-                        ]);
-                        $busArrivalModel->save([
-                            'BA_car_id'        => $cityId . "-" . $value->TripID,
-                            'BA_station_id'    => $value->StopTimes[0]->StopUID,
-                            'BA_arrival_time'  => $value->StopTimes[0]->ArrivalTime,
-                            'BA_direction'     => $direction,
-                            'BA_arrives_today' => $value->ServiceDay->$weekday,
-                        ]);
-                    }
-                }
-            }
-            return true;
-        }
-        catch (Exception $e)
-        {
-            error_log("Found error!");
+            error_log("Found error!: " . $e);
             log_message("critical", $e);
         }
     }

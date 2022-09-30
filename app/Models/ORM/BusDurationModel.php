@@ -2,22 +2,24 @@
 
 namespace App\Models\ORM;
 
-class BusArrivalModel extends CompositeKey
+use App\Models\ORM\CompositeKey;
+
+class BusDurationModel extends CompositeKey
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'bus_arrivals';
-    protected $primaryKey       = 'BA_car_id';
+    protected $table            = 'bus_durations';
+    protected $primaryKey       = 'BD_from_station_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        "BA_car_id",
-        "BA_station_id",
-        "BA_arrival_time",
-        "BA_direction",
-        "BA_arrives_today"
+        "BD_from_station_id",
+        "BD_to_station_id",
+        "BD_week",
+        "BD_hour",
+        "BD_duration"
     ];
 
     // Dates
@@ -43,14 +45,16 @@ class BusArrivalModel extends CompositeKey
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
-    
+
     public function __construct()
     {
         parent::__construct();
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
-            'BA_car_id',
-            'BA_station_id'
+            'BD_from_station_id',
+            'BD_to_station_id',
+            'BD_week',
+            'BD_hour'
         ];
     }
 }

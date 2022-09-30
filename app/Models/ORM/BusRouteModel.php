@@ -17,8 +17,7 @@ class BusRouteModel extends Model
     protected $allowedFields    = [
         "BR_id",
         "BR_name_TC",
-        "BR_name_EN",
-        "BR_city_id"
+        "BR_name_EN"
     ];
 
     // Dates

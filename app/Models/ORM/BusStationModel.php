@@ -18,6 +18,7 @@ class BusStationModel extends Model
         "BS_id",
         "BS_name_TC",
         "BS_name_EN",
+        "BS_city_id",
         "BS_longitude",
         "BS_latitude"
     ];
