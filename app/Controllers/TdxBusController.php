@@ -2,14 +2,32 @@
 
 namespace App\Controllers;
 
-use App\Models\ORM\CityModel;
-use App\Models\ORM\BusStationModel;
+use App\Models\BusModel;
+use App\Models\ORM\BusDuplicatedStations;
 use App\Models\ORM\BusRouteStationModel;
 use App\Models\ORM\BusRouteModel;
+use App\Models\ORM\BusStationModel;
+use App\Models\ORM\CityModel;
 use Exception;
 
 class TdxBusController extends TdxBaseController
 {
+    public function __construct()
+    {
+        try
+        {
+            $this->cityModel             = new CityModel();
+            $this->busModel              = new BusModel();
+            $this->busStationModel       = new BusStationModel();
+            $this->busDuplicatedStations = new BusDuplicatedStations();
+            $this->busRouteStationModel  = new BusRouteStationModel();
+            $this->busRouteModel         = new BusRouteModel();
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+        }
+    }
     /**
      * 取得縣市列表
      * @return array 縣市列表
@@ -18,8 +36,7 @@ class TdxBusController extends TdxBaseController
     {
         try
         {
-            $cityModel = new CityModel();
-            $result = $cityModel->findAll();
+            $result = $this->cityModel->findAll();
             return $result;
         }
         catch (Exception $e)
@@ -41,6 +58,49 @@ class TdxBusController extends TdxBaseController
             $accessToken = $this->getAccessToken();
             $url = "https://tdx.transportdata.tw/api/basic/v2/Bus/StopOfRoute/City/$cityNameEN?%24format=JSON";
             return $this->curlGet($url, $accessToken);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 排除重複車站代碼的情況
+     * @param string $stationId 車站代碼
+     * @param string $routeId 路線代碼
+     * @param int $sequence 序號
+     * @return string 可使用的車站代碼
+     */
+    public function duplicationHandeller($stationId, $routeId, $sequence)
+    {
+        try
+        {
+            // SELECT `BRS_station_id`, `BS_name_TC`, `BRS_sequence` FROM `bus_route_stations`, `bus_stations` WHERE `BS_id` = `BRS_station_id` AND `BRS_route_id` = 'CHA-0625' ORDER BY `BRS_sequence`; 
+            // 否則檢查一公車路線是否已有指定序號的資料
+            $query1 = $this->busModel->check_duplicated_sequence($routeId, $sequence)->get()->getResult();
+
+            // 若是則將重複資訊寫入「公車重複車站」資料表，並回傳所查詢到的車站代碼
+            if ($query1)
+            {
+                $this->busDuplicatedStations->save([
+                    "BDS_station_id"    => $query1[0]->station_id,
+                    "BDS_duplicated_id" => $stationId
+                ]);
+                return $query1[0]->station_id;
+            }
+            
+            // 查詢指定車站代碼是否有重複的紀錄
+            $query2 = $this->busModel->check_duplicated_station($stationId)->get()->getResult();
+
+            // 若是則將欲寫入「公車車站」及「公車路線車站」的車站代碼改為查詢到的車站代碼
+            if ($query2)
+            {
+                return $query2[0]->station_id;
+            }
+
+            // 否則回傳原有車站代碼
+            return $stationId;
         }
         catch (Exception $e)
         {
@@ -83,14 +143,15 @@ class TdxBusController extends TdxBaseController
 
                 error_log("Running data of $cityName ...");
 
-                $routes               = $this->getBusRouteStation($cityName);
-                $busRouteModel        = new BusRouteModel();
-                $busStationModel      = new BusStationModel();
-                $busRouteStationModel = new BusRouteStationModel();
+                $routes = $this->getBusRouteStation($cityName);
 
                 // 走遍指定縣市的路線列表
                 foreach ($routes as $route)
                 {
+                    if ($route->Direction != 0)
+                    {
+                        continue;
+                    }
                     // 若此路線無英文名子則以路線代碼代替
                     if (!isset($route->RouteName->En))
                     {
@@ -99,7 +160,7 @@ class TdxBusController extends TdxBaseController
 
                     $routeId = $cityId . "-" . $route->RouteID;
 
-                    $busRouteModel->save([
+                    $this->busRouteModel->save([
                         "BR_id"      => $routeId,
                         "BR_name_TC" => $route->RouteName->Zh_tw,
                         "BR_name_EN" => $route->RouteName->En
@@ -119,9 +180,10 @@ class TdxBusController extends TdxBaseController
                             continue;
                         }
 
-                        $stationId = $cityId . "-" . $station->StopID;
+                        $sequence  = $station->StopSequence;
+                        $stationId = $this->duplicationHandeller("$cityId-$station->StopID", $routeId, $sequence);
 
-                        $busStationModel->save([
+                        $this->busStationModel->save([
                             "BS_id"        => $stationId,
                             "BS_name_TC"   => $station->StopName->Zh_tw,
                             "BS_name_EN"   => $station->StopName->En,
@@ -129,10 +191,10 @@ class TdxBusController extends TdxBaseController
                             "BS_longitude" => $station->StopPosition->PositionLon,
                             "BS_latitude"  => $station->StopPosition->PositionLat
                         ]);
-                        $busRouteStationModel->save([
+                        $this->busRouteStationModel->save([
                             "BRS_station_id" => $stationId,
                             "BRS_route_id"   => $routeId,
-                            "BRS_sequence"   => $station->StopSequence
+                            "BRS_sequence"   => $sequence
                         ]);
                     }
                 }
@@ -140,7 +202,7 @@ class TdxBusController extends TdxBaseController
         }
         catch (Exception $e)
         {
-            error_log("Found error!: " . $e);
+            error_log($e);
             log_message("critical", $e);
         }
     }
