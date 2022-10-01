@@ -1,7 +1,7 @@
 <?php
     /**
      * 回傳今天星期幾
-     * @param string $returnAsString 以文字回傳
+     * @param bool $returnAsString 是否以文字回傳
      */
     function get_week_day($returnAsString = false)
     {

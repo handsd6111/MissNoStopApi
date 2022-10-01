@@ -2,24 +2,20 @@
 
 namespace App\Models\ORM;
 
-use App\Models\ORM\CompositeKey;
+use CodeIgniter\Model;
 
-class BusDurationModel extends CompositeKey
+class BusTripModel extends Model
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'bus_durations';
-    protected $primaryKey       = 'BD_from_station_id';
+    protected $table            = 'bus_trips';
+    protected $primaryKey       = 'BT_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        "BD_from_station_id",
-        "BD_to_station_id",
-        "BD_week",
-        "BD_hour",
-        "BD_duration"
+        "BT_id"
     ];
 
     // Dates
@@ -45,16 +41,4 @@ class BusDurationModel extends CompositeKey
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->builder = $this->builder();
-        $this->compositePrimaryKeys = [
-            'BD_from_station_id',
-            'BD_to_station_id',
-            'BD_week',
-            'BD_hour'
-        ];
-    }
 }

@@ -10,52 +10,6 @@ use Exception;
 class BusModel extends BaseModel
 {
     /**
-     * 查詢指定公車站代碼是否重複查詢類別
-     * @param string $stationId 公車站代碼
-     * @return mixed 查詢類別
-     */
-    function check_duplicated_station($stationId)
-    {
-        try
-        {
-            $condition = [
-                "BDS_duplicated_id" => $stationId
-            ];
-            return $this->db->table("bus_duplicated_stations")
-                            ->select("BDS_station_id AS station_id")
-                            ->where($condition);
-        }
-        catch (Exception $e)
-        {
-            return $e;
-        }
-    }
-
-    /**
-     * 查詢指定公車路線及序號的車站代碼查詢類別
-     * @param string $routeId 公車路線
-     * @param string $sequence 序號
-     * @return mixed 查詢類別
-     */
-    function check_duplicated_sequence($routeId, $sequence)
-    {
-        try
-        {
-            $condition = [
-                "BRS_route_id" => $routeId,
-                "BRS_sequence"   => $sequence
-            ];
-            return $this->db->table("bus_route_stations")
-                            ->select("BRS_station_id AS station_id")
-                            ->where($condition);
-        }
-        catch (Exception $e)
-        {
-            return $e;
-        }
-    }
-
-    /**
      * 取得指定公車縣市的所有路線查詢類別
      * @param string $cityId 縣市代碼
      * @return mixed 查詢類別

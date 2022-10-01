@@ -4,19 +4,22 @@ namespace App\Models\ORM;
 
 use App\Models\ORM\CompositeKey;
 
-class BusDuplicatedStations extends CompositeKey
+class BusArrivalModel extends CompositeKey
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'bus_duplicated_stations';
-    protected $primaryKey       = 'BDS_station_id';
+    protected $table            = 'bus_arrivals';
+    protected $primaryKey       = 'BA_trip_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        "BDS_station_id",
-        "BDS_duplicated_id"
+        "BA_trip_id",
+        "BA_station_id",
+        "BA_direction",
+        "BA_arrival_time",
+        "BA_arrives_today",
     ];
 
     // Dates
@@ -48,8 +51,8 @@ class BusDuplicatedStations extends CompositeKey
         parent::__construct();
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
-            'BDS_station_id',
-            'BDS_duplicated_id'
+            'BA_trip_id',
+            'BA_station_id'
         ];
     }
 }
