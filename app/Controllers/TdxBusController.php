@@ -152,18 +152,20 @@ class TdxBusController extends TdxBaseController
                     {
                         continue;
                     }
+
+                    $routeId = $cityId . "-" . $route->SubRouteID;
+
                     // 若此路線無英文名子則以路線代碼代替
-                    if (!isset($route->RouteName->En))
+                    if (!isset($route->SubRouteName->En))
                     {
-                        $route->RouteName->En = $route->RouteUID;
+                        $route->SubRouteName->En = $routeId;
                     }
 
-                    $routeId = $cityId . "-" . $route->RouteID;
 
                     $this->busRouteModel->save([
                         "BR_id"      => $routeId,
-                        "BR_name_TC" => $route->RouteName->Zh_tw,
-                        "BR_name_EN" => $route->RouteName->En
+                        "BR_name_TC" => $route->SubRouteName->Zh_tw,
+                        "BR_name_EN" => $route->SubRouteName->En
                     ]);
 
                     // 走遍指定路線的車站列表
@@ -180,8 +182,7 @@ class TdxBusController extends TdxBaseController
                             continue;
                         }
 
-                        $sequence  = $station->StopSequence;
-                        $stationId = $this->duplicationHandeller("$cityId-$station->StopID", $routeId, $sequence);
+                        $stationId = $this->duplicationHandeller("$cityId-$station->StopID", $routeId, $station->StopSequence);
 
                         $this->busStationModel->save([
                             "BS_id"        => $stationId,
@@ -194,7 +195,7 @@ class TdxBusController extends TdxBaseController
                         $this->busRouteStationModel->save([
                             "BRS_station_id" => $stationId,
                             "BRS_route_id"   => $routeId,
-                            "BRS_sequence"   => $sequence
+                            "BRS_sequence"   => $station->StopSequence
                         ]);
                     }
                 }
