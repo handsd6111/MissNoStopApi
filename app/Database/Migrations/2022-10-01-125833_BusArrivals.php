@@ -31,7 +31,7 @@ class BusArrivals extends Migration
         $this->forge->addPrimaryKey(["BA_trip_id", "BA_station_id", "BA_direction"]);
         $this->forge->addForeignKey("BA_trip_id", "bus_trips", "BT_id", "CASCADE", "CASCADE");
         $this->forge->addForeignKey("BA_station_id", "bus_stations", "BS_id", "CASCADE", "CASCADE");
-        $this->forge->createTable("bus_arrivals");
+        $this->forge->createTable("bus_arrivals", true);
     }
 
     public function down()
