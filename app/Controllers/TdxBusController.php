@@ -219,13 +219,19 @@ class TdxBusController extends TdxBaseController
                         $this->busTripModel->save([
                             "BT_id" => $tripId
                         ]);
-                        $this->busArrivalModel->save([
-                            "BA_trip_id"       => $tripId,
-                            "BA_station_id"    => "$cityId-" . $timeTable->StopTimes[0]->StopID,
-                            "BA_direction"     => $arrival->Direction,
-                            "BA_arrival_time"  => $timeTable->StopTimes[0]->ArrivalTime,
-                            "BA_arrives_today" => $timeTable->ServiceDay->$week
-                        ]);
+
+                        // 走遍此班表的所有停靠時間
+                        foreach ($timeTable->StopTimes as $stopTime)
+                        {
+                            $this->busArrivalModel->save([
+                                "BA_trip_id"       => $tripId,
+                                "BA_station_id"    => "$cityId-" . $stopTime->StopID,
+                                "BA_direction"     => $arrival->Direction,
+                                "BA_sequence"      => $stopTime->StopSequence,
+                                "BA_arrival_time"  => $stopTime->ArrivalTime,
+                                "BA_arrives_today" => $timeTable->ServiceDay->$week
+                            ]);
+                        }
                     }
                 }
             }
