@@ -8,14 +8,13 @@ class BusArrivalModel extends CompositeKey
 {
     protected $DBGroup          = 'default';
     protected $table            = 'bus_arrivals';
-    protected $primaryKey       = 'BA_trip_id';
+    protected $primaryKey       = 'BA_station_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        "BA_trip_id",
         "BA_station_id",
         "BA_direction",
         "BA_arrival_time",
@@ -51,8 +50,9 @@ class BusArrivalModel extends CompositeKey
         parent::__construct();
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
-            'BA_trip_id',
-            'BA_station_id'
+            'BA_station_id',
+            'BA_direction',
+            "BA_arrival_time"
         ];
     }
 }

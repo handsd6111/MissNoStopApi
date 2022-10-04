@@ -7,9 +7,9 @@ use App\Models\ORM\BusArrivalModel;
 use App\Models\ORM\BusRouteStationModel;
 use App\Models\ORM\BusRouteModel;
 use App\Models\ORM\BusStationModel;
-use App\Models\ORM\BusTripModel;
 use App\Models\ORM\CityModel;
 use Exception;
+use stdClass;
 
 class TdxBusController extends TdxBaseController
 {
@@ -27,7 +27,6 @@ class TdxBusController extends TdxBaseController
             $this->busRouteStationModel = new BusRouteStationModel();
             $this->busRouteModel        = new BusRouteModel();
             $this->busStationModel      = new BusStationModel();
-            $this->busTripModel         = new BusTripModel();
         }
         catch (Exception $e)
         {
@@ -82,10 +81,13 @@ class TdxBusController extends TdxBaseController
             // 取得縣市列表
             $cities = $this->getCities();
 
+            helper("terminalLog");
+
             // 走遍縣市列表
             foreach ($cities as $city)
             {
-                error_log("Running data of {$city["C_name_EN"]} ...");
+                $startTime = microtime(true);
+                $this->terminal_log("Running data of {$city["C_name_EN"]} ... ");
 
                 $cityId = $city["C_id"];
                 $routes = $this->getBusRouteStation($city["C_name_EN"]);
@@ -139,17 +141,16 @@ class TdxBusController extends TdxBaseController
                         ]);
                     }
                 }
+                $timeTaken = floor((microtime(true) - $startTime) * 1000) / 1000;
+                $this->terminal_log("$timeTaken seconds taken.", true);
             }
         }
         catch (Exception $e)
         {
+            $this->terminal_log("", true);
             log_message("critical", $e);
         }
     }
-
-    /**
-     * /v2/Bus/EstimatedTimeOfArrival/City/{City} 接下來即將抵達的多台公車及剩餘時間
-     */
 
     /**
      * 取得指定縣市的時刻表資料
@@ -179,37 +180,35 @@ class TdxBusController extends TdxBaseController
         
         try
         {
+            helper(["getWeekDay", "terminalLog"]);
+
             // 取得縣市列表
-            // $cities = $this->getCities();
-            $cities = [
-                [
-                    "C_id" => "TPE",
-                    "C_name_EN" => "Taipei"
-                ]
-            ];
+            $cities = $this->getCities();
 
-            $finishedCities = [
-
+            // 無資料縣市
+            $unavailableCities = [
+                "LienchiangCounty"
             ];
 
             // 走遍縣市列表
             foreach ($cities as $city)
             {
-                $cityName = $city["C_name_EN"];
-                
-                helper("getWeekDay");
+                // 開始計時
+                $startTime = microtime(true);
+                $cityName  = $city["C_name_EN"];
 
-                error_log("Running data of $cityName ...");
-
-                if (in_array($cityName, $finishedCities))
+                // 若嘗試取得無資料的縣市則跳過
+                if (in_array($cityName, $unavailableCities))
                 {
-                    error_log("skipped $cityName ...");
+                    $this->terminal_log("Skipped $cityName...", true);
                     continue;
                 }
 
+                $this->terminal_log("Running data of $cityName ... ");
+
+                $week     = get_week_day(true);
                 $cityId   = $city["C_id"];
                 $arrivals = $this->getBusArrivals($cityName);
-                $week     = get_week_day(true);
 
                 // 走遍指定縣市的時課表
                 foreach ($arrivals as $arrival)
@@ -219,35 +218,34 @@ class TdxBusController extends TdxBaseController
                     {
                         continue;
                     }
-
                     // 走遍此時刻表的所有班表
                     foreach ($arrival->Timetables as $timeTable)
                     {
-                        $tripId = $this->getUID($cityId, $timeTable->TripID);
-
-                        $this->busTripModel->save([
-                            "BT_id" => $tripId
-                        ]);
-
                         // 走遍此班表的所有停靠時間
                         foreach ($timeTable->StopTimes as $stopTime)
                         {
+                            if (!isset($timeTable->ServiceDay))
+                            {
+                                $timeTable->ServiceDay = new stdClass();
+                                $timeTable->ServiceDay->$week = 1;
+                            }
                             $this->busArrivalModel->save([
-                                "BA_trip_id"       => $tripId,
                                 "BA_station_id"    => $this->getUID($cityId, $stopTime->StopID),
                                 "BA_direction"     => $arrival->Direction,
-                                "BA_sequence"      => $stopTime->StopSequence,
                                 "BA_arrival_time"  => $stopTime->ArrivalTime,
                                 "BA_arrives_today" => $timeTable->ServiceDay->$week
                             ]);
                         }
                     }
                 }
+                // 印出花費時間
+                $timeTaken = floor((microtime(true) - $startTime) * 100) / 100;
+                $this->terminal_log("$timeTaken seconds taken.", true);
             }
         }
         catch (Exception $e)
         {
-            error_log($e);
+            $this->terminal_log("", true);
             log_message("critical", $e);
         }
     }
