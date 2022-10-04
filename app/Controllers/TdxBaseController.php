@@ -100,7 +100,7 @@ class TdxBaseController extends BaseController
      * @param bool $lineBreak 是否換行
      * @param void 不回傳值
      */
-    protected function terminal_log($message = "", $lineBreak = false)
+    protected function terminalLog($message = "", $lineBreak = false)
     {
         try
         {
@@ -114,6 +114,39 @@ class TdxBaseController extends BaseController
             {
                 ob_end_flush();  
             }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得當前時間
+     * @return string 當前時間
+     */
+    protected function getTime()
+    {
+        try
+        {
+            return microtime(true);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定起始時間到現在的總花費時間
+     * @param $startTime 起始時間
+     * @return string 總花費時間
+     */
+    protected function getTimeTaken($startTime)
+    {
+        try
+        {
+            return floor(($this->getTime() - $startTime) * 1000) / 1000;
         }
         catch (Exception $e)
         {

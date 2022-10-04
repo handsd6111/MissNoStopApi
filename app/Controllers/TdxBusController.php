@@ -86,11 +86,15 @@ class TdxBusController extends TdxBaseController
             // 走遍縣市列表
             foreach ($cities as $city)
             {
-                $startTime = microtime(true);
-                $this->terminal_log("Running data of {$city["C_name_EN"]} ... ");
+                // 開始計時
+                $startTime = $this->getTime();
+                $cityId    = $city["C_id"];
+                $cityName  = $city["C_name_EN"];
 
-                $cityId = $city["C_id"];
-                $routes = $this->getBusRouteStation($city["C_name_EN"]);
+                // 取得指定縣市的公車路線與車站資料
+                $routes = $this->getBusRouteStation($cityName);
+
+                $this->terminalLog("Running data of $cityName ... ");
 
                 // 走遍指定縣市的路線列表
                 foreach ($routes as $route)
@@ -141,13 +145,13 @@ class TdxBusController extends TdxBaseController
                         ]);
                     }
                 }
-                $timeTaken = floor((microtime(true) - $startTime) * 1000) / 1000;
-                $this->terminal_log("$timeTaken seconds taken.", true);
+                // 印出花費時間
+                $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
         }
         catch (Exception $e)
         {
-            $this->terminal_log("", true);
+            $this->terminalLog("", true);
             log_message("critical", $e);
         }
     }
@@ -194,20 +198,20 @@ class TdxBusController extends TdxBaseController
             foreach ($cities as $city)
             {
                 // 開始計時
-                $startTime = microtime(true);
+                $startTime = $this->getTime();
+                $week      = get_week_day(true);
+                $cityId    = $city["C_id"];
                 $cityName  = $city["C_name_EN"];
 
                 // 若嘗試取得無資料的縣市則跳過
                 if (in_array($cityName, $unavailableCities))
                 {
-                    $this->terminal_log("Skipped $cityName...", true);
+                    $this->terminalLog("Skipped $cityName...", true);
                     continue;
                 }
+                $this->terminalLog("Running data of $cityName ... ");
 
-                $this->terminal_log("Running data of $cityName ... ");
-
-                $week     = get_week_day(true);
-                $cityId   = $city["C_id"];
+                // 取得指定公車縣市的時刻表
                 $arrivals = $this->getBusArrivals($cityName);
 
                 // 走遍指定縣市的時課表
@@ -239,13 +243,12 @@ class TdxBusController extends TdxBaseController
                     }
                 }
                 // 印出花費時間
-                $timeTaken = floor((microtime(true) - $startTime) * 100) / 100;
-                $this->terminal_log("$timeTaken seconds taken.", true);
+                $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
         }
         catch (Exception $e)
         {
-            $this->terminal_log("", true);
+            $this->terminalLog("", true);
             log_message("critical", $e);
         }
     }
