@@ -548,16 +548,17 @@ class ApiController extends BaseController
         catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, lang("Exception.exception"));
+            return $this->send_response([$e], 500, lang("Exception.exception"));
         }
     }
 
     /**
-     * 取得指定公車路線的所有車站資料
+     * 取得指定公車路線與行駛方向的所有車站資料
      * @param string $routeId 路線代碼
+     * @param int $direction 行駛方向
      * @return array 公車站資料
      */
-    function get_bus_stations($routeId)
+    function get_bus_stations($routeId, $direction)
     {
         try
         {
@@ -568,7 +569,7 @@ class ApiController extends BaseController
             }
 
             // 取得指定公車路線的所有車站資料
-            $stations = $this->busModel->get_stations($routeId)->get()->getResult();
+            $stations = $this->busModel->get_stations($routeId, $direction)->get()->getResult();
 
             // 重新排列公車站資料
             $this->restructure_stations($stations);
@@ -617,57 +618,42 @@ class ApiController extends BaseController
     }
 
     /**
-     * 取得指定公車起訖站的時刻表資料
+     * 取得指定公車路線、行駛方向及起訖站的時刻表
+     * @param string $routeId 路線代碼
+     * @param int $direction 行駛方向
      * @param string $fromStationId 起站代碼
-     * @param string $toStationId 訖站代碼
+     * @param string $toStringId 訖站代碼
      * @return array 時刻表資料
      */
-    function get_bus_arrivals($route, $fromStationId, $toStationId)
+    function get_bus_arrivals($route, $direction, $fromStationId, $toStationId)
     {
         try
         {
-            
             // 驗證參數
             if (!$this->validate_stations($fromStationId, $toStationId, 17, 17))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得行駛方向
-            $direction = 0;
-            $sequences = $this->busModel->get_sequences($route, $fromStationId, $toStationId)->get()->getResult();
-            // if ($sequences[0]->BRS_sequence > $sequences[1]->BRS_sequence)
-            // {
-            //     $direction = 1;
-            // }
-            return json_encode($sequences);
+            // 起站時刻表
+            $fromArrivals = $this->busModel->get_arrivals($route, $direction, $fromStationId)->get()->getResult();
 
-            // 取得行經指定公車起訖站的所有車次
-            $busIds = $this->busModel->get_bus_by_stations($route, $fromStationId, $toStationId, $direction)->get()->getResult();
+            // 起站時刻表
+            $toArrivals = $this->busModel->get_arrivals($route, $direction, $toStationId)->get()->getResult();
 
+            if (!sizeof($fromArrivals))
+            {
+                return $this->send_response(["stationId" => $fromStationId], 400, lang("Query.stationNotFound"));
+            }
+            if (!sizeof($toArrivals))
+            {
+                return $this->send_response(["stationId" => $toStationId], 400, lang("Query.stationNotFound"));
+            }
 
-            // 整理後的時刻表陣列
             $arrivals = [];
 
-            // 透過公車代碼及起訖站來查詢時刻表
-            for ($i = 0; $i < sizeof($busIds); $i++)
-            {
-                $arrivalData = $this->busModel->get_arrivals($busIds[$i]->BA_car_id, $fromStationId, $toStationId)->get()->getResult();
-                
-                if (sizeof($arrivalData) == 2)
-                {
-                    $arrivals[$i] = $arrivalData;
-                }
-            }
-
-            // 若查無資料則回傳「查無此路線資料」
-            if (!sizeof($arrivals))
-            {
-                return $this->send_response([], 200, lang("Query.dataNotAvailable"));
-            }
-
             // 重新排序時刻表資料
-            $this->restructure_arrivals($arrivals);
+            $this->restructure_bus_arrivals($arrivals, $fromArrivals, $toArrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);
@@ -675,7 +661,7 @@ class ApiController extends BaseController
         catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
 }

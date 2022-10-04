@@ -362,12 +362,11 @@ abstract class BaseController extends Controller
             // 重新排列資料
             foreach ($routes as $key => $value)
             {
-                $temp = $value;
                 $routes[$key] = [
-                    "route_id"   => $temp->route_id,
+                    "route_id"   => $value->route_id,
                     "route_name" => [
-                        "TC" => $temp->name_TC,
-                        "EN" => $temp->name_EN
+                        "TC" => $value->name_TC,
+                        "EN" => $value->name_EN
                     ],
                 ];
             }
@@ -391,18 +390,18 @@ abstract class BaseController extends Controller
             // 重新排列資料
             foreach ($stations as $key => $value)
             {
-                $temp = $value;
                 $stations[$key] = [
-                    "station_id"   => $temp->station_id,
+                    "station_id"   => $value->station_id,
                     "station_name" => [
-                        "TC" => $temp->name_TC,
-                        "EN" => $temp->name_EN
+                        "TC" => $value->name_TC,
+                        "EN" => $value->name_EN
                     ],
                     "station_location" => [
-                        "city_id"   => $temp->city_id,
-                        "longitude" => $temp->longitude,
-                        "latitude"  => $temp->latitude,
-                    ]
+                        "city_id"   => $value->city_id,
+                        "longitude" => $value->longitude,
+                        "latitude"  => $value->latitude,
+                    ],
+                    "sequence" => $value->sequence
                 ];
             }
 
@@ -421,37 +420,89 @@ abstract class BaseController extends Controller
     /**
      * 重新排列時刻表資料
      * @param array &$arrivals 時刻表陣列
+     * @param array &$fromArrivals
+     * @param array &$toArrivals
+     */
+    function restructure_bus_arrivals(&$arrivals, &$fromArrivals, &$toArrivals)
+    {
+        try
+        {
+            // 重新排列時刻表資料
+            for ($i = 0; $i < sizeof($fromArrivals); $i++)
+            {
+                $arrivals[$i] = [
+                    "arrivals" => [
+                        "from" => $fromArrivals[$i]->arrival_time,
+                        "to"   => $toArrivals[$i]->arrival_time,
+                    ]
+                ];
+            }
+            // 以 from_station_id 為 $arrivals 由小到大排序
+            usort($arrivals, function ($a, $b) 
+            {
+                // Spaceship Operator
+                return $a["arrivals"]["from"] <=> $b["arrivals"]["from"];
+            });
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列時刻表資料
+     * @param array &$arrivals 時刻表陣列
      * @return void 不回傳值
      */
     function restructure_arrivals(&$arrivals)
     {
         try
         {
-            // 重新排列時刻表資料
-            foreach ($arrivals as $key => $value)
+            /**
+             * [
+             *      {
+             *          "train_id"     => 列車代碼,
+             *          "station_id"   => 起站代碼,
+             *          "arrival_time" => 到站時間
+             *      },
+             *      {
+             *          "train_id"     => 列車代碼,
+             *          "station_id"   => 訖站代碼,
+             *          "arrival_time" => 到站時間
+             *      }
+             * ]
+             */
+
+             /**
+              * 若時刻表資料長度大於 0 且資料包含車次
+              */
+            if (sizeof($arrivals) && isset($arrivals[0]->train_id))
             {
-                /**
-                 * @var array $temp = [
-                 *      {
-                 *          "train_id"     => 列車代碼,
-                 *          "station_id"   => 起站代碼,
-                 *          "arrival_time" => 到站時間
-                 *      },
-                 *      {
-                 *          "train_id"     => 列車代碼,
-                 *          "station_id"   => 訖站代碼,
-                 *          "arrival_time" => 到站時間
-                 *      }
-                 * ]
-                 */
-                $temp = $value;
-                $arrivals[$key] = [
-                    "train_id" => $temp[0]->train_id,
-                    "arrivals" => [
-                        "from" => $temp[0]->arrival_time,
-                        "to"   => $temp[1]->arrival_time
-                    ]
-                ];
+                // 重新排列時刻表資料（有車次）
+                foreach ($arrivals as $key => $value)
+                {
+                    $arrivals[$key] = [
+                        "train_id" => $value[0]->train_id,
+                        "arrivals" => [
+                            "from" => $value[0]->arrival_time,
+                            "to"   => $value[1]->arrival_time
+                        ]
+                    ];
+                }
+            }
+            else
+            {
+                // 重新排列時刻表資料（無車次）
+                foreach ($arrivals as $key => $value)
+                {
+                    $arrivals[$key] = [
+                        "arrivals" => [
+                            "from" => $value[0]->arrival_time,
+                            "to"   => $value[1]->arrival_time
+                        ]
+                    ];
+                }
             }
 
             // 以 from_station_id 為 $arrivals 由小到大排序

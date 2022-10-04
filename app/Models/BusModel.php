@@ -16,13 +16,18 @@ class BusModel extends BaseModel
         try
         {
             $condition = [
-                "BR_city_id" => $cityId
+                "BS_city_id" => $cityId
             ];
             return $this->db->table("bus_routes")
-                            ->select("BR_id AS route_id,
-                                      BR_name_TC AS name_TC,
-                                      BR_name_EN AS name_EN")
+                            ->join("bus_route_stations", "BR_id = BRS_route_id")
+                            ->join("bus_stations", "BRS_station_id = BS_id")
+                            ->select(
+                                "BR_id AS route_id,
+                                BR_name_TC AS name_TC,
+                                BR_name_EN AS name_EN"
+                            )
                             ->where($condition)
+                            ->groupBy("BR_id")
                             ->orderBy("BR_id");
         }
         catch (Exception $e)
@@ -32,27 +37,31 @@ class BusModel extends BaseModel
     }
 
     /**
-     * 取得指定公車路線的所有車站查詢類別
+     * 取得指定公車路線與行駛方向的所有車站查詢類別
      * @param string $routeId 路線代碼
+     * @param int $direction 行駛方向
      * @return mixed 查詢類別
      */
-    function get_stations($routeId)
+    function get_stations($routeId, $direction)
     {
         try
         {
             $condition = [
-                "BR_id" => $routeId
+                "BR_id" => $routeId,
+                "BRS_direction" => $direction
             ];
             return $this->db->table("bus_stations")
                             ->join("bus_route_stations", "BRS_station_id = BS_id")
                             ->join("bus_routes", "BR_id = BRS_route_id")
-                            ->select("BS_id AS station_id,
-                                      BS_name_TC AS name_TC,
-                                      BS_name_EN AS name_EN,
-                                      BR_city_id AS city_id,
-                                      BS_longitude AS longitude,
-                                      BS_latitude AS latitude,
-                                      BRS_sequence")
+                            ->select(
+                                "BS_id AS station_id,
+                                BS_name_TC AS name_TC,
+                                BS_name_EN AS name_EN,
+                                BS_city_id AS city_id,
+                                BS_longitude AS longitude,
+                                BS_latitude AS latitude,
+                                BRS_sequence AS sequence"
+                            )
                             ->where($condition)
                             ->orderBy("BRS_sequence");
         }
@@ -79,69 +88,34 @@ class BusModel extends BaseModel
             return $this->db->table("bus_stations")
                             ->join("bus_route_stations", "BRS_station_id = BS_id")
                             ->join("bus_routes", "BR_id = BRS_route_id")
-                            ->select("BS_id AS station_id,
-                                      BS_name_TC AS name_TC,
-                                      BS_name_EN AS name_EN,
-                                      BR_city_id AS city_id,
-                                      BS_longitude AS longitude,
-                                      BS_latitude AS latitude,
-                                      FLOOR(
-                                          SQRT(
-                                              POWER(
-                                                  ABS(
-                                                      BS_longitude - $longitude
-                                                  ), 2
-                                              ) +
-                                              POWER(
-                                                  ABS(
-                                                      BS_latitude - $latitude
-                                                  ), 2
-                                              )
-                                          ) * 11100
-                                      ) / 100 AS BS_distance")
+                            ->select(
+                                "BS_id AS station_id,
+                                BS_name_TC AS name_TC,
+                                BS_name_EN AS name_EN,
+                                BS_city_id AS city_id,
+                                BS_longitude AS longitude,
+                                BS_latitude AS latitude,
+                                FLOOR(
+                                    SQRT(
+                                        POWER(
+                                            ABS(
+                                                BS_longitude - $longitude
+                                            ), 2
+                                        ) +
+                                        POWER(
+                                            ABS(
+                                                BS_latitude - $latitude
+                                            ), 2
+                                        )
+                                    ) * 11100
+                                ) / 100 AS BS_distance"
+                            )
                             ->where($condition)
                             ->orderBy("BS_distance");
         }
         catch (Exception $e)
         {
             return $e;
-        }
-    }
-
-    /**
-     * 取得行經指定公車起訖站的所有車次查詢類別
-     * @param string $fromStationId 起站代碼
-     * @param string $toStringId 訖站代碼
-     * @param int $direction 行車方向（0：南下；1：北上）
-     * @return mixed 查詢類別
-     */
-    function get_bus_by_stations($routeId, $fromStationId, $toStationId, $direction)
-    {
-        try
-        {
-            $condition1 = [
-                "BRS_route_id"  => $routeId,
-                "BA_station_id" => $fromStationId,
-                "BA_direction"  => $direction
-            ];
-            $condition2 = [
-                "BRS_route_id"  => $routeId,
-                "BA_station_id" => $toStationId,
-                "BA_direction"  => $direction
-            ];
-            return $this->db->table("bus_arrivals")
-                            ->join("bus_cars", "BA_car_id = BC_id")
-                            ->join("bus_stations", "BA_station_id = BS_id")
-                            ->join("bus_route_stations", "BS_id = BRS_station_id")
-                            ->select("BA_car_id")
-                            ->where($condition1)
-                            ->orWhere($condition2)
-                            ->groupBy("BA_car_id")
-                            ->having("COUNT(BA_car_id) > 1");
-        }
-        catch (Exception $e)
-        {
-            throw $e;
         }
     }
 
@@ -169,26 +143,31 @@ class BusModel extends BaseModel
     }
 
     /**
-     * 取得指定公車起訖站的時刻表查詢類別
-     * @param string $busId 公車代碼
+     * 取得指定公車路線、行駛方向及起訖站的時刻表查詢類別
+     * @param string $routeId 路線代碼
+     * @param int $direction 行駛方向
      * @param string $fromStationId 起站代碼
      * @param string $toStringId 訖站代碼
      * @return mixed 查詢類別
      */
-    function get_arrivals($busId, $fromStationId, $toStationId)
+    function get_arrivals($routeId, $direction, $fromStationId)
     {
         try
         {
-            $stations = [
-                $fromStationId,
-                $toStationId
+            $condition = [
+                "BRS_route_id"     => $routeId,
+                "BA_station_id"    => $fromStationId,
+                "BRS_direction"    => $direction,
+                "BA_arrives_today" => 1
             ];
             return $this->db->table("bus_arrivals")
-                            ->select("BA_car_id AS train_id,
-                                      BA_station_id AS station_id,
-                                      BA_arrival_time AS arrival_time")
-                            ->where("BA_car_id", $busId)
-                            ->whereIn("BA_station_id", $stations)
+                            ->join("bus_stations", "BA_station_id = BS_id")
+                            ->join("bus_route_stations", "BS_id = BRS_station_id")
+                            ->select(
+                                "BA_station_id AS station_id,
+                                BA_arrival_time AS arrival_time"
+                            )
+                            ->where($condition)
                             ->orderBy("BA_arrival_time");
         }
         catch (Exception $e)
