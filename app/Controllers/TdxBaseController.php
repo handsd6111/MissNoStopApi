@@ -74,4 +74,22 @@ class TdxBaseController extends BaseController
         $result = json_decode(json_decode($response->getJSON()));
         return $result;
     }
+
+    /**
+     * 回傳指定前綴與代碼的 UID
+     * @param &$prefix 前綴
+     * @param &$id 代碼
+     * @return string UID
+     */
+    protected function getUID(&$prefix, &$id)
+    {
+        try
+        {
+            return $prefix . "-" . $id;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
 }

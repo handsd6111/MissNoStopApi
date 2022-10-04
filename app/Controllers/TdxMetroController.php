@@ -429,7 +429,7 @@ class TdxMetroController extends TdxBaseController
                         'MA_station_id' => $stationId,
                         'MA_end_station_id' => $endStationId,
                         'MA_sequence' => $timeTable->Sequence,
-                        'MA_remain_time' => $timeTable->ArrivalTime,
+                        'MA_arrival_time' => $timeTable->ArrivalTime,
                         'MA_departure_time' => $timeTable->DepartureTime
                     ]);
                 }

@@ -13,6 +13,10 @@ use Exception;
 
 class TdxBusController extends TdxBaseController
 {
+    /**
+     * 統一載入模型
+     * @return void 不回傳值
+     */
     public function __construct()
     {
         try
@@ -95,7 +99,7 @@ class TdxBusController extends TdxBaseController
                         $route->SubRouteName->En = $route->SubRouteName->Zh_tw;
                     }
 
-                    $routeId = "$cityId-" . $route->SubRouteID;
+                    $routeId = $this->getUID($cityId, $route->SubRouteID);
 
                     $this->busRouteModel->save([
                         "BR_id"      => $routeId,
@@ -117,7 +121,7 @@ class TdxBusController extends TdxBaseController
                             continue;
                         }
 
-                        $stationId = "$cityId-" . $station->StopID;
+                        $stationId = $this->getUID($cityId, $station->StopID);
 
                         $this->busStationModel->save([
                             "BS_id"        => $stationId,
@@ -144,12 +148,16 @@ class TdxBusController extends TdxBaseController
     }
 
     /**
+     * /v2/Bus/EstimatedTimeOfArrival/City/{City} 接下來即將抵達的多台公車及剩餘時間
+     */
+
+    /**
      * 取得指定縣市的時刻表資料
      * @param string $cityNameEN 縣市英文名稱
      * @return mixed 時刻表資料
      * @see https://tdx.transportdata.tw/api-service/swagger/basic/#/CityBus/CityBusApi_StopOfRoute_2039
      */
-    public function getBusStationArrivals($cityNameEN)
+    public function getBusArrivals($cityNameEN)
     {
         try
         {
@@ -166,7 +174,7 @@ class TdxBusController extends TdxBaseController
     /**
      * 
      */
-    public function setBusStationArrivals()
+    public function setBusArrivals()
     {
         
         try
@@ -175,8 +183,8 @@ class TdxBusController extends TdxBaseController
             // $cities = $this->getCities();
             $cities = [
                 [
-                    "C_id" => "CHA",
-                    "C_name_EN" => "ChanghuaCounty"
+                    "C_id" => "TPE",
+                    "C_name_EN" => "Taipei"
                 ]
             ];
 
@@ -188,9 +196,10 @@ class TdxBusController extends TdxBaseController
             foreach ($cities as $city)
             {
                 $cityName = $city["C_name_EN"];
+                
+                helper("getWeekDay");
 
                 error_log("Running data of $cityName ...");
-                helper("getWeekDay");
 
                 if (in_array($cityName, $finishedCities))
                 {
@@ -199,7 +208,7 @@ class TdxBusController extends TdxBaseController
                 }
 
                 $cityId   = $city["C_id"];
-                $arrivals = $this->getBusStationArrivals($cityName);
+                $arrivals = $this->getBusArrivals($cityName);
                 $week     = get_week_day(true);
 
                 // 走遍指定縣市的時課表
@@ -214,7 +223,7 @@ class TdxBusController extends TdxBaseController
                     // 走遍此時刻表的所有班表
                     foreach ($arrival->Timetables as $timeTable)
                     {
-                        $tripId = "$cityId-" . $timeTable->TripID;
+                        $tripId = $this->getUID($cityId, $timeTable->TripID);
 
                         $this->busTripModel->save([
                             "BT_id" => $tripId
@@ -225,7 +234,7 @@ class TdxBusController extends TdxBaseController
                         {
                             $this->busArrivalModel->save([
                                 "BA_trip_id"       => $tripId,
-                                "BA_station_id"    => "$cityId-" . $stopTime->StopID,
+                                "BA_station_id"    => $this->getUID($cityId, $stopTime->StopID),
                                 "BA_direction"     => $arrival->Direction,
                                 "BA_sequence"      => $stopTime->StopSequence,
                                 "BA_arrival_time"  => $stopTime->ArrivalTime,

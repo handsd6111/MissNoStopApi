@@ -132,7 +132,7 @@ $routes->group('tdx', static function ($routes) {
             //$routes->cli('', ''); // 公車
             $routes->cli('routeStation', 'TdxBusController::setBusRouteStation'); // 公車路線車站
 
-            $routes->cli('stationArrivals', 'TdxBusController::setBusStationArrivals'); // 公車車次時刻表
+            $routes->cli('arrival', 'TdxBusController::setBusArrivals'); // 公車車次時刻表
 
         });
     });
