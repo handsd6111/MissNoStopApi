@@ -36,58 +36,81 @@ $routes->set404Override();
 // We get a performance increase by specifying the default
 // route since we don't have to scan directories.
 
-// 取得所有縣市資料 /api/city
-$routes->get('/api/city', 'ApiController::get_cities');
-
-// 取得所有捷運系統資料
-$routes->get('/api/metro/system', 'ApiController::get_metro_systems');
-// 取得指定捷運系統上的所有路線資料
-$routes->get('/api/metro/system/(:alpha)', 'ApiController::get_metro_routes/$1');
-// 取得指定捷運系統及路線上的所有捷運站資料
-$routes->get('/api/metro/system/(:alpha)/route/(:segment)', 'ApiController::get_metro_stations/$1/$2');
-// 取得指定捷運系統、路線及經緯度的最近捷運站資料
-$routes->get('/api/metro/system/(:alpha)/route/(:segment)/long/(:segment)/lat/(:segment)', 'ApiController::get_metro_nearest_station/$1/$2/$3/$4');
-// 取得指定捷運起訖站的時刻表資料
-$routes->get('/api/metro/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_metro_arrivals/$1/$2');
-// 取得指定捷運起訖站的運行時間資料
-$routes->get('/api/metro/duration/from/(:segment)/to/(:segment)', 'ApiController::get_metro_durations/$1/$2');
-
-// 取得所有高鐵站資料
-$routes->get('/api/THSR/station', 'ApiController::get_thsr_stations');
-// 取得指定經緯度的最近高鐵站資料
-$routes->get('/api/THSR/station/long/(:segment)/lat/(:segment)', 'ApiController::get_thsr_nearest_station/$1/$2');
-// 取得指定高鐵起訖站的時刻表資料
-$routes->get('/api/THSR/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_thsr_arrivals/$1/$2');
-
-// 取得所有臺鐵路線資料
-$routes->get('/api/TRA/route', 'ApiController::get_tra_routes');
-// 取得指定臺鐵路線的所有臺鐵站資料
-$routes->get('/api/TRA/route/(:segment)', 'ApiController::get_tra_stations/$1');
-// 取得指定臺鐵路線及經緯度的最近臺鐵站資料
-$routes->get('/api/TRA/route/(:segment)/long/(:segment)/lat/(:segment)', 'ApiController::get_tra_nearest_station/$1/$2/$3');
-// 取得指定臺鐵起訖站的時刻表資料
-$routes->get('/api/TRA/arrival/from/(:segment)/to/(:segment)', 'ApiController::get_tra_arrivals/$1/$2');
-
-// API
+// api
 $routes->group('api', static function ($routes)
 {
-    // 取得所有縣市資料 /api/city
-    $routes->get('City', 'ApiController::get_cities');
+    // 通用 api
+    $routes->group('General', static function ($routes)
+    {
+        // /api/General/City 取得縣市資料
+        $routes->get('City', 'ApiController::get_cities');
+    });
 
-    // 公車相關 API
+    // 公車相關 api
     $routes->group('Bus', static function ($routes)
     {
-        // /api/Bus/Route/{CityId} 取得指定公車縣市的所有路線資料 
+        // /api/Bus/Route/{CityId} 取得指定縣市的「公車路線」資料
         $routes->get('Route/(:alpha)', 'ApiController::get_bus_routes/$1');
 
-        // /api/Bus/StationOfRoute/{RouteId}/{Direction} 取得指定公車路線及行駛方向的所有車站資料
+        // /api/Bus/StationOfRoute/{RouteId}/{Direction} 取得指定路線及行駛方向的「公車站」資料
         $routes->get('StationOfRoute/(:segment)/(:num)', 'ApiController::get_bus_stations/$1/$2');
 
-        // /api/Bus/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定公車路線及經緯度的最近車站資料
+        // /api/Bus/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定路線及經緯度的「最近公車站」資料
         $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiController::get_bus_nearest_station/$1/$2/$3');
 
-        // /api/Bus/Arrival/{RouteId}/{Direction}/{FromStationId}/{ToStationId} 取得指定公車路線、行駛方向及起訖站的時刻表資料
+        // /api/Bus/Arrival/{RouteId}/{Direction}/{FromStationId}/{ToStationId} 取得指定路線、行駛方向及起訖站的「公車時刻表」資料
         $routes->get('Arrival/(:segment)/(:num)/(:segment)/(:segment)', 'ApiController::get_bus_arrivals/$1/$2/$3/$4');
+    });
+
+    // 捷運相關 api
+    $routes->group('Metro', static function ($routes)
+    {
+        // /api/Metro/System 取得「捷運系統」資料
+        $routes->get('System', 'ApiController::get_metro_systems');
+
+        // /api/Metro/Route/{SystemId} 取得指定系統的「捷運路線」資料
+        $routes->get('Route/(:alpha)', 'ApiController::get_metro_routes/$1');
+        
+        // /api/Metro/StationOfRoute/{SystemId}/{RouteId} 取得指定系統及路線的「捷運站」資料
+        $routes->get('StationOfRoute/(:alpha)/(:segment)', 'ApiController::get_metro_stations/$1/$2');
+        
+        // /api/Metro/NearestStation/{SystemId}/{RouteId}/{Longitude}/{Latitude} 取得指定系統、路線及經緯度的「最近捷運站」資料
+        $routes->get('NearestStation/(:alpha)/(:segment)/(:segment)/(:segment)', 'ApiController::get_metro_nearest_station/$1/$2/$3/$4');
+        
+        // /api/Metro/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「捷運時刻表」資料
+        $routes->get('Arrival/(:segment)/(:segment)', 'ApiController::get_metro_arrivals/$1/$2');
+        
+        // /api/Metro/Duration/{FromStationId}/{ToStationId} 取得指定起訖站的「捷運運行時間」資料
+        $routes->get('Duration/(:segment)/(:segment)', 'ApiController::get_metro_durations/$1/$2');
+    });
+
+    // 高鐵相關 api
+    $routes->group('THSR', static function ($routes)
+    {
+        // /api/THSR/Station 取得「高鐵車站」資料
+        $routes->get('Station', 'ApiController::get_thsr_stations');
+        
+        // /api/THSR/NearestStation/{Longitude}/{Latitude} 取得指定經緯度的「最近高鐵車站」資料
+        $routes->get('NearestStation/(:segment)/(:segment)', 'ApiController::get_thsr_nearest_station/$1/$2');
+        
+        // /api/THSR/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「高鐵時刻表」資料
+        $routes->get('Arrival/(:segment)/(:segment)', 'ApiController::get_thsr_arrivals/$1/$2');
+    });
+
+    // 臺鐵相關 api
+    $routes->group('TRA', static function ($routes)
+    {
+        // /api/TRA/Route 取得「臺鐵路線」資料
+        $routes->get('Route', 'ApiController::get_tra_routes');
+        
+        // /api/TRA/StationOfRoute/{RouteId} 取得指定路線的「臺鐵車站」資料
+        $routes->get('StationOfRoute/(:segment)', 'ApiController::get_tra_stations/$1');
+        
+        // /api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定路線及經緯度的「最近臺鐵車站」資料
+        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiController::get_tra_nearest_station/$1/$2/$3');
+        
+        // /api/TRA/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「臺鐵時刻表」資料
+        $routes->get('Arrival/(:segment)/(:segment)', 'ApiController::get_tra_arrivals/$1/$2');
     });
 });
 
