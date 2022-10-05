@@ -77,47 +77,54 @@ abstract class BaseController extends Controller
      */
     function validate_base($paramData)
     {
-        $this->validateErrMsg = "";
-
-        // 檢查每一份參數資料
-        foreach ($paramData as $key => $value)
+        try
         {
-            // 個別取得參數名稱、參數及限制長度
-            $name   = $key;
-            $param  = $value[0];
-            $length = $value[1];
+            $this->validateErrMsg = "";
 
-            // 設定參數與驗證規則
-            $data = [
-                "$name" => $param,
-            ];
-            $rules = [
-                "$name" => "alpha_numeric_punct|max_length[$length]"
-            ];
-
-            // 若參數驗證失敗則回傳錯誤
-            if (!$this->validateData($data, $rules))
+            // 檢查每一份參數資料
+            foreach ($paramData as $key => $value)
             {
-                $this->validateErrMsg = $this->validator->getError();
-                return false;
+                // 個別取得參數名稱、參數及限制長度
+                $name   = $key;
+                $param  = $value[0];
+                $length = $value[1];
+
+                // 設定參數與驗證規則
+                $data = [
+                    "$name" => $param,
+                ];
+                $rules = [
+                    "$name" => "alpha_numeric_punct|max_length[$length]"
+                ];
+
+                // 若參數驗證失敗則回傳錯誤
+                if (!$this->validateData($data, $rules))
+                {
+                    $this->validateErrMsg = $this->validator->getError();
+                    return false;
+                }
+
+                // 若參數非經緯度則繼續下一筆參數
+                if ($name != "longitude" && $name != "latitude")
+                {
+                    continue;
+                }
+
+                // 若經緯度數值有異則回傳錯誤
+                if ($param != floatval($param))
+                {
+                    $this->validateErrMsg = lang("Validation.longLatInvalid");
+                    return false;
+                }
             }
 
-            // 若參數非經緯度則繼續下一筆參數
-            if ($name != "longitude" && $name != "latitude")
-            {
-                continue;
-            }
-
-            // 若經緯度數值有異則回傳錯誤
-            if ($param != floatval($param))
-            {
-                $this->validateErrMsg = lang("Validation.longLatInvalid");
-                return false;
-            }
+            // 回傳成功
+            return true;
         }
-
-        // 回傳成功
-        return true;
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     /**
@@ -142,8 +149,7 @@ abstract class BaseController extends Controller
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, lang("Exception.exception"));
+            throw $e;
         }
     }
 
@@ -356,12 +362,11 @@ abstract class BaseController extends Controller
             // 重新排列資料
             foreach ($routes as $key => $value)
             {
-                $temp = $value;
                 $routes[$key] = [
-                    "route_id"   => $temp->route_id,
+                    "route_id"   => $value->route_id,
                     "route_name" => [
-                        "TC" => $temp->name_TC,
-                        "EN" => $temp->name_EN
+                        "TC" => $value->name_TC,
+                        "EN" => $value->name_EN
                     ],
                 ];
             }
@@ -382,21 +387,29 @@ abstract class BaseController extends Controller
     {
         try
         {
-            // 重新排列資料
+            $seq = 0;
+            // 走遍車站陣列
             foreach ($stations as $key => $value)
             {
-                $temp = $value;
+                $seq++;
+                // 若查無序號則使用自動遞增的 $seq
+                if (!isset($value->sequence))
+                {
+                    $value->sequence = $seq;
+                }
+                // 重新排列資料
                 $stations[$key] = [
-                    "station_id"   => $temp->station_id,
+                    "station_id"   => $value->station_id,
                     "station_name" => [
-                        "TC" => $temp->name_TC,
-                        "EN" => $temp->name_EN
+                        "TC" => $value->name_TC,
+                        "EN" => $value->name_EN
                     ],
                     "station_location" => [
-                        "city_id"   => $temp->city_id,
-                        "longitude" => $temp->longitude,
-                        "latitude"  => $temp->latitude,
-                    ]
+                        "city_id"   => $value->city_id,
+                        "longitude" => $value->longitude,
+                        "latitude"  => $value->latitude,
+                    ],
+                    "sequence" => $value->sequence
                 ];
             }
 
@@ -415,39 +428,70 @@ abstract class BaseController extends Controller
     /**
      * 重新排列時刻表資料
      * @param array &$arrivals 時刻表陣列
+     * @param array &$fromArrivals
+     * @param array &$toArrivals
+     */
+    function restructure_bus_arrivals(&$arrivals, &$fromArrivals, &$toArrivals)
+    {
+        try
+        {
+            // 重新排列時刻表資料
+            for ($i = 0; $i < sizeof($fromArrivals); $i++)
+            {
+                $arrivals[$i] = [
+                    "arrivals" => [
+                        "from" => $fromArrivals[$i]->arrival_time,
+                        "to"   => $toArrivals[$i]->arrival_time,
+                    ]
+                ];
+            }
+            // 以 from_station_id 為 $arrivals 由小到大排序
+            usort($arrivals, function ($a, $b) 
+            {
+                // Spaceship Operator
+                return $a["arrivals"]["from"] <=> $b["arrivals"]["from"];
+            });
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列時刻表資料
+     * @param array &$arrivals 時刻表陣列
      * @return void 不回傳值
      */
     function restructure_arrivals(&$arrivals)
     {
         try
         {
-            // 重新排列時刻表資料
+            /**
+             * [
+             *      {
+             *          "train_id"     => 列車代碼,
+             *          "station_id"   => 起站代碼,
+             *          "arrival_time" => 到站時間
+             *      },
+             *      {
+             *          "train_id"     => 列車代碼,
+             *          "station_id"   => 訖站代碼,
+             *          "arrival_time" => 到站時間
+             *      }
+             * ]
+             */
+            // 重新排列時刻表資料（有車次）
             foreach ($arrivals as $key => $value)
             {
-                /**
-                 * @var array $temp = [
-                 *      {
-                 *          "train_id"     => 列車代碼,
-                 *          "station_id"   => 起站代碼,
-                 *          "arrival_time" => 到站時間
-                 *      },
-                 *      {
-                 *          "train_id"     => 列車代碼,
-                 *          "station_id"   => 訖站代碼,
-                 *          "arrival_time" => 到站時間
-                 *      }
-                 * ]
-                 */
-                $temp = $value;
                 $arrivals[$key] = [
-                    "train_id" => $temp[0]->train_id,
+                    "train_id" => $value[0]->train_id,
                     "arrivals" => [
-                        "from" => $temp[0]->arrival_time,
-                        "to"   => $temp[1]->arrival_time
+                        "from" => $value[0]->arrival_time,
+                        "to"   => $value[1]->arrival_time
                     ]
                 ];
             }
-
             // 以 from_station_id 為 $arrivals 由小到大排序
             usort($arrivals, function ($a, $b) 
             {

@@ -39,8 +39,8 @@ class TRAModel extends BaseModel
             ];
             return $this->db->table("TRA_route_stations")
                             ->join("TRA_stations", "RS_id = RRS_station_id")
-                            ->select("RRS_sequence,
-                                      RS_id AS station_id,
+                            ->select("RS_id AS station_id,
+                                      RRS_sequence AS sequence,
                                       RS_name_TC AS name_TC,
                                       RS_name_EN AS name_EN,
                                       RS_city_id AS city_id,
