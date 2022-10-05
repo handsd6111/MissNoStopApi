@@ -387,9 +387,17 @@ abstract class BaseController extends Controller
     {
         try
         {
-            // 重新排列資料
+            $seq = 0;
+            // 走遍車站陣列
             foreach ($stations as $key => $value)
             {
+                $seq++;
+                // 若查無序號則使用自動遞增的 $seq
+                if (!isset($value->sequence))
+                {
+                    $value->sequence = $seq;
+                }
+                // 重新排列資料
                 $stations[$key] = [
                     "station_id"   => $value->station_id,
                     "station_name" => [
@@ -473,38 +481,17 @@ abstract class BaseController extends Controller
              *      }
              * ]
              */
-
-             /**
-              * 若時刻表資料長度大於 0 且資料包含車次
-              */
-            if (sizeof($arrivals) && isset($arrivals[0]->train_id))
+            // 重新排列時刻表資料（有車次）
+            foreach ($arrivals as $key => $value)
             {
-                // 重新排列時刻表資料（有車次）
-                foreach ($arrivals as $key => $value)
-                {
-                    $arrivals[$key] = [
-                        "train_id" => $value[0]->train_id,
-                        "arrivals" => [
-                            "from" => $value[0]->arrival_time,
-                            "to"   => $value[1]->arrival_time
-                        ]
-                    ];
-                }
+                $arrivals[$key] = [
+                    "train_id" => $value[0]->train_id,
+                    "arrivals" => [
+                        "from" => $value[0]->arrival_time,
+                        "to"   => $value[1]->arrival_time
+                    ]
+                ];
             }
-            else
-            {
-                // 重新排列時刻表資料（無車次）
-                foreach ($arrivals as $key => $value)
-                {
-                    $arrivals[$key] = [
-                        "arrivals" => [
-                            "from" => $value[0]->arrival_time,
-                            "to"   => $value[1]->arrival_time
-                        ]
-                    ];
-                }
-            }
-
             // 以 from_station_id 為 $arrivals 由小到大排序
             usort($arrivals, function ($a, $b) 
             {
