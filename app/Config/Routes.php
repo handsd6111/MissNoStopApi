@@ -95,18 +95,19 @@ $routes->group('tdx', static function ($routes) {
             $routes->cli('trainAndArrival', 'TdxThsrController::setThsrTrainAndArrival'); // 高鐵時刻表與車次
         });
 
+        // tdx/data/tra
         $routes->group('tra', static function ($routes) {
-            $routes->cli('station', 'TdxTraController::setTraStation');
+            $routes->cli('station', 'TdxTraController::setTraStation'); // 臺鐵車站
 
-            $routes->cli('route', 'TdxTraController::setTraRoute');
+            $routes->cli('route', 'TdxTraController::setTraRoute'); // 臺鐵路線
 
-            $routes->cli('routeStation', 'TdxTraController::setTraRouteStation');
+            $routes->cli('routeStation', 'TdxTraController::setTraRouteStation'); // 臺鐵路線車站
 
-            $routes->cli('train', 'TdxTraController::setTraTrain');
+            $routes->cli('train', 'TdxTraController::setTraTrain'); // 臺鐵車次
 
-            $routes->cli('arrival', 'TdxTraController::setTraArrival');
+            $routes->cli('arrival', 'TdxTraController::setTraArrival'); // 臺鐵時刻表
 
-            $routes->cli('trainAndArrival', 'TdxTraController::setTraTrainAndArrival');
+            $routes->cli('trainAndArrival', 'TdxTraController::setTraTrainAndArrival'); // 臺鐵時刻表與車次
         });
 
         // tdx/data/metro
@@ -124,6 +125,15 @@ $routes->group('tdx', static function ($routes) {
             $routes->cli('routeStation/(:alphanum)', 'TdxMetroController::setMetroRouteStation/$1'); // 單個捷運系統車站與路線的關聯資料
 
             $routes->cli('arrival/(:alphanum)', 'TdxMetroController::setMetroArrival/$1'); // 單個捷運系統的時刻表
+        });
+
+        // tdx/data/bus
+        $routes->group('bus', static function ($routes) {
+            //$routes->cli('', ''); // 公車
+            $routes->cli('routeStation', 'TdxBusController::setBusRouteStation'); // 公車路線車站
+
+            $routes->cli('arrival', 'TdxBusController::setBusArrivals'); // 公車車次時刻表
+
         });
     });
 });

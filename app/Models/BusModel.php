@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Exception;
 
+/**
+ * 公車模型（使用 query builder）
+ */
 class BusModel extends BaseModel
 {
     /**
