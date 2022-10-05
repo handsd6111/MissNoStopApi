@@ -450,7 +450,7 @@ class ApiController extends BaseController
             }
 
             // 取得臺鐵所有車站資料
-            $station = $this->TRAModel->get_nearest_station($routeId, $longitude, $latitude)->get()->getResult()[0];
+            $station = $this->TRAModel->get_nearest_station($routeId, $longitude, $latitude)->get()->getResult();
 
             // 重新排列資料
             $this->restructure_stations($station, false);
