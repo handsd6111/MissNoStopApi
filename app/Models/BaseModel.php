@@ -16,7 +16,11 @@ class BaseModel extends Model
         try
         {
             return $this->db->table("cities")
-                            ->select("*");
+                            ->select(
+                                "C_id AS city_id,
+                                C_name_TC AS name_TC,
+                                C_name_EN AS name_EN"
+                            );
         }
         catch (Exception $e)
         {

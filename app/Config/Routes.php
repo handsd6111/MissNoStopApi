@@ -58,6 +58,9 @@ $routes->group('api', static function ($routes)
         // /api/Bus/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定路線及經緯度的「最近公車站」資料
         $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiController::get_bus_nearest_station/$1/$2/$3');
 
+        // /api/Bus/NearestStation/{RouteId}/{Longitude}/{Latitude}/{Limit} 取得指定路線、經緯度及回傳數量的「最近公車站」資料
+        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)/(:num)', 'ApiController::get_bus_nearest_station/$1/$2/$3/$4');
+
         // /api/Bus/Arrival/{RouteId}/{Direction}/{FromStationId}/{ToStationId} 取得指定路線、行駛方向及起訖站的「公車時刻表」資料
         $routes->get('Arrival/(:segment)/(:num)/(:segment)/(:segment)', 'ApiController::get_bus_arrivals/$1/$2/$3/$4');
     });

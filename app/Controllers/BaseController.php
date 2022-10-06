@@ -105,7 +105,7 @@ abstract class BaseController extends Controller
                 }
 
                 // 若參數非經緯度則繼續下一筆參數
-                if ($name != "longitude" && $name != "latitude")
+                if ($name != "Longitude" && $name != "Latitude")
                 {
                     continue;
                 }
@@ -169,8 +169,8 @@ abstract class BaseController extends Controller
         {
             // 設定驗證預設值
             $paramData = [
-                "longitude" => [$longitude, $longLength],
-                "latitude"  => [$latitude, $latLength]
+                "Longitude" => [$longitude, $longLength],
+                "Latitude"  => [$latitude, $latLength]
             ];
 
             // 回傳驗證結果
@@ -200,8 +200,8 @@ abstract class BaseController extends Controller
 
             // 設定驗證預設值
             $paramData = [
-                "fromStationId" => [$fromStationId, $fromLength],
-                "toStationId"   => [$toStationId, $toLength]
+                "FromStationId" => [$fromStationId, $fromLength],
+                "ToStationId"   => [$toStationId, $toLength]
             ];
 
             // 回傳驗證結果
@@ -324,6 +324,32 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * 重新排列縣市資料
+     * @param array &$cities 縣市陣列
+     * @return void 不回傳值
+     */
+    function restructure_cities(&$cities)
+    {
+        try
+        {
+            foreach ($cities as $key => $value)
+            {
+                $cities[$key] = [
+                    "CityId"   => $value->city_id,
+                    "CityName" => [
+                        "TC" => $value->name_TC,
+                        "EN" => $value->name_EN
+                    ],
+                ];
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
      * 重新排列系統資料
      * @param array &$systems 系統資料
      * @return void 不回傳值
@@ -332,12 +358,11 @@ abstract class BaseController extends Controller
     {
         try
         {
-            // 重新排列資料
             foreach ($systems as $key => $value)
             {
                 $systems[$key] = [
-                    "system_id"   => $value->system_id,
-                    "system_name" => [
+                    "SystemId"   => $value->system_id,
+                    "SystemName" => [
                         "TC" => $value->name_TC,
                         "EN" => $value->name_EN
                     ],
@@ -359,12 +384,11 @@ abstract class BaseController extends Controller
     {
         try
         {
-            // 重新排列資料
             foreach ($routes as $key => $value)
             {
                 $routes[$key] = [
-                    "route_id"   => $value->route_id,
-                    "route_name" => [
+                    "RouteId"   => $value->route_id,
+                    "RouteName" => [
                         "TC" => $value->name_TC,
                         "EN" => $value->name_EN
                     ],
@@ -392,24 +416,26 @@ abstract class BaseController extends Controller
             foreach ($stations as $key => $value)
             {
                 $seq++;
+
                 // 若查無序號則使用自動遞增的 $seq
                 if (!isset($value->sequence))
                 {
                     $value->sequence = $seq;
                 }
+
                 // 重新排列資料
                 $stations[$key] = [
-                    "station_id"   => $value->station_id,
-                    "station_name" => [
+                    "StationId"   => $value->station_id,
+                    "StationName" => [
                         "TC" => $value->name_TC,
                         "EN" => $value->name_EN
                     ],
-                    "station_location" => [
-                        "city_id"   => $value->city_id,
-                        "longitude" => $value->longitude,
-                        "latitude"  => $value->latitude,
+                    "StationLocation" => [
+                        "CityId"   => $value->city_id,
+                        "Longitude" => $value->longitude,
+                        "Latitude"  => $value->latitude,
                     ],
-                    "sequence" => $value->sequence
+                    "Sequence" => $value->sequence
                 ];
             }
 
@@ -435,7 +461,7 @@ abstract class BaseController extends Controller
         try
         {
             // Spaceship Operator
-            return $a["arrivals"]["from"] <=> $b["arrivals"]["from"];
+            return $a["Schedule"]["DepartureTime"] <=> $b["Schedule"]["DepartureTime"];
         }
         catch (Exception $e)
         {
@@ -452,14 +478,13 @@ abstract class BaseController extends Controller
     {
         try
         {
-            // 重新排列時刻表資料
             foreach ($arrivals as $key => $value)
             {
                 $arrivals[$key] = [
-                    "sequence" => $value->sequence,
-                    "arrivals" => [
-                        "from" => $value->departure_time,
-                        "to"   => $value->arrival_time,
+                    "Sequence" => $value->sequence,
+                    "Schedule" => [
+                        "DepartureTime" => $value->departure_time,
+                        "ArrivalTime"   => $value->arrival_time,
                     ]
                 ];
             }
@@ -482,13 +507,13 @@ abstract class BaseController extends Controller
     {
         try
         {
-            // 重新排列時刻表資料
             for ($i = 0; $i < sizeof($fromArrivals); $i++)
             {
                 $arrivals[$i] = [
-                    "arrivals" => [
-                        "from" => $fromArrivals[$i]->arrival_time,
-                        "to"   => $toArrivals[$i]->arrival_time,
+                    "Sequence" => $i + 1,
+                    "Schedule" => [
+                        "DepartureTime" => $fromArrivals[$i]->arrival_time,
+                        "ArrivalTime"   => $toArrivals[$i]->arrival_time,
                     ]
                 ];
             }
@@ -509,28 +534,13 @@ abstract class BaseController extends Controller
     {
         try
         {
-            /**
-             * [
-             *      {
-             *          "train_id"     => 列車代碼,
-             *          "station_id"   => 起站代碼,
-             *          "arrival_time" => 到站時間
-             *      },
-             *      {
-             *          "train_id"     => 列車代碼,
-             *          "station_id"   => 訖站代碼,
-             *          "arrival_time" => 到站時間
-             *      }
-             * ]
-             */
-            // 重新排列時刻表資料（有車次）
             foreach ($arrivals as $key => $value)
             {
                 $arrivals[$key] = [
-                    "train_id" => $value[0]->train_id,
-                    "arrivals" => [
-                        "from" => $value[0]->arrival_time,
-                        "to"   => $value[1]->arrival_time
+                    "TrainId" => $value[0]->train_id,
+                    "Schedule" => [
+                        "DepartureTime" => $value[0]->arrival_time,
+                        "ArrivalTime"   => $value[1]->arrival_time
                     ]
                 ];
             }
