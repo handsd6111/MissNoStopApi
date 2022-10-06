@@ -84,7 +84,7 @@ abstract class BaseController extends Controller
             // 檢查每一份參數資料
             foreach ($paramData as $key => $value)
             {
-                // 個別取得參數名稱、參數及限制長度
+                // 個別取得參數名稱、參數及參數長度
                 $name   = $key;
                 $param  = $value[0];
                 $length = $value[1];
@@ -128,20 +128,22 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * 驗證縣市參數
-     * @param string &$cityId 縣市代碼
+     * 驗證參數
+     * @param string $paramName 參數名稱
+     * @param string &$param 參數
+     * @param int $length 參數長度
      * @return bool 驗證結果
      */
-    function validate_city(&$cityId)
+    function validate_param($paramName, &$param, $length = 12)
     {
         try
         {
             // 轉大寫
-            $cityId = strtoupper($cityId);
+            $param = strtoupper($param);
 
             // 設定驗證預設值
             $paramData = [
-                "cityId" => [$cityId, 3]
+                "$paramName" => [$param, $length]
             ];
 
             // 回傳驗證結果
@@ -169,62 +171,6 @@ abstract class BaseController extends Controller
             $paramData = [
                 "longitude" => [$longitude, $longLength],
                 "latitude"  => [$latitude, $latLength]
-            ];
-
-            // 回傳驗證結果
-            return $this->validate_base($paramData);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 驗證系統及路線
-     * @param string $routeId 路線代碼
-     * @param int $routeLength 路線長度限制
-     * @return bool 驗證結果
-     */
-    function validate_route(&$routeId, $routeLength = 12)
-    {
-        try
-        {
-            // 轉大寫
-            $routeId = strtoupper($routeId);
-
-            // 設定驗證預設值
-            $paramData = [
-                "routeId" => [$routeId, $routeLength]
-            ];
-
-            // 回傳驗證結果
-            return $this->validate_base($paramData);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 驗證系統及路線
-     * @param string &$systemId 系統代碼
-     * @param string &$routeId 路線代碼
-     * @param int $systemLength 系統長度限制
-     * @param int $routeLength 路線長度限制
-     * @return bool 驗證結果
-     */
-    function validate_system(&$systemId, $systemLength = 12)
-    {
-        try
-        {
-            // 轉大寫
-            $systemId = strtoupper($systemId);
-
-            // 設定驗證預設值
-            $paramData = [
-                "systemId" => [$systemId, $systemLength]
             ];
 
             // 回傳驗證結果
@@ -268,46 +214,73 @@ abstract class BaseController extends Controller
     }
 
     /**
-     * 取得捷運起點站及目的站序號
-     * @param string $fromStationId 起點站代碼
-     * @param string $toStationId 目的站代碼
-     * @return array true（0）及兩站序號（1、2）
-     * @return array false（0）及查無資料的捷運站代碼（1）
+     * 取得指定捷運起訖站的資料
+     * @param string 起站代碼
+     * @param string 訖站代碼
+     * @return array 起訖站資料
+     * @return bool 查詢失敗
+     */
+    function get_metro_station_data($fromStationId, $toStationId)
+    {
+        try
+        {
+            // 取得起訖站序號
+            $sequences = $this->get_metro_sequences($fromStationId, $toStationId);
+
+            if (!$sequences)
+            {
+                return false;
+            }
+
+            // 取得終點站
+            $end_station_id = $this->get_metro_end_station($fromStationId, $toStationId, $sequences[0], $sequences[1]);
+
+            if (!$end_station_id)
+            {
+                return false;
+            }
+
+            // 回傳資料
+            $data = [
+                "fromSeq" => $sequences[0],
+                "toSeq" => $sequences[1],
+                "endStationId" => $end_station_id
+            ];
+            return $data;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得捷運起訖站序號
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     * @return array 起訖站序號
+     * @return bool 查詢失敗
      */
     function get_metro_sequences($fromStationId, $toStationId)
     {
         try
         {
-            // 取得起點站序號
-            if (!$fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)->get()->getResult())
-            {
-                // 回傳錯誤及起點站代碼
-                return [
-                    "hasResult" => false,
-                    "notFound"  => $fromStationId
-                ];
-            }
-            // 將起點站序號轉為數字
-            $fromStationSeq = intval($fromStationSeq[0]->MS_sequence);
+            // 取得起訖站序號
+            $fromStationSeq = $this->metroModel->get_station_sequence($fromStationId)->get()->getResult();
+            $toStationSeq = $this->metroModel->get_station_sequence($toStationId)->get()->getResult();
 
-            // 取得目的站序號  
-            if (!$toStationSeq = $this->metroModel->get_station_sequence($toStationId)->get()->getResult())
+            // 若查無序號則回傳否
+            if (!$fromStationSeq || !$toStationSeq)
             {
-                // 回傳錯誤及目的站代碼
-                return [
-                    "hasResult" => false,
-                    "notFound"  => $toStationId
-                ];
+                return false;
             }
-            // 將目的站序號轉為數字
+
+            // 將起訖站序號轉為數字
+            $fromStationSeq = intval($fromStationSeq[0]->MS_sequence);
             $toStationSeq = intval($toStationSeq[0]->MS_sequence);
 
             // 回傳成功及兩站序號
-            return [
-                "hasResult" => true,
-                "from" => $fromStationSeq,
-                "to"   =>$toStationSeq
-            ];
+            return [$fromStationSeq, $toStationSeq];
         }
         catch (Exception $e)
         {
@@ -322,7 +295,7 @@ abstract class BaseController extends Controller
      * @param string $seq1 起點站序號
      * @param string $seq2 目的站序號
      * @return string 終點站代碼
-     * @return int 若查無終點站則回傳 -1
+     * @return bool 查詢失敗
      */
     function get_metro_end_station($id1, $id2, $seq1, $seq2)
     {
@@ -334,15 +307,42 @@ abstract class BaseController extends Controller
             // 若查無終點站則回傳 -1
             if (sizeof($endStations) == 0)
             {
-                return -1;
+                return false;
             }
 
             // 若起點站序號大於目的站序號，則代表終點站為序號較小的一方。反之亦然
             if ($seq1 > $seq2)
             {
-                return $endStations[0]->MA_end_station_id;
+                return $endStations[0]->end_station_id;
             }
-            return $endStations[sizeof($endStations) -1]->MA_end_station_id;
+            return $endStations[sizeof($endStations) -1]->end_station_id;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列系統資料
+     * @param array &$systems 系統資料
+     * @return void 不回傳值
+     */
+    function restructure_systems(&$systems)
+    {
+        try
+        {
+            // 重新排列資料
+            foreach ($systems as $key => $value)
+            {
+                $systems[$key] = [
+                    "system_id"   => $value->system_id,
+                    "system_name" => [
+                        "TC" => $value->name_TC,
+                        "EN" => $value->name_EN
+                    ],
+                ];
+            }
         }
         catch (Exception $e)
         {
@@ -426,10 +426,57 @@ abstract class BaseController extends Controller
     }
 
     /**
+     * 比較 a 與 b 發車時間的大小
+     * @param mixed $a
+     * @param mixed $b
+     */
+    function cmpArrivals($a, $b)
+    {
+        try
+        {
+            // Spaceship Operator
+            return $a["arrivals"]["from"] <=> $b["arrivals"]["from"];
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列時刻表資料
+     * @param array &$arrivals 時刻表陣列
+     * @return void 不回傳值
+     */
+    function restructure_metro_arrivals(&$arrivals)
+    {
+        try
+        {
+            // 重新排列時刻表資料
+            foreach ($arrivals as $key => $value)
+            {
+                $arrivals[$key] = [
+                    "sequence" => $value->sequence,
+                    "arrivals" => [
+                        "from" => $value->departure_time,
+                        "to"   => $value->arrival_time,
+                    ]
+                ];
+            }
+            usort($arrivals, [BaseController::class, "cmpArrivals"]);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
      * 重新排列時刻表資料
      * @param array &$arrivals 時刻表陣列
      * @param array &$fromArrivals
      * @param array &$toArrivals
+     * @return void 不回傳值
      */
     function restructure_bus_arrivals(&$arrivals, &$fromArrivals, &$toArrivals)
     {
@@ -445,12 +492,7 @@ abstract class BaseController extends Controller
                     ]
                 ];
             }
-            // 以 from_station_id 為 $arrivals 由小到大排序
-            usort($arrivals, function ($a, $b) 
-            {
-                // Spaceship Operator
-                return $a["arrivals"]["from"] <=> $b["arrivals"]["from"];
-            });
+            usort($arrivals, [BaseController::class, "cmpArrivals"]);
         }
         catch (Exception $e)
         {
@@ -492,12 +534,7 @@ abstract class BaseController extends Controller
                     ]
                 ];
             }
-            // 以 from_station_id 為 $arrivals 由小到大排序
-            usort($arrivals, function ($a, $b) 
-            {
-                // Spaceship Operator
-                return $a["arrivals"]["from"] <=> $b["arrivals"]["from"];
-            });
+            usort($arrivals, [BaseController::class, "cmpArrivals"]);
         }
         catch (Exception $e)
         {

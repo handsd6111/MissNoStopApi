@@ -29,7 +29,9 @@ class ApiController extends BaseController
     }
 
     /**
-     * 取得所有縣市資料
+     * 取得縣市資料
+     * 
+     * 格式：/api/General/City
      * @return array 縣市資料陣列
      */
     function get_cities()
@@ -50,9 +52,9 @@ class ApiController extends BaseController
     }
 
     /**
-     * 取得所有捷運系統資料
+     * 取得「捷運系統」資料
      * 
-     * 格式：/api/metro/system
+     * 格式：/api/Metro/System
      * @return array 捷運系統資料
      */
     function get_metro_systems()
@@ -61,6 +63,9 @@ class ApiController extends BaseController
         {
             // 取得捷運系統
             $systems = $this->metroModel->get_systems()->get()->getResult();
+
+            // 重新排列資料
+            $this->restructure_systems($systems);
 
             // 回傳資料
             return $this->send_response($systems);
@@ -73,9 +78,9 @@ class ApiController extends BaseController
     }
 
     /**
-     * 取得指定捷運系統的所有路線
+     * 取得指定系統的「捷運路線」資料
      * 
-     * 格式：/api/metro/system/{MetroSystemId}
+     * 格式：/api/Metro/Route/{SystemId}
      * @param string $systemId 捷運系統
      * @return array 路線資料陣列
      */
@@ -84,13 +89,16 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_system($systemId))
+            if (!$this->validate_param("SystemId", $systemId, 4))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             //取得路線
             $routes = $this->metroModel->get_routes($systemId)->get()->getResult();
+
+            // 重新排列資料
+            $this->restructure_routes($routes);
 
             // 回傳資料
             return $this->send_response($routes);
@@ -103,27 +111,29 @@ class ApiController extends BaseController
     }
 
     /**
-     * 取得指定捷運系統及路線的所有車站
+     * 取得指定路線的「捷運站」資料
      * 
-     * 格式：/api/metro/system/{MetroSystemId}/route/{MetroRouteId}
-     * @param string $systemId 捷運系統代碼
+     * 格式：/api/Metro/StationOfRoute/{RouteId}
      * @param string $routeId 路線代碼
      * @return array 車站資料陣列
      */
-    function get_metro_stations($systemId, $routeId)
+    function get_metro_stations($routeId)
     {
         try
         {
             // 驗證參數
-            if (!$this->validate_system($systemId) || !$this->validate_route($routeId))
+            if (!$this->validate_param("RouteId", $routeId, 12))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             // 取得捷運站
-            $stations = $this->metroModel->get_stations($systemId, $routeId)->get()->getResult();
+            $stations = $this->metroModel->get_stations($routeId)->get()->getResult();
+
+            // 重新排列資料
+            $this->restructure_stations($stations);
             
-            // 查詢成功
+            // 回傳資料
             return $this->send_response($stations);
         }
         catch (Exception $e)
@@ -134,9 +144,44 @@ class ApiController extends BaseController
     }
 
     /**
-     * 取得指定捷運起訖站的時刻表
+     * 取得指定路線及經緯度的「最近捷運站」資料
      * 
-     * 格式：/api/metro/arrival/from/{StationId}/to/{StationId}
+     * 格式：/api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude}
+     * @param string $routeId 捷運路線代碼
+     * @param float $longitude 經度（-180 ~ 180）
+     * @param float $latitude 緯度（-90 ~ 90）
+     * @param int $limit 回傳數量
+     */
+    function get_metro_nearest_station($routeId, $longitude, $latitude, $limit = 1)
+    {
+        try
+        {
+            // 驗證參數
+            if (!$this->validate_param("RouteId", $routeId, 12) || !$this->validate_coordinates($longitude, $latitude))
+            {
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+
+            // 取得最近捷運站
+            $station = $this->metroModel->get_nearest_station($routeId, $longitude, $latitude, $limit)->get()->getResult();
+            
+            // 重新排列資料
+            $this->restructure_stations($station);
+
+            // 回傳資料
+            return $this->send_response($station);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    /**
+     * 取得指定起訖站的「捷運時刻表」資料
+     * 
+     * 格式：/api/Metro/Arrival/{FromStationId}/{ToStationId}
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼（用於表示運行方向）
      * @return array 時刻表資料陣列
@@ -151,32 +196,23 @@ class ApiController extends BaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得捷運起點站及目的站序號
-            $seq = $this->get_metro_sequences($fromStationId, $toStationId);
+            // 取得起訖站資料
+            $data = $this->get_metro_station_data($fromStationId, $toStationId);
 
-            // 若其一查無資料
-            if (!$seq["hasResult"])
+            // 若查無資料則回傳查無資料
+            if (!$data)
             {
-                return $this->send_response([], 200, lang("Query.metroStationNotFound", $seq["notFound"]));
+                return $this->send_response([], 400, lang("Query.resultNotFOund"));
             }
 
-            // 取得終點站
-            $endStationId = $this->get_metro_end_station($fromStationId, $toStationId, $seq["from"], $seq["to"]);
-
-            // 若查無終點站則回傳路線未開放
-            if ($endStationId == -1)
-            {
-                return $this->send_response([], 200, lang("Query.dataNotAvailable"));
-            }
+            // 取得總運行時間
+            $duration = $this->metroModel->get_durations($data["fromSeq"], $data["toSeq"], $data["endStationId"])->get()->getResult()[0]->duration;
 
             // 取得時刻表
-            $arrivals = $this->metroModel->get_arrivals($fromStationId, $endStationId)->get()->getResult();
+            $arrivals = $this->metroModel->get_arrivals($fromStationId, $data["endStationId"], $duration)->get()->getResult();
 
-            // 若查無資料則代表起點站及目的站需跨線或跨支線，將回傳尚未開放訊息
-            if (!sizeof($arrivals))
-            {
-                return $this->send_response([], 200, lang("Query.metroCrossBranchNotAvailable"));
-            }
+            // 重新排列資料
+            $this->restructure_metro_arrivals($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);
@@ -189,41 +225,9 @@ class ApiController extends BaseController
     }
 
     /**
-     * 取得指定捷運系統、路線、經度及緯度的最近捷運站
+     * 取得指定起訖站的「捷運運行時間」資料
      * 
-     * 格式：/api/metro/system/{MetroSystemId}/route/{MetroRouteId}/long/{Longitude}/lat/{Latitude}
-     * @param string $systemId 捷運系統代碼
-     * @param string $routeId 捷運路線代碼
-     * @param float $longitude 經度（-180 ~ 180）
-     * @param float $latitude 緯度（-90 ~ 90）
-     */
-    function get_metro_nearest_station($systemId, $routeId, $longitude, $latitude)
-    {
-        try
-        {
-            // 驗證參數
-            if (!$this->validate_system($systemId) || !$this->validate_route($routeId) || !$this->validate_coordinates($longitude, $latitude))
-            {
-                return $this->send_response([], 400, $this->validateErrMsg);
-            }
-
-            // 取得最近捷運站
-            $nearestStationData = $this->metroModel->get_nearest_station($systemId, $routeId, $longitude, $latitude)->get()->getResult();
-
-            // 回傳資料
-            return $this->send_response($nearestStationData);
-        }
-        catch (Exception $e)
-        {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, lang("Exception.exception"));
-        }
-    }
-
-    /**
-     * 取得指定起點站及目的站之間的總運行時間
-     * 
-     * 格式：/api/metro/duration/from/{StationId}/to/{StationId}
+     * 格式：/api/Metro/Duration/{FromStationId}/{ToStationId}
      * @param string $fromStationId 起點站代碼
      * @param string $toStationId 目的站代碼
      * @return int 總運行時間
@@ -238,29 +242,20 @@ class ApiController extends BaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得捷運起訖站序號
-            $seq = $this->get_metro_sequences($fromStationId, $toStationId);
+            // 取得起訖站資料
+            $data = $this->get_metro_station_data($fromStationId, $toStationId);
 
-            // 若其一查無資料
-            if (!$seq["hasResult"])
+            // 若查無資料則回傳查無資料
+            if (!$data)
             {
-                return $this->send_response([], 200, lang("Query.metroStationNotFound", $seq["notFound"]));
-            }
-
-            // 取得終點站
-            $endStationId = $this->get_metro_end_station($fromStationId, $toStationId, $seq["from"], $seq["to"]);
-            
-            // 若查無終點站則回傳路線未開放
-            if ($endStationId == -1)
-            {
-                return $this->send_response([], 200, lang("Query.dataNotAvailable"));
+                return $this->send_response([], 400, lang("Query.resultNotFOund"));
             }
 
             // 取得總運行時間
-            $duration = $this->metroModel->get_durations($seq["from"], $seq["to"], $endStationId)->get()->getResult()[0];
+            $duration = $this->metroModel->get_durations($data["fromSeq"], $data["toSeq"], $data["endStationId"])->get()->getResult()[0]->duration;
             
             // 回傳資料
-            return $this->send_response($duration);
+            return $this->send_response(intval($duration));
         }
         catch (Exception $e)
         {
@@ -415,7 +410,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_route($routeId, 5))
+            if (!$this->validate_param("RouteId", $routeId, 5))
             {
                 return $this->send_response([], 400, (array) $this->validator->getErrors());
             }
@@ -531,7 +526,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_city($cityId))
+            if (!$this->validate_param("CityId", $cityId, 3))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -563,7 +558,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_route($routeId, 17))
+            if (!$this->validate_param("RouteId", $routeId, 17))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -596,7 +591,7 @@ class ApiController extends BaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_route($routeId, 17) || !$this->validate_coordinates($longitude, $latitude))
+            if (!$this->validate_param("RouteId", $routeId, 17) || !$this->validate_coordinates($longitude, $latitude))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
