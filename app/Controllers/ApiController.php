@@ -41,6 +41,9 @@ class ApiController extends BaseController
             // 取得縣市
             $cities = $this->baseModel->get_cities()->get()->getResult();
 
+            // 重新排列資料
+            $this->restructure_cities($cities);
+
             // 回傳資料
             return $this->send_response($cities);
         }
@@ -255,7 +258,7 @@ class ApiController extends BaseController
             $duration = $this->metroModel->get_durations($data["fromSeq"], $data["toSeq"], $data["endStationId"])->get()->getResult()[0]->duration;
             
             // 回傳資料
-            return $this->send_response(intval($duration));
+            return $this->send_response(["Duration" => intval($duration)]);
         }
         catch (Exception $e)
         {
@@ -351,9 +354,10 @@ class ApiController extends BaseController
      * 格式：/api/THSR/station/long/{Longitude}/lat/{Latitude}
      * @param float $longitude 經度（-180 ~ 180）
      * @param float $latitude 緯度（-90 ~ 90）
+     * @param int $limit 回傳數量
      * @return array 最近高鐵站資料陣列
      */
-    function get_thsr_nearest_station($longitude, $latitude)
+    function get_thsr_nearest_station($longitude, $latitude, $limit = 1)
     {
         try
         {
@@ -364,10 +368,10 @@ class ApiController extends BaseController
             }
 
             // 取得高鐵所有車站資料
-            $station = $this->THSRModel->get_nearest_station($longitude, $latitude)->get()->getResult();
+            $station = $this->THSRModel->get_nearest_station($longitude, $latitude, $limit)->get()->getResult();
 
             // 重新排列資料
-            $this->restructure_stations($station. false);
+            $this->restructure_stations($station);
 
             // 回傳資料
             return $this->send_response($station);
@@ -381,6 +385,7 @@ class ApiController extends BaseController
 
     /**
      * 取得所有臺鐵路線資料
+     * @return array 路線資料
      */
     function get_tra_routes()
     {
@@ -404,6 +409,8 @@ class ApiController extends BaseController
 
     /**
      * 取得指定臺鐵路線的所有臺鐵站資料
+     * @param string 路線代碼
+     * @return array 臺鐵站資料
      */
     function get_tra_stations($routeId)
     {
@@ -433,8 +440,13 @@ class ApiController extends BaseController
 
     /**
      * 取得指定臺鐵路線及經緯度的最近臺鐵站資料
+     * @param string 路線代碼
+     * @param string 經度
+     * @param string 緯度
+     * @param int $limit 回傳數量
+     * @return array 最近臺鐵站資料
      */
-    function get_tra_nearest_station($routeId, $longitude, $latitude)
+    function get_tra_nearest_station($routeId, $longitude, $latitude, $limit = 1)
     {
         try
         {
@@ -445,10 +457,10 @@ class ApiController extends BaseController
             }
 
             // 取得臺鐵所有車站資料
-            $station = $this->TRAModel->get_nearest_station($routeId, $longitude, $latitude)->get()->getResult();
+            $station = $this->TRAModel->get_nearest_station($routeId, $longitude, $latitude, $limit)->get()->getResult();
 
             // 重新排列資料
-            $this->restructure_stations($station, false);
+            $this->restructure_stations($station);
 
             // 回傳資料
             return $this->send_response($station);
@@ -462,6 +474,9 @@ class ApiController extends BaseController
 
     /**
      * 取得指定臺鐵起訖站的時刻表資料
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     * @return array 時刻表資料
      */
     function get_tra_arrivals($fromStationId, $toStationId)
     {
@@ -584,9 +599,10 @@ class ApiController extends BaseController
      * @param string $routeId 路線代碼
      * @param string $longitude 經度
      * @param string $latitude 緯度
+     * @param int $limit 回傳數量
      * @return array 公車站資料
      */
-    function get_bus_nearest_station($routeId, $longitude, $latitude)
+    function get_bus_nearest_station($routeId, $longitude, $latitude, $limit = 1)
     {
         try
         {
@@ -597,10 +613,10 @@ class ApiController extends BaseController
             }
 
             // 取得指定公車路線及經緯度的最近車站資料
-            $station = $this->busModel->get_nearest_station($routeId, $longitude, $latitude)->get()->getResult();
+            $station = $this->busModel->get_nearest_station($routeId, $longitude, $latitude, $limit)->get()->getResult();
 
             // 重新排列公車站資料
-            $this->restructure_stations($station, false);
+            $this->restructure_stations($station);
 
             // 回傳資料
             return $this->send_response($station);

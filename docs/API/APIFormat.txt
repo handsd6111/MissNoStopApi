@@ -12,6 +12,16 @@
 /api/General/City
 取得縣市資料
 
+[
+	{
+		CityId: 縣市代碼,
+		CityName: {
+			TC: 縣市中文名稱,
+			EN: 縣市英文名稱
+		}
+	}
+]
+
 =============================
 
 公車
@@ -19,14 +29,85 @@
 /api/Bus/Route/{CityId}
 取得指定縣市的「公車路線」資料
 
+[
+	{
+		RouteId: 路線代碼,
+		RouteName: {
+			TC: 中文路名,
+			EN: 英文路名
+		}
+	}
+]
+
 /api/Bus/StationOfRoute/{RouteId}/{Direction}
 取得指定路線及行駛方向的「公車站」資料
+
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
 
 /api/Bus/NearestStation/{RouteId}/{Longitude}/{Latitude}
 取得指定路線及經緯度的「最近公車站」資料
 
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
+/api/Bus/NearestStation/{RouteId}/{Longitude}/{Latitude}/{Limit}
+取得指定路線、經緯度及回傳數量的「最近公車站」資料
+
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
 /api/Bus/Arrival/{RouteId}/{Direction}/{FromStationId}/{ToStationId}
 取得指定路線、行駛方向及起訖站的「公車時刻表」資料
+
+[
+	[
+		Sequence: 當日第幾班車停靠的序號,
+		Schedule: {
+			DepartureTime: 起站發車時間,
+			ArrivalTime: 訖站抵達時間
+		}
+	]
+]
 
 =============================
 
@@ -35,20 +116,105 @@
 /api/Metro/System
 取得「捷運系統」資料
 
+[
+	[
+		SystemId: 系統代碼,
+		SystemName: {
+			TC: 中文系統名稱,
+			EN: 英文系統名稱
+		}
+	]
+]
+
 /api/Metro/Route/{SystemId}
 取得指定系統的「捷運路線」資料
+
+[
+	[
+		RouteId: 路線代碼,
+		RouteName: {
+			TC: 中文路名,
+			EN: 英文路名
+		}
+	]
+]
 
 /api/Metro/StationOfRoute/{RouteId}
 取得指定路線的「捷運站」資料
 
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
 /api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude}
 取得指定路線及經緯度的「最近捷運站」資料
+
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
+/api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude}/{Limit}
+取得指定路線、經緯度及回傳數量的「最近捷運站」資料
+
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
 
 /api/Metro/Arrival/{FromStationId}/{ToStationId}
 取得指定起訖站的「捷運時刻表」資料
 
+[
+	[
+		Sequence: 當日第幾班車停靠的序號,
+		Schedule: {
+			DepartureTime: 起站發車時間,
+			ArrivalTime: 訖站抵達時間
+		}
+	]
+]
+
 /api/Metro/Duration/{FromStationId}/{ToStationId}
-取得指定起訖站的「捷運運行時間」資料
+取得指定起訖站的「捷運站間運行時間」資料
+
+[
+	Duration: 站間運行時間
+]
 
 =============================
 
@@ -57,11 +223,72 @@
 /api/THSR/Station
 取得「高鐵車站」資料
 
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
 /api/THSR/NearestStation/{Longitude}/{Latitude}
 取得指定經緯度的「最近高鐵車站」資料
 
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
+/api/THSR/NearestStation/{Longitude}/{Latitude}/{Limit}
+取得指定經緯度及回傳數量的「最近高鐵車站」資料
+
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
 /api/THSR/Arrival/{FromStationId}/{ToStationId}
 取得指定起訖站的「高鐵時刻表」資料
+
+[
+	[
+		TrainId: 車次代碼,
+		Schedule: {
+			DepartureTime: 起站發車時間,
+			ArrivalTime: 訖站抵達時間
+		}
+	]
+]
 
 =============================
 
@@ -70,13 +297,84 @@
 /api/TRA/Route
 取得「臺鐵路線」資料
 
+[
+	[
+		RouteId: 路線代碼,
+		RouteName: {
+			TC: 中文路名,
+			EN: 英文路名
+		}
+	]
+]
+
 /api/TRA/StationOfRoute/{RouteId}
 取得指定路線的「臺鐵車站」資料
+
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
 
 /api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude}
 取得指定路線及經緯度的「最近臺鐵車站」資料
 
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
+/api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude}/{Limit}
+取得指定路線、經緯度及回傳數量的「最近臺鐵車站」資料
+
+[
+	[
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		StationLocation: {
+			CityId: 縣市代碼,
+			Longitude: 經度,
+			Latitude: 緯度
+		},
+		Sequence: 站序
+	]
+]
+
 /api/TRA/Arrival/{FromStationId}/{ToStationId}
 取得指定起訖站的「臺鐵時刻表」資料
+
+[
+	[
+		TrainId: 車次代碼,
+		Schedule: {
+			DepartureTime: 起站發車時間,
+			ArrivalTime: 訖站抵達時間
+		}
+	]
+]
 
 =============================
