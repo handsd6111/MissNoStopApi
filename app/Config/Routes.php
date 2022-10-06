@@ -71,11 +71,14 @@ $routes->group('api', static function ($routes)
         // /api/Metro/Route/{SystemId} 取得指定系統的「捷運路線」資料
         $routes->get('Route/(:alpha)', 'ApiController::get_metro_routes/$1');
         
-        // /api/Metro/StationOfRoute/{SystemId}/{RouteId} 取得指定系統及路線的「捷運站」資料
-        $routes->get('StationOfRoute/(:alpha)/(:segment)', 'ApiController::get_metro_stations/$1/$2');
+        // /api/Metro/StationOfRoute/{RouteId} 取得指定系統及路線的「捷運站」資料
+        $routes->get('StationOfRoute/(:segment)', 'ApiController::get_metro_stations/$1');
         
-        // /api/Metro/NearestStation/{SystemId}/{RouteId}/{Longitude}/{Latitude} 取得指定系統、路線及經緯度的「最近捷運站」資料
-        $routes->get('NearestStation/(:alpha)/(:segment)/(:segment)/(:segment)', 'ApiController::get_metro_nearest_station/$1/$2/$3/$4');
+        // /api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定路線及經緯度的「最近捷運站」資料
+        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiController::get_metro_nearest_station/$1/$2/$3');
+
+        // /api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude}/{Limit} 取得指定路線、經緯度及回傳數量的「最近捷運站」資料
+        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)/(:num)', 'ApiController::get_metro_nearest_station/$1/$2/$3/$4');
         
         // /api/Metro/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「捷運時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiController::get_metro_arrivals/$1/$2');
