@@ -115,34 +115,39 @@ class TdxMetroController extends TdxBaseController
             // 走遍路線資料
             foreach ($routes as $route)
             {
+                // 開始計時
+                $startTime = $this->getTime();
+                $this->terminalLog("Running data of $railSystem-{$route->RouteID} ... ");
+
                 // 若無中文路線名稱則以空白代替
-                if (!isset($route->LineName->Zh_tw))
+                if (!isset($route->RouteName->Zh_tw))
                 {
-                    $route->LineName->Zh_tw = "";
+                    $route->RouteName->Zh_tw = "";
                 }
 
                 // 若無英文路線名稱則以中文代替
-                if (!isset($route->LineName->Zh_tw))
+                if (!isset($route->RouteName->Zh_tw))
                 {
-                    $route->LineName->En = $route->LineName->Zh_tw;
+                    $route->RouteName->En = $route->RouteName->Zh_tw;
                 }
 
-                // 整理寫入資料
-                $saveData = [
-                    'MR_id' => $this->getUID($railSystem, $route->LineNo),
-                    'MR_name_TC' => $route->LineName->Zh_tw,
-                    'MR_name_EN' => $route->LineName->En,
-                    'MR_system_id' => $railSystem
-                ];
-
                 // 寫入路線資料
-                $this->MRModel->save($saveData); //orm save data
+                $this->MRModel->save([
+                    'MR_id'        => $this->getUID($railSystem, $route->RouteID),
+                    'MR_name_TC'   => $route->RouteName->Zh_tw,
+                    'MR_name_EN'   => $route->RouteName->En,
+                    'MR_system_id' => $railSystem
+                ]);
+
+                // 印出花費時間
+                $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
 
             return true;
         }
         catch (Exception $e)
         {
+            $this->terminalLog($e, true, true);
             log_message("critical", $e);
         }
     }
@@ -162,6 +167,7 @@ class TdxMetroController extends TdxBaseController
         }
         catch (Exception $e)
         {
+            $this->terminalLog($e, true);
             log_message("critical", $e);
         }
     }
@@ -222,9 +228,13 @@ class TdxMetroController extends TdxBaseController
     {
         try
         {
+            // 開始計時
+            $startTime = $this->getTime();
+            $this->terminalLog("Running data of $railSystem stations ... ");
+
             // 取得車站資料
-            $stations  = $this->getMetroStation($railSystem);
-        
+            $stations = $this->getMetroStation($railSystem);
+
             // 走遍車站資料
             foreach ($stations as $station)
             {
@@ -243,18 +253,22 @@ class TdxMetroController extends TdxBaseController
                 // 寫入車站資料
                 $this->MSModel->save([
                     'MS_id'        => $station->StationUID,
-                    'MS_name_TC'   => isset($station->StationName->Zh_tw) ? $station->StationName->Zh_tw : "",
-                    'MS_name_EN'   => isset($station->StationName->En) ? $station->StationName->En : "",
+                    'MS_name_TC'   => $station->StationName->Zh_tw,
+                    'MS_name_EN'   => $station->StationName->En,
                     'MS_city_id'   => $station->LocationCityCode,
                     'MS_longitude' => $station->StationPosition->PositionLon,
                     'MS_latitude'  => $station->StationPosition->PositionLat
                 ]);
             }
 
+            // 印出花費時間
+            $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
+
             return true;
         }
         catch (Exception $e)
         {
+            $this->terminalLog($e, true, true);
             log_message("critical", $e);
         }
     }
@@ -274,6 +288,7 @@ class TdxMetroController extends TdxBaseController
         }
         catch (Exception $e)
         {
+            $this->terminalLog($e, true);
             log_message("critical", $e);
         }
     }
@@ -341,20 +356,28 @@ class TdxMetroController extends TdxBaseController
             // 走遍每條路線
             foreach ($routes as $route)
             {
+                // 開始計時
+                $startTime = $this->getTime();
+                $this->terminalLog("Running data of $railSystem-{$route->RouteID} ... ");
+
                 // 若查無運行時間資料則跳過
                 if (!isset($route->TravelTimes))
                 {
+                    // 印出花費時間
+                    $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
                     continue;
                 }
 
+                // 取得路線代碼、起訖站代碼及行駛方向
+                $routeId       = $this->getUID($railSystem, $route->RouteID);
                 $fromStationId = $route->TravelTimes[0]->FromStationID;
                 $toStationId   = $route->TravelTimes[0]->ToStationID;
-                $direction     = 1;
+                $direction     = 0;
 
                 // 取得行駛方向：若起站代碼長度不大於訖站代碼長度，且起站代碼小於訖站代碼，則行駛方向為去程（0）
-                if (sizeof($fromStationId) <= sizeof($toStationId) && !strcmp($fromStationId, $toStationId))
+                if (strlen($fromStationId) > strlen($toStationId) || strcmp($fromStationId, $toStationId))
                 {
-                    $direction = 0;
+                    $direction = 1;
                 }
 
                 //走遍運行時間資料
@@ -362,16 +385,21 @@ class TdxMetroController extends TdxBaseController
                 {
                     // 寫入資料
                     $this->MDModel->save([
-                        "MD_station_id" => $travelTime->FromStationID,
+                        "MD_station_id" => $this->getUID($railSystem, $travelTime->FromStationID),
+                        "MD_route_id"   => $routeId,
                         "MD_direction"  => $direction,
                         "MD_duration"   => $travelTime->RunTime,
                         "MD_stop_time"  => $travelTime->StopTime
                     ]);
                 }
+
+                // 印出花費時間
+                $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
         }
         catch (Exception $e)
         {
+            $this->terminalLog($e, true, true);
             log_message("critical", $e);
         }
     }
@@ -415,9 +443,19 @@ class TdxMetroController extends TdxBaseController
             // 走遍路線資料
             foreach ($routes as $route)
             {
+                // 開始計時
+                $startTime = $this->getTime();
+                $this->terminalLog("Running data of $railSystem-{$route->RouteID} ... ");
+
+                // 取得路線代碼
+                $routeId = $this->getUID($railSystem, $route->RouteID);
+
                 // 只使用行駛方向為 0（去程）的資料
                 if ($route->Direction != 0)
                 {
+                    $this->terminalLog($route->Direction);
+                    // 印出花費時間
+                    $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
                     continue;
                 }
 
@@ -425,17 +463,21 @@ class TdxMetroController extends TdxBaseController
                 foreach ($route->Stations as $station)
                 {
                     $this->MRSModel->save([
-                        "MRS_station_id" => $station->StationID,
-                        "MRS_route_id"   => $route->RouteID,
+                        "MRS_station_id" => $this->getUID($railSystem, $station->StationID),
+                        "MRS_route_id"   => $routeId,
                         "MRS_sequence"   => $station->Sequence
                     ]);
                 }
+
+                // 印出花費時間
+                $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
 
             return true;
         }
         catch (Exception $e)
         {
+            $this->terminalLog($e, true, true);
             log_message("critical", $e);
         }
     }
@@ -455,6 +497,7 @@ class TdxMetroController extends TdxBaseController
         }
         catch (Exception $e)
         {
+            $this->terminalLog($e, true, true);
             log_message("critical", $e);
         }
     }
@@ -537,14 +580,20 @@ class TdxMetroController extends TdxBaseController
             // 走遍時刻表資料
             foreach ($arrivals as $arrival)
             {
-                // 取得起站
+                // 開始計時
+                $startTime = $this->getTime();
+                $this->terminalLog("Running data of $railSystem-{$arrival->RouteID} ... ");
+
+                // 取得路線代碼、起站代碼及行駛方向
+                $routeId   = $this->getUID($railSystem, $arrival->RouteID);
                 $stationId = $this->getUID($railSystem, $arrival->StationID);
-                // 取得行駛方向
                 $direction = $arrival->Direction;
 
                  // 若今日無發車則跳過
                 if (!$arrival->ServiceDay->$weekDay)
                 {
+                    // 印出花費時間
+                    $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
                     continue;
                 }
 
@@ -554,17 +603,19 @@ class TdxMetroController extends TdxBaseController
                     // 寫入時刻表資料
                     $this->MAModel->save([
                         'MA_station_id'   => $stationId,
+                        'MA_route_id'     => $routeId,
                         'MA_direction'    => $direction,
                         'MA_sequence'     => $timeTable->Sequence,
                         'MA_arrival_time' => $timeTable->ArrivalTime
                     ]);
                 }
+                // 印出花費時間
+                $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
-
-            return true;
         }
         catch (Exception $e)
         {
+            $this->terminalLog($e, true, true);
             log_message("critical", $e);
         }
     }

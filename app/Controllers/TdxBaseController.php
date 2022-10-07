@@ -100,11 +100,15 @@ class TdxBaseController extends BaseController
      * @param bool $lineBreak 是否換行
      * @param void 不回傳值
      */
-    protected function terminalLog($message = "", $lineBreak = false)
+    protected function terminalLog($message = "", $lineBreak = false, $preLineBreak = false)
     {
         try
         {
             $cli = new CLI();
+            if ($preLineBreak)
+            {
+                $cli::newLine();
+            }
             $cli::print($message);
             if ($lineBreak)
             {
