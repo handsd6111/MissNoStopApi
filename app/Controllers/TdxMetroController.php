@@ -353,32 +353,30 @@ class TdxMetroController extends TdxBaseController
             // 取得路線車站資料
             $routes = $this->getMetroDuration($railSystem);
 
+            $directionSwitch = [1, 0];
+
+            // 單數資料的行駛方向為「0」、雙數則為「1」
+            $direction = 1;
+
             // 走遍每條路線
             foreach ($routes as $route)
             {
                 // 開始計時
                 $startTime = $this->getTime();
-                $this->terminalLog("Running data of $railSystem-{$route->RouteID} ... ");
 
                 // 若查無運行時間資料則跳過
                 if (!isset($route->TravelTimes))
                 {
-                    // 印出花費時間
-                    $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
                     continue;
                 }
 
-                // 取得路線代碼、起訖站代碼及行駛方向
-                $routeId       = $this->getUID($railSystem, $route->RouteID);
-                $fromStationId = $route->TravelTimes[0]->FromStationID;
-                $toStationId   = $route->TravelTimes[0]->ToStationID;
-                $direction     = 0;
+                $this->terminalLog("Running data of $railSystem-{$route->RouteID} ... ");
 
-                // 取得行駛方向：若起站代碼長度不大於訖站代碼長度，且起站代碼小於訖站代碼，則行駛方向為去程（0）
-                if (strlen($fromStationId) > strlen($toStationId) || strcmp($fromStationId, $toStationId))
-                {
-                    $direction = 1;
-                }
+                // 取得路線代碼、起訖站代碼及行駛方向
+                $routeId = $this->getUID($railSystem, $route->RouteID);
+                
+                // 更新行駛方向
+                $direction = $directionSwitch[$direction];
 
                 //走遍運行時間資料
                 foreach ($route->TravelTimes as $travelTime)
@@ -445,7 +443,6 @@ class TdxMetroController extends TdxBaseController
             {
                 // 開始計時
                 $startTime = $this->getTime();
-                $this->terminalLog("Running data of $railSystem-{$route->RouteID} ... ");
 
                 // 取得路線代碼
                 $routeId = $this->getUID($railSystem, $route->RouteID);
@@ -453,11 +450,10 @@ class TdxMetroController extends TdxBaseController
                 // 只使用行駛方向為 0（去程）的資料
                 if ($route->Direction != 0)
                 {
-                    $this->terminalLog($route->Direction);
-                    // 印出花費時間
-                    $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
                     continue;
                 }
+
+                $this->terminalLog("Running data of $railSystem-{$route->RouteID} ... ");
 
                 // 走遍路線的車站資料
                 foreach ($route->Stations as $station)
@@ -582,7 +578,6 @@ class TdxMetroController extends TdxBaseController
             {
                 // 開始計時
                 $startTime = $this->getTime();
-                $this->terminalLog("Running data of $railSystem-{$arrival->RouteID} ... ");
 
                 // 取得路線代碼、起站代碼及行駛方向
                 $routeId   = $this->getUID($railSystem, $arrival->RouteID);
@@ -592,10 +587,10 @@ class TdxMetroController extends TdxBaseController
                  // 若今日無發車則跳過
                 if (!$arrival->ServiceDay->$weekDay)
                 {
-                    // 印出花費時間
-                    $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
                     continue;
                 }
+
+                $this->terminalLog("Running data of $railSystem-{$arrival->StationID} ... ");
 
                 // 走遍時刻表
                 foreach ($arrival->Timetables as $timeTable)
