@@ -20,8 +20,7 @@ class MetroStationModel extends Model
         'MS_name_TC',
         'MS_name_EN',
         'MS_longitude',
-        'MS_latitude',
-        'MS_sequence'
+        'MS_latitude'
     ];
 
     // Dates

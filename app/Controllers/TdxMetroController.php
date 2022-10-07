@@ -13,6 +13,23 @@ use Exception;
 
 class TdxMetroController extends TdxBaseController
 {
+    function __construct()
+    {
+        try
+        {
+            
+            $this->MSTModel = new MetroSystemModel();
+            $this->MRModel  = new MetroRouteModel();
+            $this->MRSModel = new MetroRouteStationModel();
+            $this->MSModel  = new MetroStationModel();
+            $this->MDModel  = new MetroDurationModel();
+            $this->MAModel  = new MetroArrivalModel();
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
 
     // ============== Metro System ==============
 
@@ -29,9 +46,15 @@ class TdxMetroController extends TdxBaseController
      */
     public function getMetroSystem()
     {
-        $metroSystemModel = new MetroSystemModel();
-        $result = $metroSystemModel->get()->getResult();
-        return $result;
+        try
+        {
+            $systems = $this->MSTModel->get()->getResult();
+            return $systems;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     // ============== Metro Route ==============
@@ -58,9 +81,16 @@ class TdxMetroController extends TdxBaseController
      */
     public function getMetroRoute($railSystem)
     {
-        $accessToken = $this->getAccessToken();
-        $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/Line/$railSystem?%24format=JSON";
-        return $this->curlGet($url, $accessToken);
+        try
+        {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/Route/$railSystem?%24format=JSON";
+            return $this->curlGet($url, $accessToken);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     /**
@@ -71,24 +101,50 @@ class TdxMetroController extends TdxBaseController
      */
     public function setMetroRoute($railSystem)
     {
-        $result = $this->getMetroRoute($railSystem);
+        try
+        {
+            // 取得路線資料
+            $routes = $this->getMetroRoute($railSystem);
 
-        if (empty($result)) {
-            return false;
+            // 若查無結果則停止
+            if (empty($routes))
+            {
+                return false;
+            }
+
+            // 走遍路線資料
+            foreach ($routes as $route)
+            {
+                // 若無中文路線名稱則以空白代替
+                if (!isset($route->LineName->Zh_tw))
+                {
+                    $route->LineName->Zh_tw = "";
+                }
+
+                // 若無英文路線名稱則以中文代替
+                if (!isset($route->LineName->Zh_tw))
+                {
+                    $route->LineName->En = $route->LineName->Zh_tw;
+                }
+
+                // 整理寫入資料
+                $saveData = [
+                    'MR_id' => $this->getUID($railSystem, $route->LineNo),
+                    'MR_name_TC' => $route->LineName->Zh_tw,
+                    'MR_name_EN' => $route->LineName->En,
+                    'MR_system_id' => $railSystem
+                ];
+
+                // 寫入路線資料
+                $this->MRModel->save($saveData); //orm save data
+            }
+
+            return true;
         }
-
-        foreach ($result as $value) {
-            $saveData = [
-                'MR_id' => $railSystem . '-' . $value->LineNo,
-                'MR_name_TC' => isset($value->LineName->Zh_tw) ? $value->LineName->Zh_tw : "",
-                'MR_name_EN' => isset($value->LineName->En) ? $value->LineName->En : "",
-                'MR_system_id' => $railSystem
-            ];
-            $metroRouteModel = new MetroRouteModel();
-            $metroRouteModel->save($saveData); //orm save data
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
         }
-
-        return true;
     }
 
     /**
@@ -96,9 +152,17 @@ class TdxMetroController extends TdxBaseController
      */
     public function setMetroRouteAll()
     {
-        $metroSystems = $this->getMetroSystem();
-        foreach ($metroSystems as $metroSystem) {
-            $this->setMetroRoute($metroSystem->MST_id);
+        try
+        {
+            $systems = $this->getMetroSystem();
+            foreach ($systems as $system)
+            {
+                $this->setMetroRoute($system->MST_id);
+            }
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
         }
     }
 
@@ -136,9 +200,16 @@ class TdxMetroController extends TdxBaseController
      */
     public function getMetroStation($railSystem)
     {
-        $accessToken = $this->getAccessToken();
-        $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/Station/$railSystem?%24format=JSON";
-        return $this->curlGet($url, $accessToken);
+        try
+        {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/Station/$railSystem?%24format=JSON";
+            return $this->curlGet($url, $accessToken);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     /**
@@ -149,23 +220,43 @@ class TdxMetroController extends TdxBaseController
      */
     public function setMetroStation($railSystem)
     {
-        $result = $this->getMetroStation($railSystem);
+        try
+        {
+            // 取得車站資料
+            $stations  = $this->getMetroStation($railSystem);
         
-        foreach ($result as $value) {
-            $saveData = [
-                'MS_id' => $value->StationUID,
-                'MS_name_TC' => isset($value->StationName->Zh_tw) ? $value->StationName->Zh_tw : "",
-                'MS_name_EN' => isset($value->StationName->En) ? $value->StationName->En : "",
-                'MS_city_id' => $value->LocationCityCode,
-                'MS_longitude' => $value->StationPosition->PositionLon,
-                'MS_latitude' => $value->StationPosition->PositionLat
-            ];
-            // var_dump($saveData);
-            $metroStationModel = new MetroStationModel();
-            $metroStationModel->save($saveData); //orm save data
-        }
+            // 走遍車站資料
+            foreach ($stations as $station)
+            {
+                // 若無中文站名則以空白代替
+                if (!isset($station->StationName->Zh_tw))
+                {
+                    $station->StationName->Zh_tw = "";
+                }
 
-        return true;
+                //若無英文站名則以中文站明代替
+                if (!isset($station->StationName->En))
+                {
+                    $station->StationName->En = $station->StationName->Zh_tw;
+                }
+
+                // 寫入車站資料
+                $this->MSModel->save([
+                    'MS_id'        => $station->StationUID,
+                    'MS_name_TC'   => isset($station->StationName->Zh_tw) ? $station->StationName->Zh_tw : "",
+                    'MS_name_EN'   => isset($station->StationName->En) ? $station->StationName->En : "",
+                    'MS_city_id'   => $station->LocationCityCode,
+                    'MS_longitude' => $station->StationPosition->PositionLon,
+                    'MS_latitude'  => $station->StationPosition->PositionLat
+                ]);
+            }
+
+            return true;
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+        }
     }
 
     /**
@@ -173,9 +264,17 @@ class TdxMetroController extends TdxBaseController
      */
     public function setMetroStationAll()
     {
-        $metroSystems = $this->getMetroSystem();
-        foreach ($metroSystems as $metroSystem) {
-            $this->setMetroStation($metroSystem->MST_id);
+        try
+        {
+            $systems = $this->getMetroSystem();
+            foreach ($systems as $system)
+            {
+                $this->setMetroStation($system->MST_id);
+            }
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
         }
     }
 
@@ -214,9 +313,16 @@ class TdxMetroController extends TdxBaseController
      */
     public function getMetroDuration($railSystem)
     {
-        $accessToken = $this->getAccessToken();
-        $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/S2STravelTime/$railSystem?%24format=JSON";
-        return $this->curlGet($url, $accessToken);
+        try
+        {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/S2STravelTime/$railSystem?%24format=JSON";
+            return $this->curlGet($url, $accessToken);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     /**
@@ -227,55 +333,46 @@ class TdxMetroController extends TdxBaseController
      */
     public function setMetroDuration($railSystem)
     {
-        $result = $this->getMetroDuration($railSystem);
-        $metroDurationModel = new MetroDurationModel();
+        try
+        {
+            // 取得路線車站資料
+            $routes = $this->getMetroDuration($railSystem);
 
-        // 先將支線拆開
-        foreach ($result as $value) {
-            $travelTimes = $value->TravelTimes; // 取得裡面的運行時間列表
+            // 走遍每條路線
+            foreach ($routes as $route)
+            {
+                // 若查無運行時間資料則跳過
+                if (!isset($route->TravelTimes))
+                {
+                    continue;
+                }
 
-            if (count($travelTimes) > 1) {
-                $firstStation = $travelTimes[0]->FromStationID; // 取得此路線的起始車站
-                $lastStation = $travelTimes[count($travelTimes) - 1]->ToStationID; // 取得此路線的終點車站
+                $fromStationId = $route->TravelTimes[0]->FromStationID;
+                $toStationId   = $route->TravelTimes[0]->ToStationID;
+                $direction     = 1;
 
-                for ($i = 0; $i < count($travelTimes); $i++) { // 資料內是單個車站到下個車站，故用迴圈去執行 ex:橋頭捷運站 -> 橋頭糖廠
-                    if ($i == 0) { // 起始車站不做，因為會取不到上一站的值
-                        continue;
-                    }
+                // 取得行駛方向：若起站代碼長度不大於訖站代碼長度，且起站代碼小於訖站代碼，則行駛方向為去程（0）
+                if (sizeof($fromStationId) <= sizeof($toStationId) && !strcmp($fromStationId, $toStationId))
+                {
+                    $direction = 0;
+                }
 
-                    // 防止資料中無 StopTime 此格式
-                    $hasPrevStopTime = isset($travelTimes[$i - 1]->StopTime);
-                    $hasNowStopTime = isset($travelTimes[$i]->StopTime);
-
-                    // MD_end_station_id 分別代表此路線的兩個方向
-
-                    // 此站到起始站，故運行時間是此站到上一站
-                    $metroDurationModel->save([
-                        'MD_station_id' => $railSystem . '-' . $travelTimes[$i]->FromStationID,
-                        'MD_end_station_id' => $railSystem . '-' . $firstStation,
-                        "MD_duration" => $travelTimes[$i - 1]->RunTime + $hasPrevStopTime ? $travelTimes[$i - 1]->StopTime : 0
-                    ]);
-
-                    // 此站到終點站，故運行時間是此站到下一站
-                    $metroDurationModel->save([
-                        'MD_station_id' => $railSystem . '-' . $travelTimes[$i]->FromStationID,
-                        'MD_end_station_id' => $railSystem . '-' . $lastStation,
-                        "MD_duration" => $travelTimes[$i]->RunTime + $hasNowStopTime ? $travelTimes[$i]->StopTime : 0
+                //走遍運行時間資料
+                foreach ($route->TravelTimes as $travelTime)
+                {
+                    // 寫入資料
+                    $this->MDModel->save([
+                        "MD_station_id" => $travelTime->FromStationID,
+                        "MD_direction"  => $direction,
+                        "MD_duration"   => $travelTime->RunTime,
+                        "MD_stop_time"  => $travelTime->StopTime
                     ]);
                 }
-            } else if (count($travelTimes) == 1) { // 一條路線中只有兩個車站，將兩站對調資料即可
-                $metroDurationModel->save([
-                    'MD_station_id' => $railSystem . '-' . $travelTimes[0]->FromStationID,
-                    'MD_end_station_id' => $railSystem . '-' . $travelTimes[0]->ToStationID,
-                    "MD_duration" => $travelTimes[0]->RunTime + $travelTimes[0]->StopTime
-                ]);
-
-                $metroDurationModel->save([
-                    'MD_station_id' => $railSystem . '-' . $travelTimes[0]->ToStationID,
-                    'MD_end_station_id' => $railSystem . '-' . $travelTimes[0]->FromStationID,
-                    "MD_duration" => $travelTimes[0]->RunTime + $travelTimes[0]->StopTime
-                ]);
             }
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
         }
     }
 
@@ -286,28 +383,20 @@ class TdxMetroController extends TdxBaseController
      * 
      * @param string $railSystem 捷運系統 ex：'KRTC'
      * 
-     * @return object[](stdClass) 
-     * {
-     *     LineNo=>string
-     *     LineID=>string
-     *     Stations=>object[](stdClass) {
-     *         Sequence=>int
-     *         StationID=>string
-     *         StationName=>object(stdClass) {
-     *              Zh_tw=>string
-     *              En=>string
-     *         }
-     *     }
-     *     SrcUpdateTime=>string
-     *     UpdateTime=>string
-     *     VersionID=>int
-     * }
+     * @return object[] 資料格式，我忘了那個怎麼把他叫出來所以移除了回傳資料格式
      */
     public function getMetroRouteStation($railSystem)
     {
-        $accessToken = $this->getAccessToken();
-        $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationOfLine/$railSystem?%24format=JSON";
-        return $this->curlGet($url, $accessToken);
+        try
+        {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationOfRoute/$railSystem?%24format=JSON";
+            return $this->curlGet($url, $accessToken);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     /**
@@ -318,25 +407,37 @@ class TdxMetroController extends TdxBaseController
      */
     public function setMetroRouteStation($railSystem)
     {
-        $result = $this->getMetroRouteStation($railSystem);
-        $metroRouteStationModel = new MetroRouteStationModel();
-        $metroStationModel = new MetroStationModel();
+        try
+        {
+            // 取得路線的車站資料
+            $routes = $this->getMetroRouteStation($railSystem);
 
-        foreach ($result as $value) {
-            $routeId = $railSystem . '-' . $value->LineNo; // 取得路線
-            $stations = $value->Stations; // 取得單條路線中的所有車站
-            foreach ($stations as $station) { // 利用迴圈執行車站料表中的資料
-                $stationId = $railSystem . '-' . $station->StationID; // 單個車站的 ID
-                // 關聯車站與路線，代表此車站在上方紀錄的 routeId 中 ex: 左營站在紅線中
-                $metroRouteStationModel->save([
-                    'MRS_station_id' => $stationId,
-                    'MRS_route_id' => $routeId
-                ]);
-                $metroStationModel->save(['MS_id' => $stationId, 'MS_sequence' => $station->Sequence]);
+            // 走遍路線資料
+            foreach ($routes as $route)
+            {
+                // 只使用行駛方向為 0（去程）的資料
+                if ($route->Direction != 0)
+                {
+                    continue;
+                }
+
+                // 走遍路線的車站資料
+                foreach ($route->Stations as $station)
+                {
+                    $this->MRSModel->save([
+                        "MRS_station_id" => $station->StationID,
+                        "MRS_route_id"   => $route->RouteID,
+                        "MRS_sequence"   => $station->Sequence
+                    ]);
+                }
             }
-        }
 
-        return true;
+            return true;
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+        }
     }
 
     /**
@@ -344,9 +445,17 @@ class TdxMetroController extends TdxBaseController
      */
     public function setMetroRouteStationAll()
     {
-        $metroSystems = $this->getMetroSystem();
-        foreach ($metroSystems as $metroSystem) {
-            $this->setMetroRouteStation($metroSystem->MST_id);
+        try
+        {
+            $systems = $this->getMetroSystem();
+            foreach ($systems as $system)
+            {
+                $this->setMetroRouteStation($system->MST_id);
+            }
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
         }
     }
 
@@ -395,9 +504,16 @@ class TdxMetroController extends TdxBaseController
      */
     public function getMetroArrival($railSystem)
     {
-        $accessToken = $this->getAccessToken();
-        $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/$railSystem?%24format=JSON";
-        return $this->curlGet($url, $accessToken);
+        try
+        {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationTimeTable/$railSystem?%24format=JSON";
+            return $this->curlGet($url, $accessToken);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     /**
@@ -408,34 +524,48 @@ class TdxMetroController extends TdxBaseController
      */
     public function setMetroArrival($railSystem)
     {
-        $weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        $weekday = date('w', time()); // 今天星期幾
-        $day = $weekdays[$weekday]; // 將星期幾帶進去 weekdays 列表中取得字串，ex: 1 = Monday。
+        try
+        {
+            helper("getWeekDay");
 
-        $metroArrivalModel = new MetroArrivalModel();
-        $result = $this->getMetroArrival($railSystem);
+            // 取得今天星期幾
+            $weekDay = get_week_day(true);
 
-        foreach ($result as $value) {
-            $isServiceDay = $value->ServiceDay->$day; // 比對資料中的 ServiceDay 中今天有沒有服務，若有即為true。
-            $stationId = $railSystem . '-' . $value->StationID; // 取得起始車站
-            $endStationId = $railSystem . '-' . $value->DestinationStaionID; //取得終點車站
+            // 取得時刻表資料
+            $arrivals = $this->getMetroArrival($railSystem);
 
-            if ($isServiceDay) { // 若有服務才往下做
-                $timeTables = $value->Timetables;
+            // 走遍時刻表資料
+            foreach ($arrivals as $arrival)
+            {
+                // 取得起站
+                $stationId = $this->getUID($railSystem, $arrival->StationID);
+                // 取得行駛方向
+                $direction = $arrival->Direction;
 
-                // 將所有時刻紀錄至 SQL 中
-                foreach ($timeTables as $timeTable) {
-                    $metroArrivalModel->save([
-                        'MA_station_id' => $stationId,
-                        'MA_end_station_id' => $endStationId,
-                        'MA_sequence' => $timeTable->Sequence,
-                        'MA_arrival_time' => $timeTable->ArrivalTime,
-                        'MA_departure_time' => $timeTable->DepartureTime
+                 // 若今日無發車則跳過
+                if (!$arrival->ServiceDay->$weekDay)
+                {
+                    continue;
+                }
+
+                // 走遍時刻表
+                foreach ($arrival->Timetables as $timeTable)
+                {
+                    // 寫入時刻表資料
+                    $this->MAModel->save([
+                        'MA_station_id'   => $stationId,
+                        'MA_direction'    => $direction,
+                        'MA_sequence'     => $timeTable->Sequence,
+                        'MA_arrival_time' => $timeTable->ArrivalTime
                     ]);
                 }
             }
-        }
 
-        return true;
+            return true;
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+        }
     }
 }

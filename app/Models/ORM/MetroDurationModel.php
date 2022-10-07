@@ -4,7 +4,6 @@ namespace App\Models\ORM;
 
 class MetroDurationModel extends CompositeKey
 {
-
     // protected $this->compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
     protected $DBGroup          = 'default';
     protected $table            = 'metro_durations';
@@ -16,8 +15,9 @@ class MetroDurationModel extends CompositeKey
     protected $protectFields    = true;
     protected $allowedFields    = [
         'MD_station_id',
-        'MD_end_station_id',
-        'MD_duration'
+        'MD_direction',
+        'MD_duration',
+        'MD_stop_time'
     ];
 
     // Dates
@@ -48,6 +48,9 @@ class MetroDurationModel extends CompositeKey
     {
         parent::__construct();
         $this->builder = $this->builder();
-        $this->compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
+        $this->compositePrimaryKeys = [
+            'MD_station_id',
+            'MD_direction'
+        ];
     }
 }

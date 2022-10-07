@@ -155,7 +155,6 @@ $routes->group('tdx', static function ($routes) {
 
         // tdx/data/metro
         $routes->group('metro', static function ($routes) {
-
             $routes->cli('route/all', 'TdxMetroController::setMetroRouteAll'); // 全部捷運系統路線
             $routes->cli('route/(:alphanum)', 'TdxMetroController::setMetroRoute/$1'); // 單筆捷運系統的路線
 
@@ -172,7 +171,6 @@ $routes->group('tdx', static function ($routes) {
 
         // tdx/data/bus
         $routes->group('bus', static function ($routes) {
-            //$routes->cli('', ''); // 公車
             $routes->cli('routeStation', 'TdxBusController::setBusRouteStation'); // 公車路線車站
 
             $routes->cli('arrival', 'TdxBusController::setBusArrivals'); // 公車車次時刻表

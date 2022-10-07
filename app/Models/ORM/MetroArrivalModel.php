@@ -6,7 +6,7 @@ class MetroArrivalModel extends CompositeKey
 {
     protected $DBGroup          = 'default';
     protected $table            = 'metro_arrivals';
-    protected $primaryKey       = 'MA_end_station_id';
+    protected $primaryKey       = 'MA_station_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
@@ -14,10 +14,9 @@ class MetroArrivalModel extends CompositeKey
     protected $protectFields    = true;
     protected $allowedFields    = [
         'MA_station_id',
-        'MA_end_station_id',
+        'MA_direction',
         'MA_sequence',
-        'MA_remain_time',
-        'MA_departure_time'
+        'MA_arrival_time',
     ];
 
     // Dates
@@ -50,7 +49,7 @@ class MetroArrivalModel extends CompositeKey
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
             'MA_station_id',
-            'MA_end_station_id',
+            'MA_direction',
             'MA_sequence',
         ];
     }
