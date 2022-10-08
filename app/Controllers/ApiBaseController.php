@@ -293,33 +293,6 @@ class ApiBaseController extends BaseController
     /**
      * 重新排列時刻表資料
      * @param array &$arrivals 時刻表陣列
-     * @return void 不回傳值
-     */
-    protected function restructure_metro_arrivals(&$arrivals)
-    {
-        try
-        {
-            foreach ($arrivals as $key => $value)
-            {
-                $arrivals[$key] = [
-                    "Sequence" => $value->sequence,
-                    "Schedule" => [
-                        "DepartureTime" => $value->departure_time,
-                        "ArrivalTime"   => $value->arrival_time,
-                    ]
-                ];
-            }
-            usort($arrivals, [BaseController::class, "cmpArrivals"]);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 重新排列時刻表資料
-     * @param array &$arrivals 時刻表陣列
      * @param array &$fromArrivals
      * @param array &$toArrivals
      * @return void 不回傳值

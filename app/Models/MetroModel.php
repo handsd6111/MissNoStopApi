@@ -178,7 +178,8 @@ class MetroModel extends BaseModel
                             ->join("metro_stations", "MA_station_id = MS_id")
                             ->join("metro_route_stations", "MS_id = MRS_station_id")
                             ->select(
-                                "MA_sequence AS sequence,
+                                "MA_route_id AS route_id,
+                                MA_sequence AS sequence,
                                 MA_arrival_time AS departure_time,
                                 SEC_TO_TIME( TIME_TO_SEC( MA_arrival_time ) + $duration ) AS arrival_time")
                             ->where($condition)
@@ -197,7 +198,7 @@ class MetroModel extends BaseModel
      * @param int $direction 行駛方向
      * @return mixed 查詢類別
      */
-    function get_duration($fromSeq, $toSeq, $direction, $routeId)
+    function get_duration($fromSeq, $toSeq, $routeId, $direction)
     {
         try
         {

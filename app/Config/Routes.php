@@ -85,9 +85,6 @@ $routes->group('api', static function ($routes)
         
         // /api/Metro/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「捷運時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiMetroController::get_metro_arrivals/$1/$2');
-        
-        // /api/Metro/Duration/{FromStationId}/{ToStationId} 取得指定起訖站的「捷運運行時間」資料
-        $routes->get('Duration/(:segment)/(:segment)', 'ApiMetroController::get_metro_durations/$1/$2');
     });
 
     // 高鐵相關 api

@@ -209,13 +209,6 @@
 	]
 ]
 
-/api/Metro/Duration/{FromStationId}/{ToStationId}
-取得指定起訖站的「捷運站間運行時間」資料
-
-[
-	Duration: 站間運行時間
-]
-
 =============================
 
 高鐵
