@@ -177,14 +177,18 @@ class ApiMetroController extends ApiBaseController
             for ($i = 0; $i < sizeof($routes); $i++)
             {
                 // 取得時刻表
-                $arrivals[$i] = $this->get_arrival($fromStationId, $fromSeq, $toSeq, $routes[$i], $direction);
+                $arrival = $this->get_arrival($fromStationId, $fromSeq, $toSeq, $routes[$i], $direction);
+
+                // 合併至 $arrivals
+                $arrivals = array_merge($arrivals, $arrival);
             }
+            
 
             // 重新排列資料
-            $this->restructure_metro_arrivals($arrivals[0]);
+            // $this->restructure_metro_arrivals($arrivals);
 
             // 回傳資料
-            return $this->send_response($arrivals[0]);
+            return $this->send_response($arrivals);
         }
         catch (Exception $e)
         {
@@ -316,7 +320,10 @@ class ApiMetroController extends ApiBaseController
             $duration = $this->get_duration($fromStationId, $fromSeq, $toSeq, $routeId, $direction);
 
             // 取得時刻表
-            return $this->metroModel->get_arrivals($fromSeq, $routeId, $direction, $duration)->get()->getResult();
+            $arrival = $this->metroModel->get_arrivals($fromSeq, $routeId, $direction, $duration)->get()->getResult();
+
+            // 回傳資料
+            return $arrival;
         }
         catch (Exception $e)
         {
@@ -364,11 +371,10 @@ class ApiMetroController extends ApiBaseController
             {
                 throw new Exception(lang("MetroQueries.durationNotFound"), 1);
             }
-
-            throw new Exception(strval($duration[0]->duration), 1);
+            $duration = $duration[0]->duration;
 
             // 回傳資料
-            return $duration[0]->duration;
+            return $duration;
 
         }
         catch (Exception $e)
