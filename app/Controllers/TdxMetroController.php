@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-
+use App\Models\MetroModel;
 use App\Models\ORM\MetroArrivalModel;
 use App\Models\ORM\MetroDurationModel;
 use App\Models\ORM\MetroRouteModel;
@@ -17,7 +17,7 @@ class TdxMetroController extends TdxBaseController
     {
         try
         {
-            
+            $this->metroModel = new MetroModel();
             $this->MSTModel = new MetroSystemModel();
             $this->MRModel  = new MetroRouteModel();
             $this->MRSModel = new MetroRouteStationModel();
@@ -341,6 +341,25 @@ class TdxMetroController extends TdxBaseController
     }
 
     /**
+     * 取得指定路線及起訖站的行駛方向
+     * @param string $routeId
+     * @param string $fromStationId
+     * @param string $toStationId
+     * @return int 行駛方向（0：去程；1：返程）
+     */
+    public function getStationsDirection($routeId, $fromStationId, $toStationId)
+    {
+        try
+        {
+
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
      * 利用 ORM Model 寫入單個捷運系統的運行時間至 SQL 內。
      * 
      * @param string $railSystem 捷運系統 ex：'KRTC'
@@ -354,9 +373,6 @@ class TdxMetroController extends TdxBaseController
             $routes = $this->getMetroDuration($railSystem);
 
             $directionSwitch = [1, 0];
-
-            // 單數資料的行駛方向為「0」、雙數則為「1」
-            $direction = 1;
 
             // 走遍每條路線
             foreach ($routes as $route)
@@ -374,13 +390,13 @@ class TdxMetroController extends TdxBaseController
 
                 // 取得路線代碼、起訖站代碼及行駛方向
                 $routeId = $this->getUID($railSystem, $route->RouteID);
-                
-                // 更新行駛方向
-                $direction = $directionSwitch[$direction];
 
                 //走遍運行時間資料
                 foreach ($route->TravelTimes as $travelTime)
                 {
+                    // 取得行駛方向
+                    $direction = $this->getStationsDirection($route->RouteID, $travelTime->FromStationID, $travelTime->ToStationID);
+
                     // 寫入資料
                     $this->MDModel->save([
                         "MD_station_id" => $this->getUID($railSystem, $travelTime->FromStationID),
