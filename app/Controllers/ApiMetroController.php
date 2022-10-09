@@ -185,7 +185,7 @@ class ApiMetroController extends ApiBaseController
             
 
             // 重新排列資料
-            // $this->restructure_metro_arrivals($arrivals);
+            $this->restructure_metro_arrivals($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);
