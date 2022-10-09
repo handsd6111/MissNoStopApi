@@ -161,22 +161,24 @@ class ApiMetroController extends ApiBaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得起訖站序號
-            $fromSeq   = $this->get_sequence($fromStationId);
-            $toSeq     = $this->get_sequence($toStationId);
-
-            // 取得行駛方向
-            $direction = $this->get_direction($fromSeq, $toSeq);
-
             // 取得起訖站皆行經的所有捷運路線
-            $routes    = $this->get_routes_by_stations($fromStationId, $toStationId);
+            $routes   = $this->get_routes_by_stations($fromStationId, $toStationId);
 
-            $arrivals  = [];
+            $arrivals = [];
 
             // 取得每條路線的時刻表
             for ($i = 0; $i < sizeof($routes); $i++)
             {
+                // 取得起訖站序號
+                $fromSeq = $this->get_sequence($routes[$i], $fromStationId);
+                $toSeq   = $this->get_sequence($routes[$i], $toStationId);
+    
+                // 取得行駛方向
+                $direction = $this->get_direction($fromSeq, $toSeq);
+                
+                // 取得時刻表
                 $arrivals[$i] = $this->get_arrival($fromSeq, $toSeq, $routes[$i], $direction);
+                return $this->send_response($arrivals);
             }
 
             // 重新排列資料
@@ -261,20 +263,21 @@ class ApiMetroController extends ApiBaseController
 
     /**
      * 取得指定捷運站的序號
+     * @param string $routeId 路線代碼
      * @param string $stationId 捷運站代碼
      * @return int 捷運站序號
      * @throws Exception 查無資料
      */
-    function get_sequence($stationId)
+    function get_sequence($routeId, $stationId)
     {
         try
         {
-            $sequence = $this->metroModel->get_station_sequence($stationId)->get()->getResult();
+            $sequence = $this->metroModel->get_station_sequence($routeId, $stationId)->get()->getResult();
             if (!$sequence)
             {
                 throw new Exception(lang("Query.resultNotFOund"), 1);
             }
-            return $this->metroModel->get_station_sequence($stationId)->get()->getResult()[0]->sequence;
+            return $sequence[0]->sequence;
         }
         catch (Exception $e)
         {
@@ -297,7 +300,9 @@ class ApiMetroController extends ApiBaseController
         {
             // 取得總運行時間
             $duration = $this->get_duration($fromSeq, $toSeq, $routeId, $direction);
-            
+
+            return $duration;
+
             // 取得時刻表
             return $this->metroModel->get_arrivals($fromSeq, $routeId, $direction, $duration)->get()->getResult();
         }
@@ -320,7 +325,23 @@ class ApiMetroController extends ApiBaseController
     {
         try
         {
-            $duration = $this->metroModel->get_duration($fromSeq, $toSeq, $routeId, $direction)->get()->getResult();
+            if ($direction == 0)
+            {
+                $minSeq = $fromSeq;
+                $maxSeq = $toSeq;
+            }
+            else
+            {
+                $minSeq = $toSeq;
+                $maxSeq = $fromSeq;
+            }
+            $stopTime = $this->metroModel->get_stop_time($fromSeq, $routeId, $direction);
+            if (!$stopTime)
+            {
+                throw new Exception(lang("Query.resultNotFOund") . $direction, 1);
+            }
+            
+            $duration = $this->metroModel->get_duration($minSeq, $maxSeq, $routeId, $direction, $stopTime[0]->stop_time)->get()->getResult();
             if (!$duration)
             {
                 throw new Exception(lang("Query.resultNotFOund"), 1);

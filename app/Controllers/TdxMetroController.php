@@ -351,7 +351,14 @@ class TdxMetroController extends TdxBaseController
     {
         try
         {
+            $fromSeq = $this->metroModel->get_station_sequence($routeId, $fromStationId);
+            $toSeq   = $this->metroModel->get_station_sequence($routeId, $toStationId);
 
+            if ($fromSeq < $toSeq)
+            {
+                return 0;
+            }
+            return 1;
         }
         catch (Exception $e)
         {
@@ -371,8 +378,6 @@ class TdxMetroController extends TdxBaseController
         {
             // 取得路線車站資料
             $routes = $this->getMetroDuration($railSystem);
-
-            $directionSwitch = [1, 0];
 
             // 走遍每條路線
             foreach ($routes as $route)

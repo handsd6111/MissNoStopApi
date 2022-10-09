@@ -135,16 +135,17 @@ class MetroModel extends BaseModel
     }
 
     /**
-     * 取得指定捷運站資料查詢類別
+     * 取得指定路線及代碼的捷運站序號查詢類別
+     * @param string $routeId 路線代碼
      * @param string $stationId 捷運站代碼
-     * @param int $direction 行駛方向
      * @return mixed 查詢類別
      */
-    function get_station_sequence($stationId)
+    function get_station_sequence($routeId, $stationId)
     {
         try
         {
             $condition = [
+                "MRS_route_id"   => $routeId,
                 "MRS_station_id" => $stationId
             ];
             return $this->db->table("metro_route_stations")
@@ -175,8 +176,7 @@ class MetroModel extends BaseModel
                 "MA_direction" => $direction
             ];
             return $this->db->table("metro_arrivals")
-                            ->join("metro_stations", "MA_station_id = MS_id")
-                            ->join("metro_route_stations", "MS_id = MRS_station_id")
+                            ->join("metro_route_stations", "MA_station_id = MRS_station_id")
                             ->select(
                                 "MA_route_id AS route_id,
                                 MA_sequence AS sequence,
@@ -198,7 +198,7 @@ class MetroModel extends BaseModel
      * @param int $direction 行駛方向
      * @return mixed 查詢類別
      */
-    function get_duration($fromSeq, $toSeq, $routeId, $direction)
+    function get_duration($minSeq, $maxSeq, $routeId, $direction, $stopTime)
     {
         try
         {
@@ -206,27 +206,13 @@ class MetroModel extends BaseModel
                 "MRS_route_id" => $routeId,
                 "MD_direction" => $direction
             ];
-            if ($direction == 0)
-            {
-                $min = $fromSeq;
-                $max = $toSeq;
-            }
-            else
-            {
-                $min = $toSeq;
-                $max = $fromSeq;
-            }
-
-            $stopTime = intval($this->get_stop_time($fromSeq, $condition));
-            
             return $this->db->table("metro_durations")
-                            ->join("metro_stations", "MD_station_id = MS_id")
-                            ->join("metro_route_stations", "MS_id = MRS_station_id")
+                            ->join("metro_route_stations", "MD_route_id = MRS_route_id")
                             ->select(
                                 "SUM(MD_duration) + SUM(MD_stop_time) - $stopTime AS duration"
                             )
                             ->where($condition)
-                            ->where("MRS_sequence BETWEEN $min AND $max -1");
+                            ->where("MRS_sequence BETWEEN $minSeq AND $maxSeq -1");
         }
         catch (Exception $e)
         {
@@ -241,23 +227,21 @@ class MetroModel extends BaseModel
      * @param array $condition WHERE 資料
      * @return int 停靠時間加總
      */
-    function get_stop_time($fromSeq, $condition)
+    function get_stop_time($fromSeq, $routeId, $direction)
     {
         try
         {
-            $query = $this->db->table("metro_durations")
-                              ->join("metro_stations", "MD_station_id = MS_id")
-                              ->join("metro_route_stations", "MS_id = MRS_station_id")
-                              ->select("SUM(MD_stop_time) as stop_time")
-                              ->where($condition)
-                              ->where("MRS_sequence", $fromSeq)
-                              ->get()
-                              ->getResult();
-            if (!$query)
-            {
-                return 0;
-            }
-            return $query[0]->stop_time;
+            $condition = [
+                "MRS_route_id" => $routeId,
+                "MD_direction" => $direction,
+                "MRS_sequence" => $fromSeq
+            ];
+            return $this->db->table("metro_durations")
+                            ->join("metro_route_stations", "MRS_route_id = MD_route_id")
+                            ->select("MD_stop_time as stop_time")
+                            ->where($condition)
+                            ->get()
+                            ->getResult();
         }
         catch (Exception $e)
         {
@@ -279,7 +263,7 @@ class MetroModel extends BaseModel
                             ->select("MRS_route_id AS route_id")
                             ->where("MRS_station_id", $fromStationId)
                             ->orWhere("MRS_station_id", $toStationId)
-                            ->groupBy("MRS_route_id");
+                            ->having("COUNT(MRS_route_id) > 1");
         }
         catch (Exception $e)
         {
