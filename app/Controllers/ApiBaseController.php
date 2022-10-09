@@ -311,7 +311,7 @@ class ApiBaseController extends BaseController
                     ]
                 ];
             }
-            usort($arrivals, [BaseController::class, "cmpArrivals"]);
+            usort($arrivals, [ApiBaseController::class, "cmpArrivals"]);
         }
         catch (Exception $e)
         {
@@ -338,7 +338,7 @@ class ApiBaseController extends BaseController
                     ]
                 ];
             }
-            usort($arrivals, [BaseController::class, "cmpArrivals"]);
+            usort($arrivals, [ApiBaseController::class, "cmpArrivals"]);
         }
         catch (Exception $e)
         {

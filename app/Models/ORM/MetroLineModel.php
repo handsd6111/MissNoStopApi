@@ -2,21 +2,23 @@
 
 namespace App\Models\ORM;
 
+use CodeIgniter\Model;
 
-class MetroRouteStationModel extends CompositeKey
+class MetroLineModel extends Model
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'metro_route_stations';
-    protected $primaryKey       = 'MRS_station_id';
+    protected $table            = 'metro_lines';
+    protected $primaryKey       = 'ML_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'MRS_station_id',
-        'MRS_line_id',
-        'MRS_sequence'
+        'ML_id',
+        'ML_name_TC',
+        'ML_name_EN',
+        'ML_system_id'
     ];
 
     // Dates
@@ -42,14 +44,4 @@ class MetroRouteStationModel extends CompositeKey
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->builder = $this->builder();
-        $this->compositePrimaryKeys = [
-            'MRS_station_id',
-            'MRS_line_id'
-        ];
-    }
 }

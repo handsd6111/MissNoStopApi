@@ -201,11 +201,11 @@
 
 [
 	[
-		Sequence: 當日第幾班車停靠的序號,
 		Schedule: {
 			DepartureTime: 起站發車時間,
 			ArrivalTime: 訖站抵達時間
-		}
+		},
+		Sequence: 當日第幾班車停靠的序號
 	]
 ]
 

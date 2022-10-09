@@ -18,7 +18,7 @@ class MetroRouteModel extends Model
         'MR_id',
         'MR_name_TC',
         'MR_name_EN',
-        'MR_system_id'
+        'MR_line_id'
     ];
 
     // Dates
