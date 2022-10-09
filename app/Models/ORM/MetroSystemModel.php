@@ -14,7 +14,11 @@ class MetroSystemModel extends Model
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['MST_id', 'MST_name_TC', 'MST_name_EN'];
+    protected $allowedFields    = [
+        'MST_id',
+        'MST_name_TC',
+        'MST_name_EN'
+    ];
 
     // Dates
     protected $useTimestamps = false;

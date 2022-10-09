@@ -15,7 +15,8 @@ class MetroRouteStationModel extends CompositeKey
     protected $protectFields    = true;
     protected $allowedFields    = [
         'MRS_station_id',
-        'MRS_route_id'
+        'MRS_route_id',
+        'MRS_sequence'
     ];
 
     // Dates
