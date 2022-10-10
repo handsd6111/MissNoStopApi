@@ -3,21 +3,20 @@
 namespace App\Models\ORM;
 
 
-class MetroRouteStationModel extends CompositeKey
+class MetroLineStationModel extends CompositeKey
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'metro_route_stations';
-    protected $primaryKey       = 'MRS_station_id';
+    protected $table            = 'metro_line_stations';
+    protected $primaryKey       = 'MLS_station_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'MRS_station_id',
-        'MRS_route_id',
-        'MRS_direction',
-        'MRS_sequence'
+        'MLS_station_id',
+        'MLS_line_id',
+        'MLS_sequence'
     ];
 
     // Dates
@@ -49,9 +48,8 @@ class MetroRouteStationModel extends CompositeKey
         parent::__construct();
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
-            'MRS_station_id',
-            'MRS_route_id',
-            'MRS_direction'
+            'MLS_station_id',
+            'MLS_line_id'
         ];
     }
 }

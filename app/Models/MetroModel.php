@@ -63,10 +63,10 @@ class MetroModel extends BaseModel
         try
         {
             $condition = [
-                "MRS_line_id" => $lineId
+                "MLS_line_id" => $lineId
             ];
             return $this->db->table("metro_stations")
-                            ->join("metro_route_stations", "MS_id = MRS_station_id")
+                            ->join("metro_line_stations", "MS_id = MLS_station_id")
                             ->select(
                                 "MS_id AS station_id,
                                 MS_name_TC AS name_TC,
@@ -74,9 +74,9 @@ class MetroModel extends BaseModel
                                 MS_city_id AS city_id,
                                 MS_longitude AS longitude,
                                 MS_latitude AS latitude,
-                                MRS_sequence AS sequence")
+                                MLS_sequence AS sequence")
                             ->where($condition)
-                            ->orderBy("MRS_sequence");
+                            ->orderBy("MLS_sequence");
         }
         catch (Exception $e)
         {
@@ -100,8 +100,8 @@ class MetroModel extends BaseModel
                 "ML_id" => $lineId
             ];
             return $this->db->table("metro_stations")
-                            ->join("metro_route_stations", "MS_id = MRS_station_id")
-                            ->join("metro_lines", "MRS_line_id = ML_id")
+                            ->join("metro_line_stations", "MS_id = MLS_station_id")
+                            ->join("metro_lines", "MLS_line_id = ML_id")
                             ->select(
                                 "MS_id AS station_id,
                                 MS_name_TC AS name_TC,
@@ -109,7 +109,7 @@ class MetroModel extends BaseModel
                                 MS_city_id AS city_id,
                                 MS_longitude AS longitude,
                                 MS_latitude AS latitude,
-                                MRS_sequence AS sequence,
+                                MLS_sequence AS sequence,
                                 FLOOR(
                                     SQRT(
                                         POWER(
@@ -144,12 +144,12 @@ class MetroModel extends BaseModel
         try
         {
             $condition = [
-                "MRS_station_id" => $stationId
+                "MLS_station_id" => $stationId
             ];
-            return $this->db->table("metro_route_stations")
-                            ->select("MRS_sequence AS sequence")
+            return $this->db->table("metro_line_stations")
+                            ->select("MLS_sequence AS sequence")
                             ->where($condition)
-                            ->groupBy("MRS_station_id");
+                            ->groupBy("MLS_station_id");
         }
         catch (Exception $e)
         {
@@ -170,12 +170,12 @@ class MetroModel extends BaseModel
         try
         {
             $condition = [
-                "MRS_sequence" => $sequence,
+                "MLS_sequence" => $sequence,
                 "MA_route_id" => $routeId,
                 "MA_direction" => $direction
             ];
             return $this->db->table("metro_arrivals")
-                            ->join("metro_route_stations", "MA_station_id = MRS_station_id")
+                            ->join("metro_line_stations", "MA_station_id = MLS_station_id")
                             ->select(
                                 "MA_route_id AS route_id,
                                 MA_sequence AS sequence,
@@ -210,12 +210,12 @@ class MetroModel extends BaseModel
             return $this->db->table("metro_durations")
                             ->join("metro_routes", "MR_id = MD_route_id")
                             ->join("metro_stations", "MS_id = MD_station_id")
-                            ->join("metro_route_stations", "MRS_station_id = MS_id")
+                            ->join("metro_line_stations", "MLS_station_id = MS_id")
                             ->select(
                                 "SUM(MD_duration) + SUM(MD_stop_time) - $stopTime AS duration"
                             )
                             ->where($condition)
-                            ->where("MRS_sequence BETWEEN $minSeq AND $maxSeq -1");
+                            ->where("MLS_sequence BETWEEN $minSeq AND $maxSeq -1");
         }
         catch (Exception $e)
         {
