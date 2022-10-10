@@ -4,21 +4,21 @@ namespace App\Models\ORM;
 
 use CodeIgniter\Model;
 
-class MetroLineModel extends Model
+class MetroSubRouteModel extends Model
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'metro_lines';
-    protected $primaryKey       = 'ML_id';
+    protected $table            = 'metro_sub_routes';
+    protected $primaryKey       = 'MSR_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'ML_id',
-        'ML_name_TC',
-        'ML_name_EN',
-        'ML_system_id'
+        'MSR_id',
+        'MSR_name_TC',
+        'MSR_name_EN',
+        'MSR_route_id'
     ];
 
     // Dates

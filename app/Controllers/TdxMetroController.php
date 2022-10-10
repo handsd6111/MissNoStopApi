@@ -5,11 +5,11 @@ namespace App\Controllers;
 use App\Models\MetroModel;
 use App\Models\ORM\MetroArrivalModel;
 use App\Models\ORM\MetroDurationModel;
-use App\Models\ORM\MetroLineModel;
-use App\Models\ORM\MetroLineStationModel;
 use App\Models\ORM\MetroRouteModel;
 use App\Models\ORM\MetroRouteStationModel;
 use App\Models\ORM\MetroStationModel;
+use App\Models\ORM\MetroSubRouteModel;
+use App\Models\ORM\MetroSubRouteStationModel;
 use App\Models\ORM\MetroSystemModel;
 use Exception;
 
@@ -23,14 +23,14 @@ class TdxMetroController extends TdxBaseController
             $this->metroModel = new MetroModel();
 
             // ORM
-            $this->MAModel  = new MetroArrivalModel();
-            $this->MDModel  = new MetroDurationModel();
-            $this->MLModel  = new MetroLineModel();
-            $this->MLSModel = new MetroLineStationModel();
-            $this->MRModel  = new MetroRouteModel();
-            $this->MRSModel = new MetroRouteStationModel();
-            $this->MSModel  = new MetroStationModel();
-            $this->MSTModel = new MetroSystemModel();
+            $this->MAModel   = new MetroArrivalModel();
+            $this->MDModel   = new MetroDurationModel();
+            $this->MRModel   = new MetroRouteModel();
+            $this->MRSModel  = new MetroRouteStationModel();
+            $this->MSModel   = new MetroStationModel();
+            $this->MSRModel  = new MetroSubRouteModel();
+            $this->MSRSModel = new MetroSubRouteStationModel();
+            $this->MSTModel  = new MetroSystemModel();
         }
         catch (Exception $e)
         {
@@ -439,8 +439,8 @@ class TdxMetroController extends TdxBaseController
     {
         try
         {
-            $fromSeq = $this->metroModel->get_station_sequence($fromStationId)->get()->getResult()[0]->sequence;
-            $toSeq   = $this->metroModel->get_station_sequence($toStationId)->get()->getResult()[0]->sequence;
+            $fromSeq = $this->metroModel->get_line_sequence($fromStationId)->get()->getResult()[0]->sequence;
+            $toSeq   = $this->metroModel->get_line_sequence($toStationId)->get()->getResult()[0]->sequence;
 
             if ($fromSeq < $toSeq)
             {
@@ -487,18 +487,22 @@ class TdxMetroController extends TdxBaseController
                 // 取得子路線代碼、起訖站代碼及行駛方向
                 $routeId = $this->getUID($railSystem, $route->RouteID);
 
+                // 取得起訖站代碼
+                $fromStationId = $this->getUID($railSystem, $route->TravelTimes[0]->FromStationID);
+                $toStationId   = $this->getUID($railSystem, $route->TravelTimes[0]->ToStationID);
+
+                // 取得行駛方向
+                $direction = $this->getStationsDirection($fromStationId, $toStationId);
+
                 //走遍運行時間資料
                 foreach ($route->TravelTimes as $travelTime)
                 {
-                    // 取得行駛方向
-                    $direction = $this->getStationsDirection($travelTime->FromStationID, $travelTime->ToStationID);
-
                     // 取得捷運站代碼
-                    $stationId = $this->getUID($railSystem, $travelTime->FromStationID);
+                    $stationid = $this->getUID($railSystem, $travelTime->FromStationID);
 
                     // 寫入資料
                     $this->MDModel->save([
-                        "MD_station_id" => $stationId,
+                        "MD_station_id" => $stationid,
                         "MD_route_id"   => $routeId,
                         "MD_direction"  => $direction,
                         "MD_duration"   => $travelTime->RunTime,
@@ -507,7 +511,7 @@ class TdxMetroController extends TdxBaseController
 
                     // 寫入資料（相反方向）
                     $this->MDModel->save([
-                        "MD_station_id" => $stationId,
+                        "MD_station_id" => $stationid,
                         "MD_route_id"   => $routeId,
                         "MD_direction"  => $reverseDirection[$direction],
                         "MD_duration"   => $travelTime->RunTime,
@@ -641,14 +645,30 @@ class TdxMetroController extends TdxBaseController
     {
         try
         {
+            // 取得子路線捷運站資料
             $routeStations = $this->getMetroRouteStation($railSystem);
+
+            // 走遍子路線捷運站資料
             foreach ($routeStations as $routeStation)
             {
-                $routeId   = $this->getUID($railSystem, $routeStation->RouteID);
+                // 開始計時
+                $startTime = $this->getTime();
+
+                // 取得子路線
+                $routeId = $this->getUID($railSystem, $routeStation->RouteID);
+
+                $this->terminalLog("Running data of $routeId ... ");
+
+                // 取得行駛方向
                 $direction = $routeStation->Direction;
+
+                // 走遍子路線的所有捷運站
                 foreach ($routeStation->Stations as $Station)
                 {
+                    // 取得捷運站代碼
                     $stationId = $this->getUID($railSystem, $Station->StationID);
+
+                    // 寫入資料
                     $this->MRSModel->save([
                         "MRS_station_id" => $stationId,
                         "MRS_route_id"   => $routeId,
@@ -656,6 +676,9 @@ class TdxMetroController extends TdxBaseController
                         "MRS_sequence"   => $Station->Sequence
                     ]);
                 }
+
+                // 印出花費時間
+                $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
         }
         catch (Exception $e)

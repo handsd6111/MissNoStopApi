@@ -15,6 +15,7 @@ class MetroDurationModel extends CompositeKey
     protected $protectFields    = true;
     protected $allowedFields    = [
         'MD_station_id',
+        'MD_sub_route_id',
         'MD_direction',
         'MD_duration',
         'MD_stop_time'
@@ -50,6 +51,7 @@ class MetroDurationModel extends CompositeKey
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
             'MD_station_id',
+            'MD_sub_route_id',
             'MD_direction'
         ];
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\ApiBaseControllers;
 
 use App\Controllers\BaseController;
 use App\Models\BaseModel;
@@ -12,10 +12,10 @@ use Exception;
 class ApiBaseController extends BaseController
 {
     // 參數驗證失敗訊息
-    protected $validateErrMsg = "";
+    public $validateErrMsg = "";
 
     // 載入模型
-    function __construct()
+    protected function __construct()
     {
         try
         {
@@ -158,32 +158,6 @@ class ApiBaseController extends BaseController
                 $cities[$key] = [
                     "CityId"   => $value->city_id,
                     "CityName" => [
-                        "TC" => $value->name_TC,
-                        "EN" => $value->name_EN
-                    ],
-                ];
-            }
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 重新排列系統資料
-     * @param array &$systems 系統資料
-     * @return void 不回傳值
-     */
-    protected function restructure_systems(&$systems)
-    {
-        try
-        {
-            foreach ($systems as $key => $value)
-            {
-                $systems[$key] = [
-                    "SystemId"   => $value->system_id,
-                    "SystemName" => [
                         "TC" => $value->name_TC,
                         "EN" => $value->name_EN
                     ],

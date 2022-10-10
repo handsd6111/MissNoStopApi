@@ -72,7 +72,7 @@ $routes->group('api', static function ($routes)
         $routes->get('System', 'ApiMetroController::get_metro_systems');
 
         // /api/Metro/Route/{SystemId} 取得指定系統的「捷運路線」資料
-        $routes->get('Route/(:alpha)', 'ApiMetroController::get_metro_routes/$1');
+        $routes->get('Route/(:alpha)', 'ApiMetroController::get_metro_lines/$1');
         
         // /api/Metro/StationOfRoute/{RouteId} 取得指定系統及路線的「捷運站」資料
         $routes->get('StationOfRoute/(:segment)', 'ApiMetroController::get_metro_stations/$1');
@@ -165,6 +165,9 @@ $routes->group('tdx', static function ($routes) {
 
             $routes->cli('lineStation', 'TdxMetroController::setMetroLineStationAll'); // 全部捷運系統車站與路線的關聯資料
             $routes->cli('lineStation/(:alphanum)', 'TdxMetroController::setMetroLineStation/$1'); // 單個捷運系統車站與路線的關聯資料
+            
+            $routes->cli('routeStation', 'TdxMetroController::setMetroRouteStationAll'); // 全部捷運系統車站與子路線的關聯資料
+            $routes->cli('routeStation/(:alphanum)', 'TdxMetroController::setMetroRouteStation/$1'); // 單個捷運系統車站與子路線的關聯資料
 
             $routes->cli('arrival/(:alphanum)', 'TdxMetroController::setMetroArrival/$1'); // 單個捷運系統的時刻表
         });

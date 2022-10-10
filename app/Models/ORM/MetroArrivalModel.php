@@ -14,6 +14,7 @@ class MetroArrivalModel extends CompositeKey
     protected $protectFields    = true;
     protected $allowedFields    = [
         'MA_station_id',
+        'MA_sub_route_id',
         'MA_direction',
         'MA_sequence',
         'MA_arrival_time',
@@ -49,6 +50,7 @@ class MetroArrivalModel extends CompositeKey
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
             'MA_station_id',
+            'MA_sub_route_id',
             'MA_direction',
             'MA_sequence',
         ];

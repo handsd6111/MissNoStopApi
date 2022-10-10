@@ -16,7 +16,6 @@ class MetroRouteStationModel extends CompositeKey
     protected $allowedFields    = [
         'MRS_station_id',
         'MRS_route_id',
-        'MRS_direction',
         'MRS_sequence'
     ];
 
@@ -50,8 +49,7 @@ class MetroRouteStationModel extends CompositeKey
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
             'MRS_station_id',
-            'MRS_route_id',
-            'MRS_direction'
+            'MRS_route_id'
         ];
     }
 }
