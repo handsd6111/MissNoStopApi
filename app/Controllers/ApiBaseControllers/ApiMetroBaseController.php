@@ -60,7 +60,7 @@ class ApiMetroBaseController extends ApiBaseController
             foreach ($routes as $key => $value)
             {
                 $routes[$key] = [
-                    "RouteId"   => $value->route_id,
+                    "RouteId"   => $value->sub_route_id,
                     "RouteName" => [
                         "TC" => $value->name_TC,
                         "EN" => $value->name_EN
@@ -146,56 +146,9 @@ class ApiMetroBaseController extends ApiBaseController
             }
             for ($i = 0; $i < sizeof($subRoutes); $i++)
             {
-                $subRoutes[$i] = $subRoutes[$i]->route_id;
+                $subRoutes[$i] = $subRoutes[$i]->sub_route_id;
             }
             return $subRoutes;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得指定捷運站在路線上的序號
-     * @param string $stationId 捷運站代碼
-     * @return int 捷運站序號
-     * @throws Exception 查無資料
-     */
-    protected function get_route_sequence($stationId)
-    {
-        try
-        {
-            $sequence = $this->metroModel->get_route_sequence($stationId)->get()->getResult();
-            if (!$sequence)
-            {
-                throw new Exception(lang("MetroQueries.stationNotFound"), 1);
-            }
-            return $sequence[0]->sequence;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得指定捷運站在子路線上的序號
-     * @param string $stationId 捷運站代碼
-     * @param int $direction 行駛方向
-     * @return int 捷運站序號
-     * @throws Exception 查無資料
-     */
-    protected function get_sub_route_sequence($stationId, $direction)
-    {
-        try
-        {
-            $sequence = $this->metroModel->get_sub_route_sequence($stationId, $direction)->get()->getResult();
-            if (!$sequence)
-            {
-                throw new Exception(lang("MetroQueries.stationNotFound"), 1);
-            }
-            return $sequence[0]->sequence;
         }
         catch (Exception $e)
         {
@@ -245,8 +198,8 @@ class ApiMetroBaseController extends ApiBaseController
         try
         {
             // 取得起訖站在子路線上的序號
-            $fromSeq = $this->get_route_sequence($fromStationId, $direction);
-            $toSeq   = $this->get_route_sequence($toStationId, $direction);
+            $fromSeq = $this->get_sub_route_sequence($fromStationId, $subRouteId, $direction);
+            $toSeq   = $this->get_sub_route_sequence($toStationId, $subRouteId, $direction);
 
             // 取得站序大小
             if ($direction == 0)
@@ -297,14 +250,61 @@ class ApiMetroBaseController extends ApiBaseController
         try
         {
             // 取得起訖站序號
-            $fromSeq = $this->get_line_sequence($fromStationId);
-            $toSeq   = $this->get_line_sequence($toStationId);
+            $fromSeq = $this->get_route_sequence($fromStationId);
+            $toSeq   = $this->get_route_sequence($toStationId);
 
             if ($fromSeq < $toSeq)
             {
                 return 0;
             }
             return 1;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定捷運站在路線上的序號
+     * @param string $stationId 捷運站代碼
+     * @return int 捷運站序號
+     * @throws Exception 查無資料
+     */
+    protected function get_route_sequence($stationId)
+    {
+        try
+        {
+            $sequence = $this->metroModel->get_route_sequence($stationId)->get()->getResult();
+            if (!$sequence)
+            {
+                throw new Exception(lang("MetroQueries.stationNotFound"), 1);
+            }
+            return $sequence[0]->sequence;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定捷運站在子路線上的序號
+     * @param string $stationId 捷運站代碼
+     * @param int $direction 行駛方向
+     * @return int 捷運站序號
+     * @throws Exception 查無資料
+     */
+    protected function get_sub_route_sequence($stationId, $subRouteId, $direction)
+    {
+        try
+        {
+            $sequence = $this->metroModel->get_sub_route_sequence($stationId, $subRouteId, $direction)->get()->getResult();
+            if (!$sequence)
+            {
+                throw new Exception(lang("MetroQueries.stationNotFound"), 1);
+            }
+            return $sequence[0]->sequence;
         }
         catch (Exception $e)
         {

@@ -135,51 +135,6 @@ class MetroModel extends BaseModel
     }
 
     /**
-     * 取得指定捷運站在路線上的序號查詢類別
-     * @param string $stationId 捷運站代碼
-     * @return mixed 查詢類別
-     */
-    function get_route_sequence($stationId)
-    {
-        try
-        {
-            $condition = [
-                "MRS_station_id" => $stationId
-            ];
-            return $this->db->table("metro_route_stations")
-                            ->select("MRS_sequence AS sequence")
-                            ->where($condition);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得指定捷運站在子路線上的序號查詢類別
-     * @param string $stationId 捷運站代碼
-     * @return mixed 查詢類別
-     */
-    function get_sub_route_sequence($stationId, $direction)
-    {
-        try
-        {
-            $condition = [
-                "MSRS_station_id" => $stationId,
-                "MSRS_direction"  => $direction
-            ];
-            return $this->db->table("metro_sub_route_stations")
-                            ->select("MSRS_sequence AS sequence")
-                            ->where($condition);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
      * 取得時刻表查詢類別
      * @param string $fromStationId 車站代碼
      * @param string $subRouteId 子路線代碼
@@ -225,13 +180,16 @@ class MetroModel extends BaseModel
         try
         {
             $condition = [
-                "MD_sub_route_id" => $subRouteId,
-                "MD_direction"    => $direction
+                "MSRS_direction"    => $direction,
+                "MSRS_sub_route_id" => $subRouteId
             ];
             return $this->db->table("metro_durations")
-                            ->join("metro_sub_routes", "MSR_id = MD_sub_route_id")
-                            ->join("metro_stations", "MS_id = MD_station_id")
-                            ->join("metro_sub_route_stations", "MSRS_station_id = MS_id")
+                            ->join(
+                                "metro_sub_route_stations",
+                                "MSRS_station_id = MD_station_id
+                                AND MSRS_direction = MD_direction
+                                AND MSRS_sub_route_id = MD_sub_route_id"
+                            )
                             ->select(
                                 "SUM(MD_duration) + SUM(MD_stop_time) - $stopTime AS duration"
                             )
@@ -256,9 +214,9 @@ class MetroModel extends BaseModel
         try
         {
             $condition = [
-                "MD_sub_route_id"   => $subRouteId,
-                "MD_direction"  => $direction,
-                "MD_station_id" => $fromStationId
+                "MD_sub_route_id" => $subRouteId,
+                "MD_direction"    => $direction,
+                "MD_station_id"   => $fromStationId
             ];
             return $this->db->table("metro_durations")
                             ->select("MD_stop_time as stop_time")
@@ -290,6 +248,52 @@ class MetroModel extends BaseModel
                             ->groupEnd()
                             ->groupBy("MD_sub_route_id")
                             ->having("COUNT(MD_station_id) > 1");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定捷運站在路線上的序號查詢類別
+     * @param string $stationId 捷運站代碼
+     * @return mixed 查詢類別
+     */
+    function get_route_sequence($stationId)
+    {
+        try
+        {
+            $condition = [
+                "MRS_station_id" => $stationId
+            ];
+            return $this->db->table("metro_route_stations")
+                            ->select("MRS_sequence AS sequence")
+                            ->where($condition);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定捷運站在子路線上的序號查詢類別
+     * @param string $stationId 捷運站代碼
+     * @return mixed 查詢類別
+     */
+    function get_sub_route_sequence($stationId, $subRouteId, $direction)
+    {
+        try
+        {
+            $condition = [
+                "MSRS_station_id"   => $stationId,
+                "MSRS_sub_route_id" => $subRouteId,
+                "MSRS_direction"    => $direction
+            ];
+            return $this->db->table("metro_sub_route_stations")
+                            ->select("MSRS_sequence AS sequence")
+                            ->where($condition);
         }
         catch (Exception $e)
         {

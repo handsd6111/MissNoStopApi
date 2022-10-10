@@ -7,7 +7,7 @@ use CodeIgniter\Model;
 class MetroRouteModel extends Model
 {
     protected $DBGroup          = 'default';
-    protected $table            = 'metro_lines';
+    protected $table            = 'metro_routes';
     protected $primaryKey       = 'MR_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;

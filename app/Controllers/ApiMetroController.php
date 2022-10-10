@@ -81,22 +81,22 @@ class ApiMetroController extends ApiMetroBaseController
     /**
      * 取得指定路線的「捷運站」資料
      * 
-     * 格式：/api/Metro/StationOfLine/{LineId}
-     * @param string $lineId 路線代碼
+     * 格式：/api/Metro/StationOfLine/{RouteId}
+     * @param string $routeId 路線代碼
      * @return array 車站資料陣列
      */
-    function get_metro_stations($lineId)
+    function get_metro_stations($routeId)
     {
         try
         {
             // 驗證參數
-            if (!$this->validate_param("LineId", $lineId, 12))
+            if (!$this->validate_param("RouteId", $routeId, 12))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             // 取得捷運站
-            $stations = $this->metroModel->get_stations($lineId)->get()->getResult();
+            $stations = $this->metroModel->get_stations($routeId)->get()->getResult();
 
             // 重新排列資料
             $this->restructure_stations($stations);
@@ -113,24 +113,24 @@ class ApiMetroController extends ApiMetroBaseController
     /**
      * 取得指定路線及經緯度的「最近捷運站」資料
      * 
-     * 格式：/api/Metro/NearestStation/{LineId}/{Longitude}/{Latitude}
-     * @param string $lineId 捷運路線代碼
+     * 格式：/api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude}
+     * @param string $routeId 捷運路線代碼
      * @param float $longitude 經度（-180 ~ 180）
      * @param float $latitude 緯度（-90 ~ 90）
      * @param int $limit 回傳數量
      */
-    function get_metro_nearest_station($lineId, $longitude, $latitude, $limit = 1)
+    function get_metro_nearest_station($routeId, $longitude, $latitude, $limit = 1)
     {
         try
         {
             // 驗證參數
-            if (!$this->validate_param("LineId", $lineId, 12) || !$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
+            if (!$this->validate_param("RouteId", $routeId, 12) || !$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             // 取得最近捷運站
-            $station = $this->metroModel->get_nearest_station($lineId, $longitude, $latitude, $limit)->get()->getResult();
+            $station = $this->metroModel->get_nearest_station($routeId, $longitude, $latitude, $limit)->get()->getResult();
             
             // 重新排列資料
             $this->restructure_stations($station);
