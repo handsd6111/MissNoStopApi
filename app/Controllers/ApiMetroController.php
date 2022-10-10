@@ -183,7 +183,6 @@ class ApiMetroController extends ApiBaseController
                 $arrivals = array_merge($arrivals, $arrival);
             }
             
-
             // 重新排列資料
             $this->restructure_metro_arrivals($arrivals);
 
