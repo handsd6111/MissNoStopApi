@@ -49,11 +49,11 @@ class ApiMetroController extends ApiMetroBaseController
     /**
      * 取得指定系統的「捷運路線」資料
      * 
-     * 格式：/api/Metro/Line/{SystemId}
+     * 格式：/api/Metro/Route/{SystemId}
      * @param string $systemId 捷運系統
      * @return array 路線資料陣列
      */
-    function get_metro_lines($systemId)
+    function get_metro_routes($systemId)
     {
         try
         {
@@ -64,13 +64,13 @@ class ApiMetroController extends ApiMetroBaseController
             }
 
             //取得路線
-            $lines = $this->metroModel->get_lines($systemId)->get()->getResult();
+            $routes = $this->metroModel->get_routes($systemId)->get()->getResult();
 
             // 重新排列資料
-            $this->restructure_lines($lines);
+            $this->restructure_routes($routes);
 
             // 回傳資料
-            return $this->send_response($lines);
+            return $this->send_response($routes);
         }
         catch (Exception $e)
         {
@@ -81,7 +81,7 @@ class ApiMetroController extends ApiMetroBaseController
     /**
      * 取得指定路線的「捷運站」資料
      * 
-     * 格式：/api/Metro/StationOfLine/{RouteId}
+     * 格式：/api/Metro/StationOfRoute/{RouteId}
      * @param string $routeId 路線代碼
      * @return array 車站資料陣列
      */

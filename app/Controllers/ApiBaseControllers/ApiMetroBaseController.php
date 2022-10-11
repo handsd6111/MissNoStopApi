@@ -60,11 +60,11 @@ class ApiMetroBaseController extends ApiBaseController
             foreach ($routes as $key => $value)
             {
                 $routes[$key] = [
-                    "RouteId"   => $value->sub_route_id,
+                    "RouteId"   => $value->route_id,
                     "RouteName" => [
                         "TC" => $value->name_TC,
                         "EN" => $value->name_EN
-                    ],
+                    ]
                 ];
             }
         }

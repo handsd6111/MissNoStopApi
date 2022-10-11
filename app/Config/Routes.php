@@ -72,7 +72,7 @@ $routes->group('api', static function ($routes)
         $routes->get('System', 'ApiMetroController::get_metro_systems');
 
         // /api/Metro/Route/{SystemId} 取得指定系統的「捷運路線」資料
-        $routes->get('Route/(:alpha)', 'ApiMetroController::get_metro_lines/$1');
+        $routes->get('Route/(:alpha)', 'ApiMetroController::get_metro_routes/$1');
         
         // /api/Metro/StationOfRoute/{RouteId} 取得指定系統及路線的「捷運站」資料
         $routes->get('StationOfRoute/(:segment)', 'ApiMetroController::get_metro_stations/$1');
