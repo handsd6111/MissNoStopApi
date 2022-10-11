@@ -2,10 +2,11 @@
 
 namespace App\Controllers;
 
+use App\Controllers\ApiBaseControllers\ApiMetroBaseController;
 use App\Models\MetroModel;
 use Exception;
 
-class ApiMetroController extends ApiBaseController
+class ApiMetroController extends ApiMetroBaseController
 {
     // 載入模型
     function __construct()
@@ -161,26 +162,26 @@ class ApiMetroController extends ApiBaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得起訖站序號
-            $fromSeq   = $this->get_sequence($fromStationId);
-            $toSeq     = $this->get_sequence($toStationId);
-
             // 取得行駛方向
-            $direction = $this->get_direction($fromSeq, $toSeq);
+            $direction = $this->get_direction($fromStationId, $toStationId);
 
-            // 取得起訖站皆行經的所有捷運路線
-            $routes    = $this->get_routes_by_stations($fromStationId, $toStationId);
+            // 取得起訖站皆行經的所有捷運子路線
+            $subRoutes = $this->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
 
-            $arrivals  = [];
+            $arrivals = [];
 
             // 取得每條路線的時刻表
-            for ($i = 0; $i < sizeof($routes); $i++)
+            for ($i = 0; $i < sizeof($subRoutes); $i++)
             {
-                $arrivals[$i] = $this->get_arrival($fromSeq, $toSeq, $routes[$i], $direction);
-            }
+                // 取得時刻表
+                $arrival = $this->get_arrival($fromStationId, $toStationId, $subRoutes[$i], $direction);
 
+                // 合併至 $arrivals
+                $arrivals = array_merge($arrivals, $arrival);
+            }
+            
             // 重新排列資料
-            $this->restructure_metro_arrivals($arrivals, $fromStationId, $toStationId);
+            $this->restructure_metro_arrivals($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);
@@ -188,171 +189,6 @@ class ApiMetroController extends ApiBaseController
         catch (Exception $e)
         {
             return $this->get_caught_exception($e);
-        }
-    }
-
-    /**
-     * 重新排列捷運時刻表資料
-     * @param array &$arrivals 時刻表陣列
-     * @param string $fromStationId 起站代碼
-     * @param string $toStationId 訖站代碼
-     * @return void 不回傳值
-     */
-    function restructure_metro_arrivals(&$arrivals, $fromStationId, $toStationId)
-    {
-        try
-        {
-            if (!sizeof($arrivals))
-            {
-                return;
-            }
-            foreach ($arrivals as $index1 => $arrival)
-            {
-                $schedules = [];
-                foreach ($arrival as $index2 => $schedule)
-                {
-                    $schedules[$index2] = [
-                        "Sequence"      => $schedule->sequence,
-                        "DepartureTime" => $schedule->departure_time,
-                        "ArrivalTime"   => $schedule->arrival_time
-                    ];
-                }
-                $arrivals[$index1] = [
-                    "RouteId"       => $arrival[0]->route_id,
-                    "FromStationId" => $fromStationId,
-                    "ToStationId"   => $toStationId,
-                    "Schedules"     => $schedules
-                ];
-            }
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得起訖站皆行經的路線資料
-     * @param string $fromStationId 起站代碼
-     * @param string $toStationId 訖站代碼
-     * @param array 路線資料
-     * @throws Exception 查無資料
-     */
-    function get_routes_by_stations($fromStationId, $toStationId)
-    {
-        try
-        {
-            $routes = $this->metroModel->get_routes_by_stations($fromStationId, $toStationId)->get()->getResult();
-            if (!$routes)
-            {
-                throw new Exception(lang("Query.resultNotFOund"), 1);
-            }
-            for ($i = 0; $i < sizeof($routes); $i++)
-            {
-                $routes[$i] = $routes[$i]->route_id;
-            }
-            return $routes;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得指定捷運站的序號
-     * @param string $stationId 捷運站代碼
-     * @return int 捷運站序號
-     * @throws Exception 查無資料
-     */
-    function get_sequence($stationId)
-    {
-        try
-        {
-            $sequence = $this->metroModel->get_station_sequence($stationId)->get()->getResult();
-            if (!$sequence)
-            {
-                throw new Exception(lang("Query.resultNotFOund"), 1);
-            }
-            return $this->metroModel->get_station_sequence($stationId)->get()->getResult()[0]->sequence;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得單筆時刻表資料
-     * @param string $fromSeq 起站序號
-     * @param string $toSeq 訖站序號
-     * @param string $routeId 路線代碼
-     * @param int $direction 行駛方向
-     * @return array 時刻表資料
-     * @throws Exception 查無資料
-     */
-    function get_arrival($fromSeq, $toSeq, $routeId, $direction)
-    {
-        try
-        {
-            // 取得總運行時間
-            $duration = $this->get_duration($fromSeq, $toSeq, $routeId, $direction);
-            
-            // 取得時刻表
-            return $this->metroModel->get_arrivals($fromSeq, $routeId, $direction, $duration)->get()->getResult();
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得單筆運行時間
-     * @param string $fromSeq 起站序號
-     * @param string $toSeq 訖站序號
-     * @param string $routeId 路線代碼
-     * @param int $direction 行駛方向
-     * @return int 運行時間
-     * @throws Exception 查無資料
-     */
-    function get_duration($fromSeq, $toSeq, $routeId, $direction)
-    {
-        try
-        {
-            $duration = $this->metroModel->get_duration($fromSeq, $toSeq, $routeId, $direction)->get()->getResult();
-            if (!$duration)
-            {
-                throw new Exception(lang("Query.resultNotFOund"), 1);
-            }
-            return $duration[0]->duration;
-
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得捷運起訖站序號的行駛方向
-     * @param string $fromStationId 起站序號
-     * @param string $toStationId 訖站序號
-     * @return int 行駛方向（0：去程；1：返程）
-     */
-    function get_direction($fromSeq, $toSeq)
-    {
-        try
-        {
-            if ($fromSeq < $toSeq)
-            {
-                return 0;
-            }
-            return 1;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
         }
     }
 }

@@ -201,7 +201,7 @@
 
 [
 	[
-		Sequence: 當日第幾班車停靠的序號,
+		RouteId: 子路線代碼,
 		Schedule: {
 			DepartureTime: 起站發車時間,
 			ArrivalTime: 訖站抵達時間

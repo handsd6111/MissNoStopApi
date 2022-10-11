@@ -2,23 +2,22 @@
 
 namespace App\Models\ORM;
 
-class MetroDurationModel extends CompositeKey
+
+class MetroSubRouteStationModel extends CompositeKey
 {
-    // protected $this->compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
     protected $DBGroup          = 'default';
-    protected $table            = 'metro_durations';
-    protected $primaryKey       = 'MD_station_id';
+    protected $table            = 'metro_sub_route_stations';
+    protected $primaryKey       = 'MSRS_station_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'MD_station_id',
-        'MD_sub_route_id',
-        'MD_direction',
-        'MD_duration',
-        'MD_stop_time'
+        'MSRS_station_id',
+        'MSRS_sub_route_id',
+        'MSRS_direction',
+        'MSRS_sequence'
     ];
 
     // Dates
@@ -50,9 +49,9 @@ class MetroDurationModel extends CompositeKey
         parent::__construct();
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
-            'MD_station_id',
-            'MD_sub_route_id',
-            'MD_direction'
+            'MSRS_station_id',
+            'MSRS_sub_route_id',
+            'MSRS_direction'
         ];
     }
 }

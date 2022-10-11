@@ -152,18 +152,24 @@ $routes->group('tdx', static function ($routes) {
 
         // tdx/data/metro
         $routes->group('metro', static function ($routes) {
-            $routes->cli('route/all', 'TdxMetroController::setMetroRouteAll'); // 全部捷運系統路線
-            $routes->cli('route/(:alphanum)', 'TdxMetroController::setMetroRoute/$1'); // 單筆捷運系統的路線
+            $routes->cli('route', 'TdxMetroController::setMetroRouteAll'); // 全部捷運系統路線
+            $routes->cli('route/(:alphanum)', 'TdxMetroController::setMetroRoute/$1'); // 全部捷運系統路線
 
-            $routes->cli('station/all', 'TdxMetroController::setMetroStationAll'); // 全部捷運系統的站點
+            $routes->cli('subRoute', 'TdxMetroController::setMetroSubRouteAll'); // 全部捷運系統子路線
+            $routes->cli('subRoute/(:alphanum)', 'TdxMetroController::setMetroSubRoute/$1'); // 單筆捷運系統的子路線
+
+            $routes->cli('station', 'TdxMetroController::setMetroStationAll'); // 全部捷運系統的站點
             $routes->cli('station/(:alphanum)', 'TdxMetroController::setMetroStation/$1'); // 單個捷運系統的站點 
 
-            $routes->cli('duration/(:alphanum)', 'TdxMetroController::setMetroDuration/$1'); // 單個捷運系統的運行時間，不包含 TYMC (桃捷)
-
-            $routes->cli('routeStation/all', 'TdxMetroController::setMetroRouteStationAll'); // 全部捷運系統車站與路線的關聯資料
+            $routes->cli('routeStation', 'TdxMetroController::setMetroRouteStationAll'); // 全部捷運系統車站與路線的關聯資料
             $routes->cli('routeStation/(:alphanum)', 'TdxMetroController::setMetroRouteStation/$1'); // 單個捷運系統車站與路線的關聯資料
+            
+            $routes->cli('subRouteStation', 'TdxMetroController::setMetroSubRouteStationAll'); // 全部捷運系統車站與子路線的關聯資料
+            $routes->cli('subRouteStation/(:alphanum)', 'TdxMetroController::setMetroSubRouteStation/$1'); // 單個捷運系統車站與子路線的關聯資料
 
             $routes->cli('arrival/(:alphanum)', 'TdxMetroController::setMetroArrival/$1'); // 單個捷運系統的時刻表
+
+            $routes->cli('duration/(:alphanum)', 'TdxMetroController::setMetroDuration/$1'); // 單個捷運系統的運行時間，不包含 TYMC (桃捷)
         });
 
         // tdx/data/bus

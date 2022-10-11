@@ -2,23 +2,23 @@
 
 namespace App\Models\ORM;
 
-class MetroDurationModel extends CompositeKey
+use CodeIgniter\Model;
+
+class MetroSubRouteModel extends Model
 {
-    // protected $this->compositePrimaryKeys = ['MD_station_id', 'MD_end_station_id'];
     protected $DBGroup          = 'default';
-    protected $table            = 'metro_durations';
-    protected $primaryKey       = 'MD_station_id';
+    protected $table            = 'metro_sub_routes';
+    protected $primaryKey       = 'MSR_id';
     protected $useAutoIncrement = false;
     protected $insertID         = 0;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
-        'MD_station_id',
-        'MD_sub_route_id',
-        'MD_direction',
-        'MD_duration',
-        'MD_stop_time'
+        'MSR_id',
+        'MSR_name_TC',
+        'MSR_name_EN',
+        'MSR_route_id'
     ];
 
     // Dates
@@ -44,15 +44,4 @@ class MetroDurationModel extends CompositeKey
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->builder = $this->builder();
-        $this->compositePrimaryKeys = [
-            'MD_station_id',
-            'MD_sub_route_id',
-            'MD_direction'
-        ];
-    }
 }
