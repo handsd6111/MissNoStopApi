@@ -213,13 +213,7 @@ class ApiMetroBaseController extends ApiBaseController
                 $maxSeq = $fromSeq;
             }
 
-            // 取得起站的停靠時間
-            $stopTime = $this->metroModel->get_stop_time($fromStationId, $subRouteId, $direction)->get()->getResult();
-            if (!$stopTime)
-            {
-                throw new Exception(lang("MetroQueries.stopTimeNotFound"), 1);
-            }
-            $stopTime = $stopTime[0]->stop_time;
+            $stopTime = $this->get_stop_time($fromStationId, $subRouteId, $direction);
             
             // 取得起訖站間總運行時間
             $duration = $this->metroModel->get_duration($minSeq, $maxSeq, $subRouteId, $direction, $stopTime)->get()->getResult();
@@ -232,6 +226,30 @@ class ApiMetroBaseController extends ApiBaseController
             // 回傳資料
             return $duration;
 
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定捷運站、子路線及行駛方向的停靠時間
+     * @param string $toStationId 訖站代碼
+     * @param string $subRouteId 子路線代碼
+     * @param int $direction 行駛方向
+     * @return int 停靠時間（秒數）
+     */
+    protected function get_stop_time($fromStationId, $subRouteId, $direction)
+    {
+        try
+        {
+            $stopTime = $this->metroModel->get_stop_time($fromStationId, $subRouteId, $direction)->get()->getResult();
+            if (!$stopTime)
+            {
+                throw new Exception(lang("MetroQueries.stopTimeNotFound"), 1);
+            }
+            return $stopTime[0]->stop_time;
         }
         catch (Exception $e)
         {
@@ -290,7 +308,8 @@ class ApiMetroBaseController extends ApiBaseController
 
     /**
      * 取得指定捷運站在子路線上的序號
-     * @param string $stationId 捷運站代碼
+     * @param string $toStationId 訖站代碼
+     * @param string $subRouteId 子路線代碼
      * @param int $direction 行駛方向
      * @return int 捷運站序號
      * @throws Exception 查無資料
