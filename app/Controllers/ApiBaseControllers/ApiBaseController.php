@@ -19,56 +19,31 @@ class ApiBaseController extends BaseController
     {
         try
         {
-            $this->baseModel  = new BaseModel();
+            // 定義常數
+            define("CITY_ID_LENGTH", 3);
+            
+            define("METRO_SYSTEM_ID_LENGTH", 4);
+
+            define("BUS_STATION_ID_LENGTH", 17);
+            define("METRO_STATION_ID_LENGTH", 12);
+            define("THSR_STATION_ID_LENGTH", 11);
+            define("TRA_STATION_ID_LENGTH", 11);
+
+            define("LONGLAT_LENGTH", 12);
+
+            define("BUS_ROUTE_ID_LENGTH", 17);
+            define("METRO_ROUTE_ID_LENGTH", 12);
+            define("METRO_SUB_ROUTE_ID_LENGTH", 12);
+            define("TRA_ROUTE_ID_LENGTH", 5);
+
+            define("SAFE_ID_LENGTH", 20);
+
+            $this->baseModel = new BaseModel();
         }
         catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
             return $this->send_response([], 500, "Exception error");
-        }
-    }
-
-    /**
-     * 檢查是否為座標名稱
-     * @param string $name 名稱
-     * @return bool 檢查結果
-     */
-    protected function is_coordniate($name)
-    {
-        try
-        {
-            $coordNames = ["Longitude", "Latitude"];
-            // 若參數非經緯度則繼續下一筆參數
-            if (!in_array($name, $coordNames))
-            {
-                return false;
-            }
-            return true;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 檢查經緯度參數是否有異
-     * @param string $coord 經緯度參數
-     * @return bool 檢查結果
-     */
-    protected function is_valid_coordinate($coord)
-    {
-        try
-        {
-            if ($coord != floatval($coord))
-            {
-                return false;
-            }
-            return true;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
         }
     }
 
@@ -111,7 +86,7 @@ class ApiBaseController extends BaseController
      * @param int $length 參數長度
      * @return bool 驗證結果
      */
-    protected function validate_param($name, &$param, $length = 12)
+    protected function validate_param($name, &$param, $length = SAFE_ID_LENGTH)
     {
         try
         {
@@ -136,6 +111,50 @@ class ApiBaseController extends BaseController
             }
 
             // 回傳成功
+            return true;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 檢查是否為座標名稱
+     * @param string $name 名稱
+     * @return bool 檢查結果
+     */
+    protected function is_coordniate($name)
+    {
+        try
+        {
+            $coordNames = ["Longitude", "Latitude"];
+            // 若參數非經緯度則繼續下一筆參數
+            if (!in_array($name, $coordNames))
+            {
+                return false;
+            }
+            return true;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 檢查經緯度參數是否有異
+     * @param string $coord 經緯度參數
+     * @return bool 檢查結果
+     */
+    protected function is_valid_coordinate($coord)
+    {
+        try
+        {
+            if ($coord != floatval($coord))
+            {
+                return false;
+            }
             return true;
         }
         catch (Exception $e)

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\ApiBaseControllers;
 
 use App\Models\THSRModel;
 use Exception;
@@ -59,7 +59,8 @@ class ApiThsrController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, 11) || !$this->validate_param("ToStationId", $toStationId, 11))
+            if (!$this->validate_param("FromStationId", $fromStationId, THSR_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, THSR_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -115,7 +116,8 @@ class ApiThsrController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
+            if (!$this->validate_param("Longitude", $longitude, LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }

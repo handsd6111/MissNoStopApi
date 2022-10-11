@@ -58,7 +58,7 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("SystemId", $systemId, 4))
+            if (!$this->validate_param("SystemId", $systemId, METRO_SYSTEM_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -90,7 +90,7 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 12))
+            if (!$this->validate_param("RouteId", $routeId, METRO_ROUTE_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -124,7 +124,9 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 12) || !$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
+            if (!$this->validate_param("RouteId", $routeId, METRO_ROUTE_ID_LENGTH)
+                || !$this->validate_param("Longitude", $longitude, LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -157,7 +159,8 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId) || !$this->validate_param("ToStationId", $toStationId))
+            if (!$this->validate_param("FromStationId", $fromStationId, METRO_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, METRO_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }

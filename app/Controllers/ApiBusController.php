@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\ApiBaseControllers;
 
 use App\Models\BusModel;
 use Exception;
@@ -30,7 +30,7 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("CityId", $cityId, 3))
+            if (!$this->validate_param("CityId", $cityId, CITY_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -62,7 +62,7 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 17))
+            if (!$this->validate_param("RouteId", $routeId, BUS_ROUTE_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -96,7 +96,9 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 17) || !$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
+            if (!$this->validate_param("RouteId", $routeId, BUS_ROUTE_ID_LENGTH)
+                || !$this->validate_param("Longitude", $longitude, LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -130,7 +132,8 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, 17) || !$this->validate_param("ToStationId", $toStationId, 17))
+            if (!$this->validate_param("FromStationId", $fromStationId, BUS_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, BUS_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }

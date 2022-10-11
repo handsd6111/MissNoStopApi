@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\ApiBaseControllers;
 
 use App\Models\TRAModel;
 use Exception;
@@ -54,7 +54,7 @@ class ApiTraController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 5))
+            if (!$this->validate_param("RouteId", $routeId, TRA_ROUTE_ID_LENGTH))
             {
                 return $this->send_response([], 400, (array) $this->validator->getErrors());
             }
@@ -88,7 +88,8 @@ class ApiTraController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
+            if (!$this->validate_param("Longitude", $longitude, LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -120,7 +121,8 @@ class ApiTraController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, 11) || !$this->validate_param("ToStationId", $toStationId, 11))
+            if (!$this->validate_param("FromStationId", $fromStationId, TRA_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, TRA_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
