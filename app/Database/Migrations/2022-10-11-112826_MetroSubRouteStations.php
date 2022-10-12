@@ -25,7 +25,7 @@ class MetroSubRouteStations extends Migration
             ]
         ];
         $this->forge->addField($fields);
-        $this->forge->addPrimaryKey(["MSRS_station_id", "MSRS_sub_route_id"]);
+        $this->forge->addPrimaryKey(["MSRS_station_id", "MSRS_sub_route_id", "MSRS_direction"]);
         $this->forge->addForeignKey("MSRS_station_id", "metro_stations", "MS_id", "CASCADE", "CASCADE");
         $this->forge->addForeignKey("MSRS_sub_route_id", "metro_sub_routes", "MSR_id", "CASCADE", "CASCADE");
         $this->forge->createTable("metro_sub_route_stations", true);

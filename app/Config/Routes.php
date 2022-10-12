@@ -166,6 +166,9 @@ $routes->group('tdx', static function ($routes) {
             
             $routes->cli('subRouteStation', 'TdxMetroController::setMetroSubRouteStationAll'); // 全部捷運系統車站與子路線的關聯資料
             $routes->cli('subRouteStation/(:alphanum)', 'TdxMetroController::setMetroSubRouteStation/$1'); // 單個捷運系統車站與子路線的關聯資料
+            
+            $routes->cli('transfer', 'TdxMetroController::setMetroTransferAll'); // 全部捷運系統的時刻表
+            $routes->cli('transfer/(:alphanum)', 'TdxMetroController::setMetroTransfer/$1'); // 單個捷運系統的時刻表
 
             $routes->cli('arrival/(:alphanum)', 'TdxMetroController::setMetroArrival/$1'); // 單個捷運系統的時刻表
 

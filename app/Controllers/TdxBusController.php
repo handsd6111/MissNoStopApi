@@ -88,13 +88,14 @@ class TdxBusController extends TdxBaseController
             {
                 // 開始計時
                 $startTime = $this->getTime();
+
                 $cityId    = $city["C_id"];
                 $cityName  = $city["C_name_EN"];
 
+                $this->terminalLog("Running data of $cityName ... ");
+
                 // 取得指定縣市的公車路線與車站資料
                 $routes = $this->getBusRouteStation($cityName);
-
-                $this->terminalLog("Running data of $cityName ... ");
 
                 // 走遍指定縣市的路線列表
                 foreach ($routes as $route)
@@ -151,7 +152,7 @@ class TdxBusController extends TdxBaseController
         }
         catch (Exception $e)
         {
-            $this->terminalLog("", true);
+            $this->terminalLog($e, true, true);
             log_message("critical", $e);
         }
     }
@@ -177,11 +178,10 @@ class TdxBusController extends TdxBaseController
     }
 
     /**
-     * 
+     * 寫入公車時刻表資料
      */
     public function setBusArrivals()
     {
-        
         try
         {
             helper(["getWeekDay", "terminalLog"]);
@@ -248,7 +248,7 @@ class TdxBusController extends TdxBaseController
         }
         catch (Exception $e)
         {
-            $this->terminalLog("", true);
+            $this->terminalLog($e, true, true);
             log_message("critical", $e);
         }
     }
