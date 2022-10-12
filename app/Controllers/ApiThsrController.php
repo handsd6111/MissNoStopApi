@@ -123,7 +123,7 @@ class ApiThsrController extends ApiBaseController
             }
 
             // 取得高鐵所有車站資料
-            $station = $this->THSRModel->get_nearest_station($longitude, $latitude, $limit)->get()->getResult();
+            $station = $this->THSRModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
 
             // 重新排列資料
             $this->restructure_stations($station);

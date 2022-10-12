@@ -99,7 +99,7 @@ class THSRModel extends BaseModel
      * @param float $latitude 緯度
      * @return mixed 查詢類別
      */
-    function get_nearest_station($longitude, $latitude, $limit)
+    function get_nearest_station($longitude, $latitude)
     {
         try
         {
@@ -124,8 +124,7 @@ class THSRModel extends BaseModel
                                             )
                                         ) * 11100
                                     ) / 100 AS HS_distance")
-                            ->orderBy("HS_distance")
-                            ->limit($limit);
+                            ->orderBy("HS_distance");
         }
         catch (Exception $e)
         {

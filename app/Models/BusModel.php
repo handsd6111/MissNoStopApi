@@ -81,7 +81,7 @@ class BusModel extends BaseModel
      * @param string $latitude 緯度
      * @return mixed 查詢類別
      */
-    function get_nearest_station($routeId, $longitude, $latitude, $limit)
+    function get_nearest_station($routeId, $longitude, $latitude)
     {
         try
         {
@@ -114,8 +114,7 @@ class BusModel extends BaseModel
                                 ) / 100 AS BS_distance"
                             )
                             ->where($condition)
-                            ->orderBy("BS_distance")
-                            ->limit($limit);
+                            ->orderBy("BS_distance");
         }
         catch (Exception $e)
         {

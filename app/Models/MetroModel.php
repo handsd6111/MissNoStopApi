@@ -92,7 +92,7 @@ class MetroModel extends BaseModel
      * @param int $limit 回傳數量
      * @return mixed 查詢類別
      */
-    function get_nearest_station($lineId, $longitude, $latitude, $limit)
+    function get_nearest_station($lineId, $longitude, $latitude)
     {
         try
         {
@@ -125,8 +125,7 @@ class MetroModel extends BaseModel
                                     ) * 11100
                                 ) / 100 AS MS_distance")
                             ->where($condition)
-                            ->orderBy("MS_distance")
-                            ->limit($limit);
+                            ->orderBy("MS_distance");
         }
         catch (Exception $e)
         {
@@ -156,7 +155,8 @@ class MetroModel extends BaseModel
                                 "MA_sub_route_id AS sub_route_id,
                                 MA_sequence AS sequence,
                                 MA_arrival_time AS departure_time,
-                                SEC_TO_TIME( TIME_TO_SEC( MA_arrival_time ) + $duration ) AS arrival_time")
+                                SEC_TO_TIME( TIME_TO_SEC( MA_arrival_time ) + $duration ) AS arrival_time,
+                                IF($duration, $duration, 0) AS duration")
                             ->where($condition)
                             ->orderBy("MA_sequence");
         }
@@ -168,19 +168,19 @@ class MetroModel extends BaseModel
 
     /**
      * 取得總運行時間查詢類別
-     * @param string $minSeq 較小起訖站序號
-     * @param string $maxSeq 較大起訖站序號
+     * @param string $fromSeq 起站序號
+     * @param string $toSeq 訖站序號
      * @param string $subRouteId 子路線代碼
      * @param int $direction 行駛方向
      * @param int $stopTime 停靠時間
      * @return mixed 查詢類別
      */
-    function get_duration($minSeq, $maxSeq, $subRouteId, $direction, $stopTime)
+    function get_duration($fromSeq, $toSeq, $subRouteId, $direction, $stopTime)
     {
         try
         {
             $condition = [
-                "MSRS_direction"    => $direction,
+                "MD_direction"      => $direction,
                 "MSRS_sub_route_id" => $subRouteId
             ];
             return $this->db->table("metro_durations")
@@ -194,7 +194,7 @@ class MetroModel extends BaseModel
                                 "SUM(MD_duration) + SUM(MD_stop_time) - $stopTime AS duration"
                             )
                             ->where($condition)
-                            ->where("MSRS_sequence BETWEEN $minSeq AND $maxSeq -1");
+                            ->where("MSRS_sequence BETWEEN $fromSeq AND $toSeq -1");
         }
         catch (Exception $e)
         {
@@ -332,13 +332,32 @@ class MetroModel extends BaseModel
         try
         {
             return $this->db->table("metro_transfers")
-                            ->join("metro_route_stations", "MRS_station_id = MT_to_station_id")
+                            ->join("metro_route_stations", "MRS_station_id = MT_from_station_id")
                             ->select(
                                 "MT_from_station_id AS from_station_id,
+                                MRS_route_id AS from_route_id,
                                 MT_to_station_id AS to_station_id,
-                                MRS_route_id AS to_route_id,
                                 MT_transfer_time AS transfer_time"
                             );
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 檢查兩車站是否處於同一條路線上
+     */
+    function is_on_same_route($fromStationId, $toStationId)
+    {
+        try
+        {
+            return $this->db->table("metro_route_stations")
+                            ->select("IF(COUNT(MRS_route_id) > 1, MRS_route_id, 0) AS route_id")
+                            ->where("MRS_station_id", $fromStationId)
+                            ->orWhere("MRS_station_id", $toStationId)
+                            ->groupBy("MRS_route_id");
         }
         catch (Exception $e)
         {

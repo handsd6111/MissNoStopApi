@@ -10,7 +10,6 @@ use Exception;
  */
 class ApiRoutePlanController extends ApiRoutePlanBaseController
 {
-
     /**
      * 規劃路線
      * @param string $fromTransportName 起站運輸工具名稱
@@ -19,7 +18,7 @@ class ApiRoutePlanController extends ApiRoutePlanBaseController
      * @param string $toStationId 訖站代碼
      * @return array 路線資料
      */
-    function route_plan($fromTransportName, $fromStationId, $toTransportName, $toStationId, $startTime)
+    function route_plan($fromTransportName, $fromStationId, $toTransportName, $toStationId, $departureTime)
     {
         try
         {
@@ -30,17 +29,9 @@ class ApiRoutePlanController extends ApiRoutePlanBaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得起訖站所屬路線
-            $fromRoute = $this->get_route_by_station($fromTransportName, $fromStationId);
-            $toRoute   = $this->get_route_by_station($toTransportName, $toStationId);
+            $routePlan = $this->get_route_plan($fromTransportName, $fromStationId, $toStationId, $departureTime);
 
-            // 若起訖站屬同一交通工具且署同意條路線則使用 ApiController 的 Api 即可
-            if ($fromTransportName == $toTransportName && $fromRoute == $toRoute)
-            {
-                $arrival = $this->get_arrival($fromTransportName, $fromStationId, $toStationId, $startTime);
-            }
-
-            return $this->send_response($arrival);
+            return $this->send_response($routePlan);
         }
         catch (Exception $e)
         {

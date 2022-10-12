@@ -104,7 +104,7 @@ class ApiBusController extends ApiBaseController
             }
 
             // 取得指定公車路線及經緯度的最近車站資料
-            $station = $this->busModel->get_nearest_station($routeId, $longitude, $latitude, $limit)->get()->getResult();
+            $station = $this->busModel->get_nearest_station($routeId, $longitude, $latitude)->get($limit)->getResult();
 
             // 重新排列公車站資料
             $this->restructure_stations($station);

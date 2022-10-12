@@ -132,7 +132,7 @@ class ApiMetroController extends ApiMetroBaseController
             }
 
             // 取得最近捷運站
-            $station = $this->metroModel->get_nearest_station($routeId, $longitude, $latitude, $limit)->get()->getResult();
+            $station = $this->metroModel->get_nearest_station($routeId, $longitude, $latitude)->get($limit)->getResult();
             
             // 重新排列資料
             $this->restructure_stations($station);

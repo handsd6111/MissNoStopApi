@@ -5,7 +5,8 @@ namespace App\Controllers\ApiBaseControllers;
 use App\Controllers\ApiBaseControllers\ApiBaseController;
 use App\Models\MetroModel;
 use Exception;
-
+use PhpParser\Node\Expr\Exit_;
+use stdClass;
 
 class ApiMetroBaseController extends ApiBaseController
 {
@@ -94,7 +95,8 @@ class ApiMetroBaseController extends ApiBaseController
                     "SubRouteId"   => $arrival->sub_route_id,
                     "Schedule" => [
                         "DepartureTime" => $arrival->departure_time,
-                        "ArrivalTime"   => $arrival->arrival_time
+                        "ArrivalTime"   => $arrival->arrival_time,
+                        "Duration"      => $arrival->duration
                     ]
                 ];
             }
@@ -213,10 +215,10 @@ class ApiMetroBaseController extends ApiBaseController
             $duration = $this->get_duration($fromStationId, $toStationId, $subRouteId, $direction);
 
             // 取得時刻表
-            $arrival = $this->metroModel->get_arrivals($fromStationId, $subRouteId, $direction, $duration)->get()->getResult();
+            $arrivals = $this->metroModel->get_arrivals($fromStationId, $subRouteId, $direction, $duration)->get()->getResult();
 
             // 回傳資料
-            return $arrival;
+            return $arrivals;
         }
         catch (Exception $e)
         {
@@ -241,25 +243,14 @@ class ApiMetroBaseController extends ApiBaseController
             $fromSeq = $this->get_sub_route_sequence($fromStationId, $subRouteId, $direction);
             $toSeq   = $this->get_sub_route_sequence($toStationId, $subRouteId, $direction);
 
-            // 取得站序大小
-            if ($direction == 0)
-            {
-                $minSeq = $fromSeq;
-                $maxSeq = $toSeq;
-            }
-            else
-            {
-                $minSeq = $toSeq;
-                $maxSeq = $fromSeq;
-            }
-
+            // 取得起站停靠時間
             $stopTime = $this->get_stop_time($fromStationId, $subRouteId, $direction);
             
             // 取得起訖站間總運行時間
-            $duration = $this->metroModel->get_duration($minSeq, $maxSeq, $subRouteId, $direction, $stopTime)->get()->getResult();
-            if (!$duration)
+            $duration = $this->metroModel->get_duration($fromSeq, $toSeq, $subRouteId, $direction, $stopTime)->get()->getResult();
+            if (!isset($duration[0]->duration))
             {
-                throw new Exception(lang("MetroQueries.durationNotFound"), 1);
+                throw new Exception(lang("MetroQueries.durationNotFound", [$fromStationId, $toStationId]), 1);
             }
             $duration = $duration[0]->duration;
 
@@ -285,7 +276,7 @@ class ApiMetroBaseController extends ApiBaseController
         try
         {
             $stopTime = $this->metroModel->get_stop_time($fromStationId, $subRouteId, $direction)->get()->getResult();
-            if (!$stopTime)
+            if (!isset($stopTime[0]->stop_time))
             {
                 throw new Exception(lang("MetroQueries.stopTimeNotFound"), 1);
             }
@@ -334,7 +325,7 @@ class ApiMetroBaseController extends ApiBaseController
         try
         {
             $sequence = $this->metroModel->get_route_sequence($stationId)->get()->getResult();
-            if (!$sequence)
+            if (!isset($sequence[0]->sequence))
             {
                 throw new Exception(lang("MetroQueries.stationNotFound", [$stationId]), 1);
             }
@@ -359,7 +350,7 @@ class ApiMetroBaseController extends ApiBaseController
         try
         {
             $sequence = $this->metroModel->get_sub_route_sequence($stationId, $subRouteId, $direction)->get()->getResult();
-            if (!$sequence)
+            if (!isset($sequence[0]->sequence))
             {
                 throw new Exception(lang("MetroQueries.stationNotFound"), 1);
             }
