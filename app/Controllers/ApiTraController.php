@@ -54,7 +54,7 @@ class ApiTraController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, TRA_ROUTE_ID_LENGTH))
+            if (!$this->validate_param("RouteId", $routeId, parent::TRA_ROUTE_ID_LENGTH))
             {
                 return $this->send_response([], 400, (array) $this->validator->getErrors());
             }
@@ -88,8 +88,8 @@ class ApiTraController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("Longitude", $longitude, LONGLAT_LENGTH)
-                || !$this->validate_param("Latitude", $latitude, LONGLAT_LENGTH))
+            if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -121,8 +121,8 @@ class ApiTraController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, TRA_STATION_ID_LENGTH)
-                || !$this->validate_param("ToStationId", $toStationId, TRA_STATION_ID_LENGTH))
+            if (!$this->validate_param("FromStationId", $fromStationId, parent::TRA_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, parent::TRA_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }

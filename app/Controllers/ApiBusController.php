@@ -30,7 +30,7 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("CityId", $cityId, CITY_ID_LENGTH))
+            if (!$this->validate_param("CityId", $cityId, parent::CITY_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -62,7 +62,7 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, BUS_ROUTE_ID_LENGTH))
+            if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -96,9 +96,9 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, BUS_ROUTE_ID_LENGTH)
-                || !$this->validate_param("Longitude", $longitude, LONGLAT_LENGTH)
-                || !$this->validate_param("Latitude", $latitude, LONGLAT_LENGTH))
+            if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH)
+                || !$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -132,8 +132,8 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, BUS_STATION_ID_LENGTH)
-                || !$this->validate_param("ToStationId", $toStationId, BUS_STATION_ID_LENGTH))
+            if (!$this->validate_param("FromStationId", $fromStationId, parent::BUS_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, parent::BUS_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }

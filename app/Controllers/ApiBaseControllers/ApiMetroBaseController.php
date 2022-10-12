@@ -10,7 +10,7 @@ use Exception;
 class ApiMetroBaseController extends ApiBaseController
 {
     // 載入模型
-    protected function __construct()
+    function __construct()
     {
         try
         {
@@ -27,7 +27,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param array &$systems 系統資料
      * @return void 不回傳值
      */
-    protected function restructure_systems(&$systems)
+    function restructure_systems(&$systems)
     {
         try
         {
@@ -53,7 +53,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param array &$routes 路線資料
      * @return void 不回傳值
      */
-    protected function restructure_routes(&$routes)
+    function restructure_routes(&$routes)
     {
         try
         {
@@ -81,7 +81,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param string $toStationId 訖站代碼
      * @return void 不回傳值
      */
-    protected function restructure_metro_arrivals(&$arrivals)
+    function restructure_arrivals(&$arrivals)
     {
         try
         {
@@ -111,7 +111,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param string &$time 時間
      * @return void 不回傳值
      */
-    protected function turn_time_00_to_24(&$time)
+    function turn_time_00_to_24(&$time)
     {
         try
         {
@@ -135,7 +135,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param array 路線資料
      * @throws Exception 查無資料
      */
-    protected function get_sub_routes_by_stations($fromStationId, $toStationId, $direction)
+    function get_sub_routes_by_stations($fromStationId, $toStationId, $direction)
     {
         try
         {
@@ -157,6 +157,46 @@ class ApiMetroBaseController extends ApiBaseController
     }
 
     /**
+     * 取得指定起訖站的時刻表資料
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     * @param string $subRouteId 子路線代碼
+     * @param int $direction 行駛方向
+     * @return array 時刻表資料
+     * @throws Exception 查無資料
+     */
+    function get_arrivals($fromStationId, $toStationId)
+    {
+        try
+        {
+            // 取得行駛方向
+            $direction = $this->get_direction($fromStationId, $toStationId);
+
+            // 取得起訖站皆行經的所有捷運子路線
+            $subRoutes = $this->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
+
+            $arrivals = [];
+
+            // 取得每條路線的時刻表
+            for ($i = 0; $i < sizeof($subRoutes); $i++)
+            {
+                // 取得時刻表
+                $arrival = $this->get_arrival($fromStationId, $toStationId, $subRoutes[$i], $direction);
+
+                // 合併至 $arrivals
+                $arrivals = array_merge($arrivals, $arrival);
+            }
+
+            // 回傳時刻表資料
+            return $arrivals;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
      * 取得單筆時刻表資料
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
@@ -165,7 +205,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @return array 時刻表資料
      * @throws Exception 查無資料
      */
-    protected function get_arrival($fromStationId, $toStationId, $subRouteId, $direction)
+    function get_arrival($fromStationId, $toStationId, $subRouteId, $direction)
     {
         try
         {
@@ -193,7 +233,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @return int 運行時間
      * @throws Exception 查無資料
      */
-    protected function get_duration($fromStationId, $toStationId, $subRouteId, $direction)
+    function get_duration($fromStationId, $toStationId, $subRouteId, $direction)
     {
         try
         {
@@ -240,7 +280,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param int $direction 行駛方向
      * @return int 停靠時間（秒數）
      */
-    protected function get_stop_time($fromStationId, $subRouteId, $direction)
+    function get_stop_time($fromStationId, $subRouteId, $direction)
     {
         try
         {
@@ -263,7 +303,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param string $toStationId 訖站代碼
      * @return int 行駛方向（0：去程；1：返程）
      */
-    protected function get_direction($fromStationId, $toStationId)
+    function get_direction($fromStationId, $toStationId)
     {
         try
         {
@@ -289,14 +329,14 @@ class ApiMetroBaseController extends ApiBaseController
      * @return int 捷運站序號
      * @throws Exception 查無資料
      */
-    protected function get_route_sequence($stationId)
+    function get_route_sequence($stationId)
     {
         try
         {
             $sequence = $this->metroModel->get_route_sequence($stationId)->get()->getResult();
             if (!$sequence)
             {
-                throw new Exception(lang("MetroQueries.stationNotFound"), 1);
+                throw new Exception(lang("MetroQueries.stationNotFound", [$stationId]), 1);
             }
             return $sequence[0]->sequence;
         }
@@ -314,7 +354,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @return int 捷運站序號
      * @throws Exception 查無資料
      */
-    protected function get_sub_route_sequence($stationId, $subRouteId, $direction)
+    function get_sub_route_sequence($stationId, $subRouteId, $direction)
     {
         try
         {

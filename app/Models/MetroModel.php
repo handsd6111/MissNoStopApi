@@ -229,6 +229,28 @@ class MetroModel extends BaseModel
     }
 
     /**
+     * 取得指定捷運站的路線代碼查詢類別
+     * @param string $stationId 捷運站代碼
+     * @return mixed 查詢類別
+     */
+    function get_route_by_station($stationId)
+    {
+        try
+        {
+            $condition = [
+                "MRS_station_id" => $stationId
+            ];
+            return $this->db->table("metro_route_stations")
+                            ->select("MRS_route_id AS route_id")
+                            ->where($condition);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
      * 取得起訖站皆行經的捷運子路線查詢類別
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
@@ -294,6 +316,29 @@ class MetroModel extends BaseModel
             return $this->db->table("metro_sub_route_stations")
                             ->select("MSRS_sequence AS sequence")
                             ->where($condition);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得捷運所有轉乘資料查詢類別
+     * @return mixed 查詢類別
+     */
+    function get_transfers()
+    {
+        try
+        {
+            return $this->db->table("metro_transfers")
+                            ->join("metro_route_stations", "MRS_station_id = MT_to_station_id")
+                            ->select(
+                                "MT_from_station_id AS from_station_id,
+                                MT_to_station_id AS to_station_id,
+                                MRS_route_id AS to_route_id,
+                                MT_transfer_time AS transfer_time"
+                            );
         }
         catch (Exception $e)
         {

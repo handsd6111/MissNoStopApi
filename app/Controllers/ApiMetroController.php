@@ -58,7 +58,7 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("SystemId", $systemId, METRO_SYSTEM_ID_LENGTH))
+            if (!$this->validate_param("SystemId", $systemId, parent::METRO_SYSTEM_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -90,7 +90,7 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, METRO_ROUTE_ID_LENGTH))
+            if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -124,9 +124,9 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, METRO_ROUTE_ID_LENGTH)
-                || !$this->validate_param("Longitude", $longitude, LONGLAT_LENGTH)
-                || !$this->validate_param("Latitude", $latitude, LONGLAT_LENGTH))
+            if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH)
+                || !$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -159,32 +159,17 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, METRO_STATION_ID_LENGTH)
-                || !$this->validate_param("ToStationId", $toStationId, METRO_STATION_ID_LENGTH))
+            if (!$this->validate_param("FromStationId", $fromStationId, parent::METRO_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, parent::METRO_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得行駛方向
-            $direction = $this->get_direction($fromStationId, $toStationId);
-
-            // 取得起訖站皆行經的所有捷運子路線
-            $subRoutes = $this->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
-
-            $arrivals = [];
-
-            // 取得每條路線的時刻表
-            for ($i = 0; $i < sizeof($subRoutes); $i++)
-            {
-                // 取得時刻表
-                $arrival = $this->get_arrival($fromStationId, $toStationId, $subRoutes[$i], $direction);
-
-                // 合併至 $arrivals
-                $arrivals = array_merge($arrivals, $arrival);
-            }
+            // 取得時刻表資料
+            $arrivals = $this->get_arrivals($fromStationId, $toStationId);
             
             // 重新排列資料
-            $this->restructure_metro_arrivals($arrivals);
+            $this->restructure_arrivals($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);

@@ -11,33 +11,76 @@ use Exception;
  */
 class ApiBaseController extends BaseController
 {
-    // 參數驗證失敗訊息
+    /**
+     * 參數驗證失敗訊息
+     */
     public $validateErrMsg = "";
 
+    /**
+     * 縣市代碼最大長度
+     */
+    const CITY_ID_LENGTH = 3;
+
+    /**
+     * 捷運代碼最大長度
+     */
+    const METRO_SYSTEM_ID_LENGTH = 4;
+
+    /**
+     * 公車站代碼最大長度
+     */
+    const BUS_STATION_ID_LENGTH = 17;
+
+    /**
+     * 捷運站代碼最大長度
+     */
+    const METRO_STATION_ID_LENGTH = 12;
+
+    /**
+     * 高鐵車站代碼最大長度
+     */
+    const THSR_STATION_ID_LENGTH = 11;
+
+    /**
+     * 臺鐵車站代碼最大長度
+     */
+    const TRA_STATION_ID_LENGTH = 11;
+
+    /**
+     * 經緯度代碼最大長度
+     */
+    const LONGLAT_LENGTH = 12;
+
+    /**
+     * 公車路線代碼最大長度
+     */
+    const BUS_ROUTE_ID_LENGTH = 17;
+
+    /**
+     * 捷運路線代碼最大長度
+     */
+    const METRO_ROUTE_ID_LENGTH = 12;
+
+    /**
+     * 捷運子路線代碼最大長度
+     */
+    const METRO_SUB_ROUTE_ID_LENGTH = 12;
+
+    /**
+     * 臺鐵路線代碼最大長度
+     */
+    const TRA_ROUTE_ID_LENGTH = 5;
+
+    /**
+     * 代碼安全長度
+     */
+    const SAFE_ID_LENGTH = 17;
+
     // 載入模型
-    protected function __construct()
+    function __construct()
     {
         try
         {
-            // 定義常數
-            define("CITY_ID_LENGTH", 3);
-            
-            define("METRO_SYSTEM_ID_LENGTH", 4);
-
-            define("BUS_STATION_ID_LENGTH", 17);
-            define("METRO_STATION_ID_LENGTH", 12);
-            define("THSR_STATION_ID_LENGTH", 11);
-            define("TRA_STATION_ID_LENGTH", 11);
-
-            define("LONGLAT_LENGTH", 12);
-
-            define("BUS_ROUTE_ID_LENGTH", 17);
-            define("METRO_ROUTE_ID_LENGTH", 12);
-            define("METRO_SUB_ROUTE_ID_LENGTH", 12);
-            define("TRA_ROUTE_ID_LENGTH", 5);
-
-            define("SAFE_ID_LENGTH", 20);
-
             $this->baseModel = new BaseModel();
         }
         catch (Exception $e)
@@ -54,7 +97,7 @@ class ApiBaseController extends BaseController
      * @param int $length 參數長度限制
      * @return bool 驗證結果
      */
-    protected function validate_data($name, $param, $length)
+    function validate_data($name, $param, $length)
     {
         try
         {
@@ -86,7 +129,7 @@ class ApiBaseController extends BaseController
      * @param int $length 參數長度
      * @return bool 驗證結果
      */
-    protected function validate_param($name, &$param, $length = SAFE_ID_LENGTH)
+    function validate_param($name, &$param, $length = self::SAFE_ID_LENGTH)
     {
         try
         {
@@ -106,7 +149,7 @@ class ApiBaseController extends BaseController
             // 若參數是經緯度且數值有異則回傳錯誤
             if ($this->is_coordniate($name) && !$this->is_valid_coordinate($param))
             {
-                $this->validateErrMsg = lang("Validation.longLatInvalid");
+                $this->validateErrMsg = lang("Validation.longLatInvalid", ["param" => $param]);
                 return false;
             }
 
@@ -124,13 +167,11 @@ class ApiBaseController extends BaseController
      * @param string $name 名稱
      * @return bool 檢查結果
      */
-    protected function is_coordniate($name)
+    function is_coordniate($name)
     {
         try
         {
-            $coordNames = ["Longitude", "Latitude"];
-            // 若參數非經緯度則繼續下一筆參數
-            if (!in_array($name, $coordNames))
+            if (!in_array($name, ["Longitude", "Latitude"]))
             {
                 return false;
             }
@@ -147,7 +188,7 @@ class ApiBaseController extends BaseController
      * @param string $coord 經緯度參數
      * @return bool 檢查結果
      */
-    protected function is_valid_coordinate($coord)
+    function is_valid_coordinate($coord)
     {
         try
         {
@@ -168,7 +209,7 @@ class ApiBaseController extends BaseController
      * @param array &$cities 縣市陣列
      * @return void 不回傳值
      */
-    protected function restructure_cities(&$cities)
+    function restructure_cities(&$cities)
     {
         try
         {
@@ -194,7 +235,7 @@ class ApiBaseController extends BaseController
      * @param array &$routes 路線資料
      * @return void 不回傳值
      */
-    protected function restructure_routes(&$routes)
+    function restructure_routes(&$routes)
     {
         try
         {
@@ -221,7 +262,7 @@ class ApiBaseController extends BaseController
      * @param bool $isArray 是否為陣列
      * @return void 不回傳值
      */
-    protected function restructure_stations(&$stations, $isArray = true)
+    function restructure_stations(&$stations, $isArray = true)
     {
         try
         {
@@ -270,7 +311,7 @@ class ApiBaseController extends BaseController
      * @param mixed $a
      * @param mixed $b
      */
-    protected function cmpArrivals($a, $b)
+    function cmpArrivals($a, $b)
     {
         try
         {
@@ -290,7 +331,7 @@ class ApiBaseController extends BaseController
      * @param array &$toArrivals
      * @return void 不回傳值
      */
-    protected function restructure_bus_arrivals(&$arrivals, &$fromArrivals, &$toArrivals)
+    function restructure_bus_arrivals(&$arrivals, &$fromArrivals, &$toArrivals)
     {
         try
         {
@@ -317,7 +358,7 @@ class ApiBaseController extends BaseController
      * @param array &$arrivals 時刻表陣列
      * @return void 不回傳值
      */
-    protected function restructure_arrivals(&$arrivals)
+    function restructure_arrivals(&$arrivals)
     {
         try
         {
@@ -344,7 +385,7 @@ class ApiBaseController extends BaseController
      * @param mixed &$e 例外資料
      * @return mixed 回傳資料
      */
-    protected function get_caught_exception(&$e)
+    function get_caught_exception(&$e)
     {
         try
         {

@@ -59,8 +59,8 @@ class ApiThsrController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, THSR_STATION_ID_LENGTH)
-                || !$this->validate_param("ToStationId", $toStationId, THSR_STATION_ID_LENGTH))
+            if (!$this->validate_param("FromStationId", $fromStationId, parent::THSR_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, parent::THSR_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -116,8 +116,8 @@ class ApiThsrController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("Longitude", $longitude, LONGLAT_LENGTH)
-                || !$this->validate_param("Latitude", $latitude, LONGLAT_LENGTH))
+            if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
