@@ -358,7 +358,7 @@ class ApiBaseController extends BaseController
      * @param array &$arrivals 時刻表陣列
      * @return void 不回傳值
      */
-    function restructure_arrivals(&$arrivals)
+    function restructure_arrivals_old(&$arrivals)
     {
         try
         {

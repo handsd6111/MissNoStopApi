@@ -90,7 +90,7 @@ class ApiThsrController extends ApiBaseController
             }
 
             // 重新排列時刻表資料
-            $this->restructure_arrivals($arrivals);
+            $this->restructure_arrivals_old($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);

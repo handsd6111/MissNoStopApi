@@ -82,7 +82,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param string $toStationId 訖站代碼
      * @return void 不回傳值
      */
-    function restructure_arrivals(&$arrivals)
+    function restructure_arrivals(&$arrivals, $fromStationId, $toStationId)
     {
         try
         {
@@ -92,7 +92,9 @@ class ApiMetroBaseController extends ApiBaseController
                 $this->turn_time_00_to_24($arrival->arrival_time);
 
                 $arrivals[$index] = [
-                    "SubRouteId"   => $arrival->sub_route_id,
+                    "SubRouteId"    => $arrival->sub_route_id,
+                    "FromStationId" => $fromStationId,
+                    "ToStationId"   => $toStationId,
                     "Schedule" => [
                         "DepartureTime" => $arrival->departure_time,
                         "ArrivalTime"   => $arrival->arrival_time,

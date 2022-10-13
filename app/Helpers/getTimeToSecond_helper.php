@@ -4,7 +4,7 @@
      * @param string $time 時間（hh:mm:ss）
      * @return int 秒數
      */
-    function get_second_from_time($time)
+    function time_to_sec($time)
     {
         try
         {

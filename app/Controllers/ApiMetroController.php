@@ -169,7 +169,7 @@ class ApiMetroController extends ApiMetroBaseController
             $arrivals = $this->get_arrivals($fromStationId, $toStationId);
             
             // 重新排列資料
-            $this->restructure_arrivals($arrivals);
+            $this->restructure_arrivals($arrivals, $fromStationId, $toStationId);
 
             // 回傳資料
             return $this->send_response($arrivals);
