@@ -4,13 +4,13 @@
         try
         {
             $second = intval($second);
-            $hour = 0;
+            $hour = "00";
             if ($second >= 3600)
             {
                 $hour = get_two_digit_number(intdiv($second,3600));
             }
             $second %= 3600;
-            $minute = 0;
+            $minute = "00";
             if ($second >= 60)
             {
                 $minute = get_two_digit_number(intdiv($second, 60));

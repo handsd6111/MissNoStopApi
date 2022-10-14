@@ -151,8 +151,10 @@ class MetroModel extends BaseModel
                 "MA_direction"    => $direction
             ];
             return $this->db->table("metro_arrivals")
+                            ->join("metro_sub_routes", "MSR_id = MA_sub_route_id")
                             ->select(
-                                "MA_sub_route_id AS sub_route_id,
+                                "MSR_route_id AS route_id,
+                                MA_sub_route_id AS sub_route_id,
                                 MA_sequence AS sequence,
                                 MA_arrival_time AS departure_time,
                                 SEC_TO_TIME( TIME_TO_SEC( MA_arrival_time ) + $duration ) AS arrival_time,

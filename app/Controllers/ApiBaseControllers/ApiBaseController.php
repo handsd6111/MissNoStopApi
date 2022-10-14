@@ -389,15 +389,12 @@ class ApiBaseController extends BaseController
     {
         try
         {
-            // 1 代表「查無資料」
-            switch ($e->getCode())
+            log_message("critical", $e);
+            if ($e->getCode() == 500)
             {
-                case 1:
-                    return $this->send_response([], 400, $e->getMessage());
-                default:
-                    log_message("critical", $e);
-                    return $this->send_response([], 500, lang("Exception.exception"));
+                return $this->send_response([], 500, lang("Exception.exception"));
             }
+            return $this->send_response([], 400, $e->getMessage());
         }
         catch (Exception $e)
         {

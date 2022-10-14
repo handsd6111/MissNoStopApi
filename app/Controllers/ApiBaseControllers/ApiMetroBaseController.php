@@ -92,6 +92,7 @@ class ApiMetroBaseController extends ApiBaseController
                 $this->turn_time_00_to_24($arrival->arrival_time);
 
                 $arrivals[$index] = [
+                    "RouteId"       => $arrival->route_id,
                     "SubRouteId"    => $arrival->sub_route_id,
                     "FromStationId" => $fromStationId,
                     "ToStationId"   => $toStationId,
@@ -119,7 +120,7 @@ class ApiMetroBaseController extends ApiBaseController
     {
         try
         {
-            if (substr($time, 0, 2) == "00")
+            if ($time[0] == '0' && $time[1] == '0')
             {
                 $time[0] = '2';
                 $time[1] = '4';
@@ -146,7 +147,7 @@ class ApiMetroBaseController extends ApiBaseController
             $subRoutes = $this->metroModel->get_sub_routes_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
             if (!$subRoutes)
             {
-                throw new Exception(lang("MetroQueries.stationNotConnected"), 1);
+                throw new Exception(lang("MetroQueries.stationNotConnected"), 400);
             }
             for ($i = 0; $i < sizeof($subRoutes); $i++)
             {
@@ -252,7 +253,7 @@ class ApiMetroBaseController extends ApiBaseController
             $duration = $this->metroModel->get_duration($fromSeq, $toSeq, $subRouteId, $direction, $stopTime)->get()->getResult();
             if (!isset($duration[0]->duration))
             {
-                throw new Exception(lang("MetroQueries.durationNotFound", [$fromStationId, $toStationId]), 1);
+                throw new Exception(lang("MetroQueries.durationNotFound", [$fromStationId, $toStationId]), 400);
             }
             $duration = $duration[0]->duration;
 
@@ -280,7 +281,7 @@ class ApiMetroBaseController extends ApiBaseController
             $stopTime = $this->metroModel->get_stop_time($fromStationId, $subRouteId, $direction)->get()->getResult();
             if (!isset($stopTime[0]->stop_time))
             {
-                throw new Exception(lang("MetroQueries.stopTimeNotFound"), 1);
+                throw new Exception(lang("MetroQueries.stopTimeNotFound"), 400);
             }
             return $stopTime[0]->stop_time;
         }
@@ -329,7 +330,7 @@ class ApiMetroBaseController extends ApiBaseController
             $sequence = $this->metroModel->get_route_sequence($stationId)->get()->getResult();
             if (!isset($sequence[0]->sequence))
             {
-                throw new Exception(lang("MetroQueries.stationNotFound", [$stationId]), 1);
+                throw new Exception(lang("MetroQueries.stationNotFound", [$stationId]), 400);
             }
             return $sequence[0]->sequence;
         }
@@ -354,7 +355,7 @@ class ApiMetroBaseController extends ApiBaseController
             $sequence = $this->metroModel->get_sub_route_sequence($stationId, $subRouteId, $direction)->get()->getResult();
             if (!isset($sequence[0]->sequence))
             {
-                throw new Exception(lang("MetroQueries.stationNotFound"), 1);
+                throw new Exception(lang("MetroQueries.stationNotFound"), 400);
             }
             return $sequence[0]->sequence;
         }

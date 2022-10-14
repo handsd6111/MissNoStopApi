@@ -46,7 +46,7 @@ $routes->group('api', static function ($routes)
         $routes->get('City', 'ApiController::get_cities');
 
         // /api/RoutePlan/{FromTransportName}/{FromStationId}/{ToTransportName}/{ToStationId}/{StartTime}
-        $routes->get('RoutePlan/(:segment)/(:segment)/(:segment)/(:segment)/(:segment)', 'ApiRoutePlanController::route_plan/$1/$2/$3/$4/$5');
+        $routes->get('RoutePlan/(:segment)/(:segment)/(:segment)/(:segment)', 'ApiRoutePlanController::route_plan/$1/$2/$3/$4/$5');
     });
 
     // 公車相關 api
