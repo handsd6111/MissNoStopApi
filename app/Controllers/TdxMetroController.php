@@ -499,11 +499,12 @@ class TdxMetroController extends TdxBaseController
                 foreach ($subRoute->TravelTimes as $travelTime)
                 {
                     // 取得捷運站代碼
-                    $stationid = $this->getUID($railSystem, $travelTime->FromStationID);
+                    $fromStationId = $this->getUID($railSystem, $travelTime->FromStationID);
+                    $toStationId   = $this->getUID($railSystem, $travelTime->ToStationID);
 
                     // 寫入資料
                     $this->MDModel->save([
-                        "MD_station_id"   => $stationid,
+                        "MD_station_id"   => $fromStationId,
                         "MD_sub_route_id" => $subRouteId,
                         "MD_direction"    => $direction,
                         "MD_duration"     => $travelTime->RunTime,
@@ -512,7 +513,7 @@ class TdxMetroController extends TdxBaseController
 
                     // 寫入資料（相反方向）
                     $this->MDModel->save([
-                        "MD_station_id"   => $stationid,
+                        "MD_station_id"   => $toStationId,
                         "MD_sub_route_id" => $subRouteId,
                         "MD_direction"    => $reverseDirection[$direction],
                         "MD_duration"     => $travelTime->RunTime,

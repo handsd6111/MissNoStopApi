@@ -19,6 +19,13 @@ class ApiRoutePlanBaseController extends ApiBaseController
         "TRA"
     ];
 
+    protected $transportName;
+    protected $startStationId;
+    protected $endStationId;
+    protected $startRouteId;
+    protected $endRouteId;
+    protected $departureTime;
+
     /**
      * 拜訪車站佇列
      * $this->queue = [
@@ -202,120 +209,145 @@ class ApiRoutePlanBaseController extends ApiBaseController
     {
         try
         {
-            // 取得起訖站所屬路線
-            $startRouteId = $this->get_route($transportName, $startStationId);
-            $endRouteId   = $this->get_route($transportName, $endStationId);
+            $this->transportName  = $transportName;
+            $this->startStationId = $startStationId;
+            $this->endStationId   = $endStationId;
+            $this->departureTime  = $departureTime;
 
-            // 若起訖站已於同一條路線上則直接使用 Arrivals 資料
-            if ($startRouteId == $endRouteId)
+            try
             {
-                return $this->get_arrival($transportName, $startStationId, $endStationId, $departureTime);
-            }
+                $arrival = $this->get_arrival($transportName, $startStationId, $endStationId, $departureTime);
 
+                if (!$arrival)
+                {
+                    return $this->get_cross_route_plan();
+                }
+                return $arrival;
+            }
+            catch (Exception $e)
+            {
+                return $this->get_cross_route_plan();
+            }
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+            throw new Exception("指定起訖站或發車時間無法到達目的地", 400);
+        }
+    }
+
+    function get_cross_route_plan()
+    {
+        try
+        {
             // 初始化演算法資料
-            $this->queue    = [$startStationId];         // 車站佇列
-            $this->src      = ["$startStationId" => -1]; // 車站源頭
-            $this->arvTimes = ["$startStationId" => $departureTime]; // 最早抵達時間
+            $this->queue    = [$this->startStationId];         // 車站佇列
+            $this->src      = ["{$this->startStationId}" => -1]; // 車站源頭
+            $this->arvTimes = ["{$this->startStationId}" => $this->departureTime]; // 最早抵達時間
             $this->arrivals = []; // 時刻表紀錄
             $this->visited  = []; // 已造訪車站
 
-            // 初始化轉乘資料
-            $this->innitialize_algorithm_data($transportName, $startStationId, $endStationId);
+            // 取得起訖站所屬路線
+            $this->startRouteId = $this->get_route($this->transportName, $this->startStationId);
+            $this->endRouteId   = $this->get_route($this->transportName, $this->endStationId);
 
-            $safeLoops = 200;
+            // 初始化轉乘資料
+            $this->innitialize_algorithm_data();
+
+            $safeLoops = 1000;
 
             while ($this->queue)
             {
-                if (!--$safeLoops) break;
+                if (!--$safeLoops) throw new Exception("Infinite Loop Error", 500);
 
                 // 取得佇列首項：源頭站
                 $source = array_shift($this->queue);
+
+                // 若已造訪此源頭站則跳過
+                if (isset($this->visited[$source]))
+                {
+                    continue;
+                }
+
                 // 紀錄源頭站已造訪
                 $this->visited[$source] = true;
 
                 // 走訪源頭站所有鄰居站（源頭站與鄰居站同屬一路線）
                 foreach ($this->stationAJ[$source] as $neighbor => $connected)
                 {
-                    // 若已造訪此站則跳過
+                    // 若已造訪此鄰居站則跳過
                     if (isset($this->visited[$neighbor]))
                     {
                         continue;
                     }
-                    
-                    // 取得鄰居的轉乘站
-                    $neighborTF   = $this->get_transfer_station($neighbor);
-                    $transferTime = 0;
 
-                    // 將鄰居推入佇列
-                    array_push($this->queue, $neighbor);
-
-                    if ($neighborTF)
-                    {
-                        $transferTime = $this->transferAJ[$neighbor][$neighborTF];
-                        array_push($this->queue, $neighborTF);
-                    }
+                    // 將鄰居及其轉乘站（若有）推入佇列
+                    $this->add_to_queue($neighbor);
 
                     // 取得源頭站發車時間
-                    $departureTime = $this->arvTimes[$source];
+                    $departureTime = $this->get_arrival_time($source);
 
                     // 時刻表：源頭 -> 鄰居
-                    $arrival = $this->get_arrival($transportName, $source, $neighbor, $departureTime);
+                    $arrival = $this->get_arrival($this->transportName, $source, $neighbor, $departureTime);
 
                     // 若查無時刻表則跳過
                     if (!$arrival)
                     {
                         continue;
                     }
-                    // 取得鄰居站抵達時間
+
+                    // 取得鄰居站新舊抵達時間
                     $arrivalTime = $arrival["Schedule"]["ArrivalTime"];
+                    $oldArrivalTime = $this->get_arrival_time($neighbor);
 
-                    // 取得鄰居的最早抵達時間
-                    if (!isset($this->arvTimes[$neighbor]))
-                    {
-                        $this->arvTimes[$neighbor] = "24:59:59";
-                    }
-
-                    // 若鄰居的抵達時間是前所未有的早則更新其演算法資料
-                    if ($this->compare_times($arrivalTime, $this->arvTimes[$neighbor]) > 0)
+                    // 若鄰居的抵達時間不是前所未有的早則跳過
+                    if (isset($this->src[$neighbor]) && strcmp($arrivalTime, $oldArrivalTime) > 0)
                     {
                         continue;
                     }
 
-                    // 強制所有與起站同路線的鄰居都設起站為源頭
-                    $src = $source;
-                    if (isset($this->transferRS[$neighbor]) && $this->transferRS[$neighbor] == $startRouteId)
-                    {
-                        $src = $startStationId;
-                    }
-
-                    $this->arvTimes[$neighbor] = $arrivalTime;
-                    $this->src[$neighbor]      = $src;
-                    $this->set_arrival($src, $neighbor, $arrival);
-
-                    if ($neighborTF)
-                    {
-                        $this->arvTimes[$neighborTF] = $this->add_times($arrivalTime, $transferTime);
-                        $this->src[$neighborTF]      = $src;
-                        $this->set_arrival($src, $neighborTF, $arrival);
-                    }
+                    // 更新鄰居其轉乘站（若有）的演算法資料
+                    $this->set_arrival_time($neighbor, $arrivalTime);
+                    $this->set_source($source, $neighbor);
+                    $this->set_arrival($source, $neighbor, $arrival);
                 }
             }
 
             // 修正起站源頭
-            $this->src[$startStationId] = -1;
+            $this->src[$this->startStationId] = -1;
 
             // 修正訖站演算法資料
-            $this->reroute_end_station_source($transportName, $endRouteId, $endStationId);
+            $this->reroute_end_station_source($this->transportName, $this->endRouteId, $this->endStationId);
 
             // 從訖站一路至起站地逆向查詢時刻表資料
-            $arrivals = $this->retrace_source($endStationId);
+            $arrivals = $this->retrace_source($this->endStationId);
+
+            // $this->restructure_arrivals($arrivals);
 
             return $arrivals;
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
-            throw new Exception("指定起訖站或發車時間無法到達目的地", 1);
+            throw $e;
+        }
+    }
+
+    function restructure_arrivals(&$arrivals)
+    {
+        try
+        {
+            foreach ($arrivals as $i => $arrival)
+            {
+                $fromStationData = $this->metroModel->get_station($arrival["FromStationId"])->get()->getResult()[0];
+                $toStationData   = $this->metroModel->get_station($arrival["ToStationId"])->get()->getResult()[0];
+                $arrival["FromStation"] = $fromStationData;
+                $arrival["ToStation"] = $toStationData;
+                $arrivals[$i] = $arrival;
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
         }
     }
 
@@ -348,14 +380,14 @@ class ApiRoutePlanBaseController extends ApiBaseController
      * @param string $endStationId 訖站代碼
      * @return void 不回傳值
      */
-    function innitialize_algorithm_data($transportName, $startStationId, $endStationId)
+    function innitialize_algorithm_data()
     {
         try
         {
-            $this->transferRaw = $this->get_transfers_raw($transportName);
+            $this->transferRaw = $this->get_transfers_raw($this->transportName);
             $this->transferRS  = $this->get_transfer_route_station();
             $this->transferAJ  = $this->get_transfer_adjacency();
-            $this->stationAJ   = $this->get_station_adjacencies($transportName, $startStationId, $endStationId);
+            $this->stationAJ   = $this->get_station_adjacencies($this->transportName, $this->startStationId, $this->endStationId);
         }
         catch (Exception $e)
         {
@@ -426,21 +458,18 @@ class ApiRoutePlanBaseController extends ApiBaseController
     }
 
     /**
-     * 紀錄時刻表資料
-     * @param string $fromStationId 起站
-     * @param string $toStationId 訖站
-     * @param array $arrival 時刻表資料
-     * @return void 不回傳值
+     * 將車站推入佇列
      */
-    function set_arrival($fromStationId, $toStationId, $arrival)
+    function add_to_queue($stationId)
     {
         try
         {
-            if (!isset($this->arrivals[$fromStationId]))
+            array_push($this->queue, $stationId);
+
+            if (($transferStationId = $this->get_transfer_station($stationId)) != null)
             {
-                $this->arrivals[$fromStationId] = [];
+            array_push($this->queue, $transferStationId);
             }
-            $this->arrivals[$fromStationId][$toStationId] = $arrival;
         }
         catch (Exception $e)
         {
@@ -449,16 +478,88 @@ class ApiRoutePlanBaseController extends ApiBaseController
     }
 
     /**
-     * 比較兩時間早晚
-     * @param string $time1 時間 1
-     * @param string $time2 時間 2
-     * @return int 時間 1 比 時間 2 晚多少秒
+     * 紀錄源頭
      */
-    function compare_times($time1, $time2)
+    function set_source($source, $stationId)
     {
         try
         {
-            return strcmp($time1, $time2);
+            $this->src[$stationId] = $source;
+
+            if (($transferStationId = $this->get_transfer_station($stationId)) != null)
+            {
+                $this->src[$transferStationId] = $source;
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 紀錄時刻表資料
+     * @param string $source 源頭
+     * @param string $stationId 車站
+     * @param array $arrival 時刻表資料
+     * @return void 不回傳值
+     */
+    function set_arrival($source, $stationId, $arrival)
+    {
+        try
+        {
+            if (!isset($this->arrivals[$source]))
+            {
+                $this->arrivals[$source] = [];
+            }
+            $this->arrivals[$source][$stationId] = $arrival;
+
+            if (($transferStationId = $this->get_transfer_station($stationId)) != null)
+            {
+                $this->arrivals[$source][$transferStationId] = $arrival;
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 紀錄抵達時間
+     */
+    function set_arrival_time($stationId, $arrivalTime)
+    {
+        try
+        {
+            $this->arvTimes[$stationId] = $arrivalTime;
+
+            if (($transferStationId = $this->get_transfer_station($stationId)) != null)
+            {
+                $transferTime = $this->transferAJ[$stationId]["TransferTime"];
+                $this->arvTimes[$transferStationId] = $this->add_times($arrivalTime, $transferTime);
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定車站的最早抵達時間
+     * @param string $stationId 車站代碼
+     * @return string 最早抵達時間
+     */
+    function get_arrival_time($stationId, $arrivalTime = "24:59:59")
+    {
+        try
+        {
+            if (!isset($this->arvTimes[$stationId]))
+            {
+                $this->arvTimes[$stationId] = $arrivalTime;
+            }
+            return $this->arvTimes[$stationId];
         }
         catch (Exception $e)
         {
@@ -543,7 +644,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
                 $graph[$fromStationId] = [
                     "TFStationId"  => $toStationId,
-                    "$toStationId" => $transferTime
+                    "TransferTime" => $transferTime
                 ];
             }
 
@@ -581,13 +682,13 @@ class ApiRoutePlanBaseController extends ApiBaseController
                     continue;
                 }
                 // 若造訪起站或訖站所屬路線則將起站或訖站推入車站陣列
-                if ($routeId == $startRouteId)
+                if (!in_array($startStationId, $stations) && $routeId == $startRouteId)
                 {
-                    array_push($stations, $startStationId);
+                    array_unshift($stations, $startStationId);
                 }
-                if ($routeId == $endRouteId)
+                if (!in_array($endStationId, $stations) && $routeId == $endRouteId)
                 {
-                    array_push($stations, $endStationId);
+                    array_unshift($stations, $endStationId);
                 }
                 // 走遍每座車站
                 for ($i = 0; $i < sizeof($stations); $i++)
@@ -720,7 +821,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
             foreach ($arrivals as $arrival)
             {
                 $dptTime = $arrival["Schedule"]["DepartureTime"];
-                if ($this->compare_times($dptTime, $earliestDptTime) > 0)
+                if (strcmp($dptTime, $earliestDptTime) > 0)
                 {
                     return $arrival;
                 }
@@ -760,7 +861,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
             }
             if (!isset($routeId[0]->route_id))
             {
-                throw new Exception("found no route for $stationId", 1);
+                throw new Exception("found no route for $stationId", 400);
             }
             return $routeId[0]->route_id;
         }

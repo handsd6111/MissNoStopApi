@@ -53,6 +53,30 @@ class MetroModel extends BaseModel
         }
     }
 
+    function get_station($stationId)
+    {
+        try
+        {
+            $condition = [
+                "MS_id" => $stationId
+            ];
+            return $this->db->table("metro_stations")
+                            ->select(
+                                "MS_id AS station_id,
+                                MS_name_TC AS name_TC,
+                                MS_name_EN AS name_EN,
+                                MS_city_id AS city_id,
+                                MS_longitude AS longitude,
+                                MS_latitude AS latitude"
+                            )
+                            ->where($condition);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
     /**
      * 取得指定捷運系統及路線上所有車站的查詢類別
      * @param string $routeId 路線代碼
@@ -263,15 +287,15 @@ class MetroModel extends BaseModel
     {
         try
         {
-            return $this->db->table("metro_durations")
-                            ->select("MD_sub_route_id AS sub_route_id")
-                            ->where("MD_direction", $direction)
+            return $this->db->table("metro_sub_route_stations")
+                            ->select("MSRS_sub_route_id AS sub_route_id")
+                            ->where("MSRS_direction", $direction)
                             ->groupStart()
-                                ->where("MD_station_id", $fromStationId)
-                                ->orWhere("MD_station_id", $toStationId)
+                                ->where("MSRS_station_id", $fromStationId)
+                                ->orWhere("MSRS_station_id", $toStationId)
                             ->groupEnd()
-                            ->groupBy("MD_sub_route_id")
-                            ->having("COUNT(MD_station_id) > 1");
+                            ->groupBy("MSRS_sub_route_id")
+                            ->having("COUNT(MSRS_sub_route_id) > 1");
         }
         catch (Exception $e)
         {
