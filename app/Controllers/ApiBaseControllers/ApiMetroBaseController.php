@@ -5,8 +5,6 @@ namespace App\Controllers\ApiBaseControllers;
 use App\Controllers\ApiBaseControllers\ApiBaseController;
 use App\Models\MetroModel;
 use Exception;
-use PhpParser\Node\Expr\Exit_;
-use stdClass;
 
 class ApiMetroBaseController extends ApiBaseController
 {
@@ -147,7 +145,7 @@ class ApiMetroBaseController extends ApiBaseController
             $subRoutes = $this->metroModel->get_sub_routes_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
             if (!$subRoutes)
             {
-                throw new Exception(lang("MetroQueries.stationNotConnected"), 400);
+                throw new Exception(lang("MetroQueries.stationNotConnected", [$fromStationId, $toStationId]), 400);
             }
             for ($i = 0; $i < sizeof($subRoutes); $i++)
             {
@@ -190,6 +188,11 @@ class ApiMetroBaseController extends ApiBaseController
 
                 // 合併至 $arrivals
                 $arrivals = array_merge($arrivals, $arrival);
+            }
+
+            if (!sizeof($arrivals))
+            {
+                throw new Exception(lang("MetroQueries.arrivalNotFound", [$fromStationId, $toStationId]), 400);
             }
 
             // 回傳時刻表資料

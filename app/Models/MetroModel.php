@@ -28,7 +28,30 @@ class MetroModel extends BaseModel
     }
 
     /**
-     * 取得指定捷運系統所有路線的查詢類別
+     * 取得指定路線的查詢類別
+     * @param string $routeId 捷運路線代碼
+     * @return mixed 查詢類別
+     */
+    function get_route($routeId)
+    {
+        try
+        {
+            return $this->db->table("metro_routes")
+                            ->select(
+                                "MR_id AS route_id,
+                                MR_name_TC AS name_TC,
+                                MR_name_EN AS name_EN")
+                            ->where("MR_id", $routeId)
+                            ->orderBy("MR_id");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定捷運系統的所有路線查詢類別
      * @param string $systemId 捷運系統代碼
      * @return mixed 查詢類別
      */
@@ -36,16 +59,49 @@ class MetroModel extends BaseModel
     {
         try
         {
-            $condition = [
-                "MR_system_id" => $systemId
-            ];
             return $this->db->table("metro_routes")
                             ->select(
                                 "MR_id AS route_id,
                                 MR_name_TC AS name_TC,
                                 MR_name_EN AS name_EN")
-                            ->where($condition)
+                            ->where("MR_system_id",$systemId)
                             ->orderBy("MR_id");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得指定子路線代碼的子路線資料
+     */
+    function get_sub_route($subRouteId)
+    {
+        try
+        {
+            return $this->db->table("metro_sub_routes")
+                            ->select(
+                                "MSR_id AS sub_route_id,
+                                MSR_name_TC AS name_TC,
+                                MSR_name_EN AS name_EN"
+                                )
+                            ->where("MSR_id", $subRouteId);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    function get_sub_routes($stationId)
+    {
+        try
+        {
+            return $this->db->table("metro_sub_route_stations")
+                            ->select("MSRS_sub_route_id AS sub_route_id")
+                            ->where("MSRS_station_id", $stationId)
+                            ->groupBy("MSRS_sub_route_id");
         }
         catch (Exception $e)
         {
@@ -358,32 +414,12 @@ class MetroModel extends BaseModel
         try
         {
             return $this->db->table("metro_transfers")
-                            ->join("metro_route_stations", "MRS_station_id = MT_from_station_id")
                             ->select(
-                                "MT_from_station_id AS from_station_id,
-                                MRS_route_id AS from_route_id,
-                                MT_to_station_id AS to_station_id,
+                                "MT_from_station_id AS station_id,
+                                MT_to_station_id AS transfer_station_id,
                                 MT_transfer_time AS transfer_time"
-                            );
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 檢查兩車站是否處於同一條路線上
-     */
-    function is_on_same_route($fromStationId, $toStationId)
-    {
-        try
-        {
-            return $this->db->table("metro_route_stations")
-                            ->select("IF(COUNT(MRS_route_id) > 1, MRS_route_id, 0) AS route_id")
-                            ->where("MRS_station_id", $fromStationId)
-                            ->orWhere("MRS_station_id", $toStationId)
-                            ->groupBy("MRS_route_id");
+                            )
+                            ->groupBy("MT_from_station_id, MT_to_station_id");
         }
         catch (Exception $e)
         {
