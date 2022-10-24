@@ -135,7 +135,7 @@ class ApiMetroBaseController extends ApiBaseController
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
      * @param int $direction 行駛方向
-     * @param array 路線資料
+     * @param array 路線資料（已剩純資料）
      * @throws Exception 查無資料
      */
     function get_sub_routes_by_stations($fromStationId, $toStationId, $direction)
@@ -168,32 +168,52 @@ class ApiMetroBaseController extends ApiBaseController
      * @return array 時刻表資料
      * @throws Exception 查無資料
      */
-    function get_arrivals($fromStationId, $toStationId)
+    function get_arrivals_new($fromStationId, $toStationId)
     {
         try
         {
+            helper("addTime");
+
             // 取得行駛方向
             $direction = $this->get_direction($fromStationId, $toStationId);
 
             // 取得起訖站皆行經的所有捷運子路線
             $subRoutes = $this->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
 
-            $arrivals = [];
+            // 取得起站時刻表資料
+            $arrivals = $this->metroModel->get_arrivals_new($fromStationId, $direction, $subRoutes)->get()->getResult();
 
-            // 取得每條路線的時刻表
-            for ($i = 0; $i < sizeof($subRoutes); $i++)
+            $durations = [];
+
+            foreach ($subRoutes as $i => $subRouteId)
             {
-                // 取得時刻表
-                $arrival = $this->get_arrival($fromStationId, $toStationId, $subRoutes[$i], $direction);
-
-                // 合併至 $arrivals
-                $arrivals = array_merge($arrivals, $arrival);
+                // 取得指定子路線的總運行時間
+                $durations[$subRouteId] = $this->get_duration($fromStationId, $toStationId, $subRouteId, $direction);
             }
 
-            if (!sizeof($arrivals))
+            foreach ($arrivals as $i => $arrival)
             {
-                throw new Exception(lang("MetroQueries.arrivalNotFound", [$fromStationId, $toStationId]), 400);
+                $this->turn_time_00_to_24($arrival->departure_time);
+
+                $routeId      = $arrival->route_id;
+                $subRouteId   = $arrival->sub_route_id;
+                $duration     = $durations[$subRouteId];
+                $depatureTime = $arrival->departure_time;
+                $arrivalTime  = add_time($depatureTime, $duration);
+
+                $arrivals[$i] = [
+                    "RouteId"       => $routeId,
+                    "SubRouteId"    => $subRouteId,
+                    "FromStationId" => $fromStationId,
+                    "ToStationId"   => $toStationId,
+                    "Schedule" => [
+                        "DepartureTime" => $depatureTime,
+                        "ArrivalTime"   => $arrivalTime,
+                        "Duration"      => $duration
+                    ]
+                ];
             }
+
 
             // 回傳時刻表資料
             return $arrivals;

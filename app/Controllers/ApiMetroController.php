@@ -166,10 +166,10 @@ class ApiMetroController extends ApiMetroBaseController
             }
 
             // 取得時刻表資料
-            $arrivals = $this->get_arrivals($fromStationId, $toStationId);
+            $arrivals = $this->get_arrivals_new($fromStationId, $toStationId);
             
             // 重新排列資料
-            $this->restructure_arrivals($arrivals, $fromStationId, $toStationId);
+            // $this->restructure_arrivals($arrivals, $fromStationId, $toStationId);
 
             // 回傳資料
             return $this->send_response($arrivals);

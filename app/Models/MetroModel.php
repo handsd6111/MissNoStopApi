@@ -216,6 +216,37 @@ class MetroModel extends BaseModel
     /**
      * 取得時刻表查詢類別
      * @param string $fromStationId 車站代碼
+     * @param int $direction 行駛方向
+     * @param array $subRouteId 子路線代碼
+     * @return mixed 查詢類別
+     */
+    function get_arrivals_new($fromStationId, $direction, $subRoutes)
+    {
+        try
+        {
+            $condition1 = [
+                "MA_station_id"   => $fromStationId,
+                "MA_direction"    => $direction
+            ];
+            return $this->db->table("metro_arrivals")
+                            ->join("metro_sub_routes", "MSR_id = MA_sub_route_id")
+                            ->select(
+                                "MSR_route_id AS route_id,
+                                MA_sub_route_id AS sub_route_id,
+                                MA_arrival_time AS departure_time")
+                            ->where($condition1)
+                            ->whereIn("MA_sub_route_id", $subRoutes)
+                            ->orderBy("MA_arrival_time");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得時刻表查詢類別
+     * @param string $fromStationId 車站代碼
      * @param string $subRouteId 子路線代碼
      * @param int $direction 行駛方向
      * @param int $duration 總運行時間
