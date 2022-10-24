@@ -165,11 +165,20 @@ class ApiMetroController extends ApiMetroBaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得時刻表資料
-            $arrivals = $this->get_arrivals_new($fromStationId, $toStationId);
+            // 取得行駛方向
+            $direction = $this->get_direction($fromStationId, $toStationId);
+
+            // 取得起訖站皆行經的所有捷運子路線
+            $subRoutes = $this->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
+
+            // 取得指定子路線的總運行時間
+            $durations = $this->get_durations($fromStationId, $toStationId, $subRoutes, $direction);
             
+            // 取得時刻表資料
+            $arrivals = $this->get_arrivals($fromStationId, $direction, $subRoutes, $durations);
+
             // 重新排列資料
-            // $this->restructure_arrivals($arrivals, $fromStationId, $toStationId);
+            $this->restructure_arrivals($arrivals, $fromStationId, $toStationId);
 
             // 回傳資料
             return $this->send_response($arrivals);

@@ -220,21 +220,26 @@ class MetroModel extends BaseModel
      * @param array $subRouteId 子路線代碼
      * @return mixed 查詢類別
      */
-    function get_arrivals_new($fromStationId, $direction, $subRoutes)
+    function get_arrivals($fromStationId, $direction, $subRoutes, $arrivalTime = null)
     {
         try
         {
-            $condition1 = [
+            $condition = [
                 "MA_station_id"   => $fromStationId,
                 "MA_direction"    => $direction
             ];
+            if ($arrivalTime != null)
+            {
+                $condition["MA_arrival_time >="] = $arrivalTime;
+            }
             return $this->db->table("metro_arrivals")
                             ->join("metro_sub_routes", "MSR_id = MA_sub_route_id")
                             ->select(
                                 "MSR_route_id AS route_id,
                                 MA_sub_route_id AS sub_route_id,
-                                MA_arrival_time AS departure_time")
-                            ->where($condition1)
+                                MA_arrival_time AS departure_time"
+                            )
+                            ->where($condition)
                             ->whereIn("MA_sub_route_id", $subRoutes)
                             ->orderBy("MA_arrival_time");
         }
@@ -245,50 +250,15 @@ class MetroModel extends BaseModel
     }
 
     /**
-     * 取得時刻表查詢類別
-     * @param string $fromStationId 車站代碼
-     * @param string $subRouteId 子路線代碼
-     * @param int $direction 行駛方向
-     * @param int $duration 總運行時間
-     * @return mixed 查詢類別
-     */
-    function get_arrivals($fromStationId, $subRouteId, $direction, $duration)
-    {
-        try
-        {
-            $condition = [
-                "MA_station_id"   => $fromStationId,
-                "MA_sub_route_id" => $subRouteId,
-                "MA_direction"    => $direction
-            ];
-            return $this->db->table("metro_arrivals")
-                            ->join("metro_sub_routes", "MSR_id = MA_sub_route_id")
-                            ->select(
-                                "MSR_route_id AS route_id,
-                                MA_sub_route_id AS sub_route_id,
-                                MA_sequence AS sequence,
-                                MA_arrival_time AS departure_time,
-                                SEC_TO_TIME( TIME_TO_SEC( MA_arrival_time ) + $duration ) AS arrival_time,
-                                IF($duration, $duration, 0) AS duration")
-                            ->where($condition)
-                            ->orderBy("MA_sequence");
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
      * 取得總運行時間查詢類別
-     * @param string $fromSeq 起站序號
-     * @param string $toSeq 訖站序號
+     * @param string $largerSeq 起站序號
+     * @param string $smallerSeq 訖站序號
      * @param string $subRouteId 子路線代碼
      * @param int $direction 行駛方向
      * @param int $stopTime 停靠時間
      * @return mixed 查詢類別
      */
-    function get_duration($fromSeq, $toSeq, $subRouteId, $direction, $stopTime)
+    function get_duration($largerSeq, $smallerSeq, $subRouteId, $direction, $stopTime)
     {
         try
         {
@@ -307,7 +277,7 @@ class MetroModel extends BaseModel
                                 "SUM(MD_duration) + SUM(MD_stop_time) - $stopTime AS duration"
                             )
                             ->where($condition)
-                            ->where("MSRS_sequence BETWEEN $fromSeq AND $toSeq -1");
+                            ->where("MSRS_sequence BETWEEN $largerSeq AND $smallerSeq -1");
         }
         catch (Exception $e)
         {

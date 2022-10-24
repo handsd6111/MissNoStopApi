@@ -777,7 +777,7 @@ class TdxMetroController extends TdxBaseController
     {
         try
         {
-            helper("getWeekDay");
+            helper(["getWeekDay", "time00To24"]);
 
             // 取得今天星期幾
             $weekDay = get_week_day(true);
@@ -807,13 +807,16 @@ class TdxMetroController extends TdxBaseController
                 // 走遍時刻表
                 foreach ($arrival->Timetables as $timeTable)
                 {
+                    // 把時刻為「00」的時間改為「24」，以便排序
+                    $arrivalTime = time_00_to_24($timeTable->ArrivalTime);
+
                     // 寫入時刻表資料
                     $this->MAModel->save([
                         'MA_station_id'   => $stationId,
                         'MA_sub_route_id' => $subRouteId,
                         'MA_direction'    => $direction,
                         'MA_sequence'     => $timeTable->Sequence,
-                        'MA_arrival_time' => $timeTable->ArrivalTime
+                        'MA_arrival_time' => $arrivalTime
                     ]);
                 }
                 // 印出花費時間

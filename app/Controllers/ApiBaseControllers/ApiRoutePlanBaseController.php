@@ -123,7 +123,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
             {
                 $arrival = $this->get_arrival($startStationId, $endStationId, $departureTime);
 
-                if (!$arrival)
+                if (!sizeof($arrival))
                 {
                     return $this->get_cross_route_plan();
                 }
@@ -317,6 +317,10 @@ class ApiRoutePlanBaseController extends ApiBaseController
                         }
                         $toStationId = $stationIds[$j];
 
+                        if ($fromStationId == $toStationId)
+                        {
+                            continue;
+                        }
                         $this->set_station_adjacency($fromStationId, $toStationId);
                     }
                 }
@@ -335,19 +339,11 @@ class ApiRoutePlanBaseController extends ApiBaseController
     {
         try
         {
-            if ($fromStationId == $toStationId)
-            {
-                return;
-            }
             if (!isset($this->stationAdjacency[$fromStationId]))
             {
                 $this->stationAdjacency[$fromStationId] = [];
             }
-            $direction = $this->metroController->get_direction($fromStationId, $toStationId);
-            $subRoutes = $this->metroController->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
-            $duration  = $this->metroController->get_duration($fromStationId, $toStationId, $subRoutes[0], $direction);
-
-            $this->stationAdjacency[$fromStationId][$toStationId] = $duration;
+            $this->stationAdjacency[$fromStationId][$toStationId] = true;
         }
         catch (Exception $e)
         {
@@ -433,7 +429,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
                 return false;
             }
             // 取得鄰居站新舊抵達時間
-            $arrivalTime    = $arrival["Schedule"]["ArrivalTime"];
+            $arrivalTime    = $arrival->arrival_time;
             $oldArrivalTime = $this->get_arrival_time($neighbor);
 
             // 若鄰居的抵達時間不是前所未有的早則跳過
@@ -474,7 +470,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
             {
                 $source = $this->src[$stationId];
                 $arrival = $this->arrivals[$source][$stationId];
-                $this->restructure_arrival($arrival);
+                $this->restructure_arrival($arrival, $source, $stationId);
                 array_unshift($arrivals, $arrival);
                 $stationId = $source;
             }
@@ -486,41 +482,43 @@ class ApiRoutePlanBaseController extends ApiBaseController
         }
     }
 
-    function restructure_arrival(&$arrival)
+    function restructure_arrival(&$arrival, $fromStationId, $toStationId)
     {
         try
         {
-            $fromStationData = $this->metroModel->get_station($arrival["FromStationId"])->get()->getResult()[0];
-            $toStationData   = $this->metroModel->get_station($arrival["ToStationId"])->get()->getResult()[0];
+            $routeId       = $arrival->route_id;
+            $subRouteId    = $arrival->sub_route_id;
 
-            $routeData    = $this->metroModel->get_route($arrival["RouteId"])->get()->getResult()[0];
-            $subRouteData = $this->metroModel->get_sub_route($arrival["SubRouteId"])->get()->getResult()[0];
+            $routeData       = $this->metroModel->get_route($routeId)->get()->getResult()[0];
+            $subRouteData    = $this->metroModel->get_sub_route($subRouteId)->get()->getResult()[0];
+            $fromStationData = $this->metroModel->get_station($fromStationId)->get()->getResult()[0];
+            $toStationData   = $this->metroModel->get_station($toStationId)->get()->getResult()[0];
 
             $arrival = [
-                "RouteId" => $arrival["RouteId"],
+                "RouteId" => $routeId,
                 "RouteName" => [
                     "TC" => $routeData->name_TC,
                     "EN" => $routeData->name_EN
                 ],
-                "SubRouteId" => $arrival["SubRouteId"],
+                "SubRouteId" => $subRouteId,
                 "SubRouteName" => [
                     "TC" => $subRouteData->name_TC,
                     "EN" => $subRouteData->name_EN
                 ],
-                "FromStationId" => $arrival["FromStationId"],
+                "FromStationId" => $fromStationId,
                 "FromStationName" => [
                     "TC" => $fromStationData->name_TC,
                     "EN" => $fromStationData->name_EN
                 ],
-                "ToStationId" => $arrival["ToStationId"],
+                "ToStationId" => $toStationId,
                 "ToStationName" => [
                     "TC" => $toStationData->name_TC,
                     "EN" => $toStationData->name_EN
                 ],
                 "Schedule" => [
-                    "DepartureTime" => $arrival["Schedule"]["DepartureTime"],
-                    "ArrivalTime"   => $arrival["Schedule"]["ArrivalTime"],
-                    "Duration"      => $arrival["Schedule"]["Duration"]
+                    "DepartureTime" => $arrival->departure_time,
+                    "ArrivalTime"   => $arrival->arrival_time,
+                    "Duration"      => $arrival->duration
                 ]
             ];
         }
@@ -642,12 +640,13 @@ class ApiRoutePlanBaseController extends ApiBaseController
     {
         try
         {
+            helper("addTime");
             $this->arvTimes[$stationId] = $arrivalTime;
 
             if (($transferStationId = $this->get_transfer_station($stationId)) != null)
             {
                 $transferTime = $this->transferData[$stationId]["TransferTime"];
-                $this->arvTimes[$transferStationId] = $this->add_times($arrivalTime, $transferTime);
+                $this->arvTimes[$transferStationId] = add_time($arrivalTime, $transferTime);
             }
         }
         catch (Exception $e)
@@ -678,92 +677,41 @@ class ApiRoutePlanBaseController extends ApiBaseController
     }
 
     /**
-     * 為時間加上秒數
-     * @param string $time 時間
-     * @param int $second 秒數
-     * @return string 時間
-     */
-    function add_times($time, $second)
-    {
-        try
-        {
-            helper(["getTimeToSecond", "getSecondToTime"]);
-            $sec1 = time_to_sec($time);
-            $sec2 = $second;
-            $sec3 = intval($sec1) + intval($sec2);
-            return sec_to_time($sec3);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
      * 取得指定交通工具、起訖站及發車時間的最早班次資料
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
-     * @param string $departureTime 發車時間
-     * @return array 時刻表資料
+     * @param string $arrivalTime 發車時間
+     * @return object 時刻表資料
      */
-    function get_arrival($fromStationId, $toStationId, $departureTime)
+    function get_arrival($fromStationId, $toStationId, $arrivalTime)
     {
         try
         {
             // 取得時刻表資料
             try
             {
-                $arrivals = $this->metroController->get_arrivals($fromStationId, $toStationId);
+                // 取得行駛方向
+                $direction = $this->metroController->get_direction($fromStationId, $toStationId);
+
+                // 取得起訖站皆行經的所有捷運子路線
+                $subRoutes = $this->metroController->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
+
+                // 取得指定子路線的總運行時間
+                $durations = $this->metroController->get_durations($fromStationId, $toStationId, $subRoutes, $direction);
+                
+                // 取得時課表
+                $arrival = $this->metroController->get_arrivals($fromStationId, $direction, $subRoutes, $durations, $arrivalTime)[0];
             }
             catch (Exception $e)
             {
                 return [];
             }
-            if (!$arrivals)
-            {
-                return [];
-            }
-
-            // 重新排列資料
-            $this->metroController->restructure_arrivals($arrivals, $fromStationId, $toStationId);
-
-            // 取得指定時刻表及發車時間的最近班次
-            $arrival = $this->get_arrival_by_time($arrivals, $departureTime);
-
             if (!$arrival)
             {
                 return [];
             }
-
             //回傳資料
             return $arrival;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 取得指定時刻表及發車時間的最近班次
-     * @param array &$arrivals 時刻表
-     * @param string $earliestDptTime 發車時間
-     * @return array 時刻資訊
-     */
-    function get_arrival_by_time(&$arrivals, $earliestDptTime)
-    {
-        try
-        {
-            foreach ($arrivals as $arrival)
-            {
-                $dptTime = $arrival["Schedule"]["DepartureTime"];
-
-                if (strcmp($dptTime, $earliestDptTime) > 0)
-                {
-                    return $arrival;
-                }
-            }
-            return false;
         }
         catch (Exception $e)
         {
