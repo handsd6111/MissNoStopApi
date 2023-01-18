@@ -60,13 +60,10 @@ class TRAModel extends BaseModel
      * 取得指定臺鐵路線及經緯度的最近臺鐵站資料查詢類別
      * @return mixed 查詢類別
      */
-    function get_nearest_station($routeId, $longitude, $latitude)
+    function get_nearest_station($longitude, $latitude)
     {
         try
         {
-            $condition = [
-                "RRS_route_id" => $routeId
-            ];
             return $this->db->table("TRA_route_stations")
                             ->join("TRA_stations", "RS_id = RRS_station_id")
                             ->select(
@@ -91,7 +88,6 @@ class TRAModel extends BaseModel
                                     ) * 11100
                                 ) / 100 AS RS_distance"
                             )
-                            ->where($condition)
                             ->orderBy("RS_distance");
         }
         catch (Exception $e)
@@ -150,8 +146,13 @@ class TRAModel extends BaseModel
                 $toStationId
             ];
             return $this->db->table("TRA_arrivals")
+                            ->join("TRA_route_stations", "RA_station_id = RRS_station_id")
+                            ->join("TRA_routes", "RRS_route_id = RR_id")
                             ->select("RA_train_id AS train_id,
                                       RA_station_id AS station_id,
+                                      RR_id AS route_id,
+                                      RR_name_TC AS route_name_TC,
+                                      RR_name_EN AS route_name_EN,
                                       RA_arrival_time AS arrival_time")
                             ->where("RA_train_id", $trainId)
                             ->whereIn("RA_station_id", $stations)

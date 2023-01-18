@@ -166,19 +166,14 @@ class MetroModel extends BaseModel
 
     /**
      * 取得指定捷運路線上所有車站的查詢類別
-     * @param string $lineId 路線代碼
      * @param string $longitude 經度
      * @param string $latitude 緯度
-     * @param int $limit 回傳數量
      * @return mixed 查詢類別
      */
-    function get_nearest_station($lineId, $longitude, $latitude)
+    function get_nearest_station($longitude, $latitude)
     {
         try
         {
-            $condition = [
-                "MR_id" => $lineId
-            ];
             return $this->db->table("metro_stations")
                             ->join("metro_route_stations", "MRS_station_id = MS_id")
                             ->join("metro_routes", "MR_id = MRS_route_id")
@@ -204,7 +199,6 @@ class MetroModel extends BaseModel
                                         )
                                     ) * 11100
                                 ) / 100 AS MS_distance")
-                            ->where($condition)
                             ->orderBy("MS_distance");
         }
         catch (Exception $e)

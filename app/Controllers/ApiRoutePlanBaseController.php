@@ -128,10 +128,13 @@ class ApiRoutePlanBaseController extends ApiBaseController
             {
                 $arrival = $this->get_arrival($startStationId, $endStationId, $departureTime);
 
-                if (!sizeof($arrival))
+                if (!$arrival)
                 {
                     return $this->get_cross_route_plan();
                 }
+                
+                $this->metroController->restructure_arrivals($arrivals, $startStationId, $endStationId);
+
                 return $arrival;
             }
             catch (Exception $e)
@@ -704,7 +707,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
                 // 取得指定子路線的總運行時間
                 $durations = $this->metroController->get_durations($fromStationId, $toStationId, $subRoutes, $direction);
                 
-                // 取得時課表
+                // 取得時刻表
                 $arrival = $this->metroController->get_arrivals($fromStationId, $direction, $subRoutes, $durations, $arrivalTime)[0];
             }
             catch (Exception $e)

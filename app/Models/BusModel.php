@@ -75,19 +75,15 @@ class BusModel extends BaseModel
     }
 
     /**
-     * 取得指定公車路線及經緯度的最近車站查詢類別
-     * @param string $routeId 路線代碼
+     * 取得指定公車經緯度的最近車站查詢類別
      * @param string $longitude 經度
      * @param string $latitude 緯度
      * @return mixed 查詢類別
      */
-    function get_nearest_station($routeId, $longitude, $latitude)
+    function get_nearest_station($longitude, $latitude)
     {
         try
         {
-            $condition = [
-                "BR_id" => $routeId
-            ];
             return $this->db->table("bus_stations")
                             ->join("bus_route_stations", "BRS_station_id = BS_id")
                             ->join("bus_routes", "BR_id = BRS_route_id")
@@ -113,7 +109,6 @@ class BusModel extends BaseModel
                                     ) * 11100
                                 ) / 100 AS BS_distance"
                             )
-                            ->where($condition)
                             ->orderBy("BS_distance");
         }
         catch (Exception $e)

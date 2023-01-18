@@ -106,6 +106,9 @@ class TdxTraController extends TdxBaseController
         $traRouteModel = new TraRouteModel();
 
         foreach ($result as $value) {
+
+            $this->terminalLog("正在取得 {$value->LineID} ... ", true);
+
             $traRouteModel->save([
                 'RR_id' => $value->LineID,
                 'RR_name_TC' => $value->LineNameZh,
@@ -255,6 +258,9 @@ class TdxTraController extends TdxBaseController
         $traArrivalModel = new TraArrivalModel();
 
         foreach ($result as $value) {
+
+            $this->terminalLog("正在取得 {$value->DailyTrainInfo->TrainNo} ... ", true);
+
             foreach ($value->StopTimes as $stopTime) {
                 $traArrivalModel->save([
                     'RA_train_id' => $value->DailyTrainInfo->TrainNo,
@@ -280,6 +286,9 @@ class TdxTraController extends TdxBaseController
         $traArrivalModel = new TraArrivalModel();
 
         foreach ($result as $value) {
+
+            $this->terminalLog("正在取得 {$value->DailyTrainInfo->TrainNo} ... ", true);
+            
             $traTrainModel->save([
                 'RT_id' => $value->DailyTrainInfo->TrainNo,
                 'RT_departure_date' => $value->TrainDate

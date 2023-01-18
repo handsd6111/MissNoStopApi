@@ -368,6 +368,11 @@ class ApiBaseController extends BaseController
             {
                 $arrivals[$key] = [
                     "TrainId" => $value[0]->train_id,
+                    "RouteId" => $value[0]->route_id,
+                    "RouteName" => [
+                        "TC" => $value[0]->route_name_TC,
+                        "EN" => $value[0]->route_name_EN
+                    ],
                     "Schedule" => [
                         "DepartureTime" => $value[0]->arrival_time,
                         "ArrivalTime"   => $value[1]->arrival_time

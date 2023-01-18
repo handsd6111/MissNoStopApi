@@ -115,26 +115,24 @@ class ApiMetroController extends ApiMetroBaseController
     /**
      * 取得指定路線及經緯度的「最近捷運站」資料
      * 
-     * 格式：/api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude}
-     * @param string $routeId 捷運路線代碼
+     * 格式：/api/Metro/NearestStation/{Longitude}/{Latitude}
      * @param float $longitude 經度（-180 ~ 180）
      * @param float $latitude 緯度（-90 ~ 90）
      * @param int $limit 回傳數量
      */
-    function get_metro_nearest_station($routeId, $longitude, $latitude, $limit = 1)
+    function get_metro_nearest_station($longitude, $latitude)
     {
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH)
-                || !$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+            if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
                 || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             // 取得最近捷運站
-            $station = $this->metroModel->get_nearest_station($routeId, $longitude, $latitude)->get($limit)->getResult();
+            $station = $this->metroModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
             
             // 重新排列資料
             $this->restructure_stations($station);

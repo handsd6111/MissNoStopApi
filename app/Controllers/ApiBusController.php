@@ -94,20 +94,19 @@ class ApiBusController extends ApiBaseController
      * @param int $limit 回傳數量
      * @return array 公車站資料
      */
-    function get_bus_nearest_station($routeId, $longitude, $latitude, $limit = 1)
+    function get_bus_nearest_station($longitude, $latitude, $limit = 1)
     {
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH)
-                || !$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
-                || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
+            if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+             || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             // 取得指定公車路線及經緯度的最近車站資料
-            $station = $this->busModel->get_nearest_station($routeId, $longitude, $latitude)->get($limit)->getResult();
+            $station = $this->busModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
 
             // 重新排列公車站資料
             $this->restructure_stations($station);

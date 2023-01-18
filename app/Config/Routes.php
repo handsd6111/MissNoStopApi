@@ -55,11 +55,8 @@ $routes->group('api', static function ($routes)
         // /api/Bus/StationOfRoute/{RouteId}/{Direction} 取得指定路線及行駛方向的「公車站」資料
         $routes->get('StationOfRoute/(:segment)/(:num)', 'ApiBusController::get_bus_stations/$1/$2');
 
-        // /api/Bus/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定路線及經緯度的「最近公車站」資料
-        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiBusController::get_bus_nearest_station/$1/$2/$3');
-
-        // /api/Bus/NearestStation/{RouteId}/{Longitude}/{Latitude}/{Limit} 取得指定路線、經緯度及回傳數量的「最近公車站」資料
-        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)/(:num)', 'ApiBusController::get_bus_nearest_station/$1/$2/$3/$4');
+        // /api/Bus/NearestStation/{Longitude}/{Latitude} 取得指定經緯度的「最近公車站」資料
+        $routes->get('NearestStation/(:segment)/(:segment)', 'ApiBusController::get_bus_nearest_station/$1/$2');
 
         // /api/Bus/Arrival/{RouteId}/{Direction}/{FromStationId}/{ToStationId} 取得指定路線、行駛方向及起訖站的「公車時刻表」資料
         $routes->get('Arrival/(:segment)/(:num)/(:segment)/(:segment)', 'ApiBusController::get_bus_arrivals/$1/$2/$3/$4');
@@ -77,11 +74,8 @@ $routes->group('api', static function ($routes)
         // /api/Metro/StationOfRoute/{RouteId} 取得指定系統及路線的「捷運站」資料
         $routes->get('StationOfRoute/(:segment)', 'ApiMetroController::get_metro_stations/$1');
         
-        // /api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定路線及經緯度的「最近捷運站」資料
-        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiMetroController::get_metro_nearest_station/$1/$2/$3');
-
-        // /api/Metro/NearestStation/{RouteId}/{Longitude}/{Latitude}/{Limit} 取得指定路線、經緯度及回傳數量的「最近捷運站」資料
-        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)/(:num)', 'ApiMetroController::get_metro_nearest_station/$1/$2/$3/$4');
+        // /api/Metro/NearestStation/{Longitude}/{Latitude} 取得指定經緯度的「最近捷運站」資料
+        $routes->get('NearestStation/(:segment)/(:segment)', 'ApiMetroController::get_metro_nearest_station/$1/$2/$3');
         
         // /api/Metro/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「捷運時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiMetroController::get_metro_arrivals/$1/$2');
@@ -112,7 +106,7 @@ $routes->group('api', static function ($routes)
         // /api/TRA/StationOfRoute/{RouteId} 取得指定路線的「臺鐵車站」資料
         $routes->get('StationOfRoute/(:segment)', 'ApiTraController::get_tra_stations/$1');
         
-        // /api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定路線及經緯度的「最近臺鐵車站」資料
+        // /api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定經緯度的「最近臺鐵車站」資料
         $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiTraController::get_tra_nearest_station/$1/$2/$3');
         
         // /api/TRA/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「臺鐵時刻表」資料
@@ -131,9 +125,9 @@ $routes->group('tdx', static function ($routes) {
         $routes->group('thsr', static function ($routes) {
             $routes->cli('station', 'TdxThsrController::setThsrStation'); // 高鐵車站
 
-            $routes->cli('train', 'TdxThsrController::setThsrTrain'); // 高鐵車次
+            // $routes->cli('train', 'TdxThsrController::setThsrTrain'); // 高鐵車次
 
-            $routes->cli('arrival', 'TdxThsrController::setThsrArrival'); // 高鐵時刻表
+            // $routes->cli('arrival', 'TdxThsrController::setThsrArrival'); // 高鐵時刻表
 
             $routes->cli('trainAndArrival', 'TdxThsrController::setThsrTrainAndArrival'); // 高鐵時刻表與車次
         });
@@ -146,9 +140,9 @@ $routes->group('tdx', static function ($routes) {
 
             $routes->cli('routeStation', 'TdxTraController::setTraRouteStation'); // 臺鐵路線車站
 
-            $routes->cli('train', 'TdxTraController::setTraTrain'); // 臺鐵車次
+            // $routes->cli('train', 'TdxTraController::setTraTrain'); // 臺鐵車次
 
-            $routes->cli('arrival', 'TdxTraController::setTraArrival'); // 臺鐵時刻表
+            // $routes->cli('arrival', 'TdxTraController::setTraArrival'); // 臺鐵時刻表
 
             $routes->cli('trainAndArrival', 'TdxTraController::setTraTrainAndArrival'); // 臺鐵時刻表與車次
         });
