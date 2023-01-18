@@ -11,6 +11,7 @@ use App\Models\ORM\MetroStationModel;
 use App\Models\ORM\MetroSubRouteModel;
 use App\Models\ORM\MetroSubRouteStationModel;
 use App\Models\ORM\MetroSystemModel;
+use App\Models\ORM\MetroTransferModel;
 use Exception;
 
 class TdxMetroController extends TdxBaseController
@@ -31,6 +32,7 @@ class TdxMetroController extends TdxBaseController
             $this->MSRModel  = new MetroSubRouteModel();
             $this->MSRSModel = new MetroSubRouteStationModel();
             $this->MSTModel  = new MetroSystemModel();
+            $this->MTModel   = new MetroTransferModel();
         }
         catch (Exception $e)
         {
@@ -821,6 +823,75 @@ class TdxMetroController extends TdxBaseController
                 }
                 // 印出花費時間
                 $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
+            }
+        }
+        catch (Exception $e)
+        {
+            $this->terminalLog($e, true, true);
+            log_message("critical", $e);
+        }
+    }
+
+    /**
+     * 取得指定捷運系統的轉乘資料
+     */
+    public function getMetroTransfer($railSystem)
+    {
+        try
+        {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/LineTransfer/$railSystem?%24format=JSON";
+            return $this->curlGet($url, $accessToken);
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 寫入指定捷運系統的轉乘資料
+     */
+    public function setMetroTransfer($railSystem)
+    {
+        try
+        {
+            // 開始計時
+            $startTime = $this->getTime();
+            $transfers = $this->getMetroTransfer($railSystem);
+
+            $this->terminalLog("Running data of $railSystem ... ");
+
+            foreach ($transfers as $transfer)
+            {
+                // 寫入轉乘資料（資料已含雙向）
+                $this->MTModel->save([
+                    "MT_from_station_id" => $this->getUID($railSystem, $transfer->FromStationID),
+                    "MT_to_station_id"   => $this->getUID($railSystem, $transfer->ToStationID),
+                    "MT_transfer_time"   => $transfer->TransferTime * 60,
+                ]);
+            }
+            // 印出花費時間
+            $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
+        }
+        catch (Exception $e)
+        {
+            $this->terminalLog($e, true, true);
+            log_message("critical", $e);
+        }
+    }
+
+    /**
+     * 寫入所有捷運系統的轉乘資料
+     */
+    public function setMetroTransferAll()
+    {
+        try
+        {
+            $systems = $this->getMetroSystem();
+            foreach ($systems as $system)
+            {
+                $this->setMetroTransfer($system->MST_id);
             }
         }
         catch (Exception $e)

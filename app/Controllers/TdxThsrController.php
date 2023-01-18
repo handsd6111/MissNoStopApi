@@ -128,7 +128,7 @@ class TdxThsrController extends TdxBaseController
         foreach ($result as $value) {
             $thsrTrainModel->save([
                 'HT_id' => $value->DailyTrainInfo->TrainNo,
-                'HT_departure_time' => $value->TrainDate
+                'HT_departure_date' => $value->TrainDate
             ]);
         }
 
@@ -170,7 +170,7 @@ class TdxThsrController extends TdxBaseController
         foreach ($result as $value) {
             $thsrTrainModel->save([
                 'HT_id' => $value->DailyTrainInfo->TrainNo,
-                'HT_departure_time' => $value->TrainDate
+                'HT_departure_date' => $value->TrainDate
             ]);
 
             foreach ($value->StopTimes as $stopTime) {
