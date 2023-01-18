@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Controllers\ApiBaseControllers;
+namespace App\Controllers;
 
-use App\Controllers\ApiBaseControllers\ApiBaseController;
-use App\Controllers\ApiBaseControllers\ApiMetroBaseController;
+use App\Controllers\ApiBaseController;
+use App\Controllers\ApiMetroBaseController;
 use App\Models\MetroModel;
 use Exception;
 
@@ -17,6 +17,8 @@ class ApiRoutePlanBaseController extends ApiBaseController
     protected $startRoutes;
     protected $endRoutes;
     protected $departureTime;
+    protected $arvTimes;
+    public $stationRoutes;
 
     /**
      * 拜訪車站佇列
@@ -89,6 +91,9 @@ class ApiRoutePlanBaseController extends ApiBaseController
      * 時刻表
      */
     private $arrivals;
+
+    public $metroModel;
+    public $metroController;
 
     /**
      * 載入模型

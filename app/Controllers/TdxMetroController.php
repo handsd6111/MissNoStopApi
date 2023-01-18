@@ -16,6 +16,17 @@ use Exception;
 
 class TdxMetroController extends TdxBaseController
 {
+    protected $metroModel;
+    protected $MAModel;
+    protected $MDModel;
+    protected $MRModel;
+    protected $MRSModel;
+    protected $MSModel;
+    protected $MSRModel;
+    protected $MSRSModel;
+    protected $MSTModel;
+    protected $MTModel;
+
     function __construct()
     {
         try

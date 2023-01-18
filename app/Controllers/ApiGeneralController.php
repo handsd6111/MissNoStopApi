@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Controllers\ApiBaseControllers;
+namespace App\Controllers;
 
+use App\Controllers\ApiBaseController;
 use Exception;
 
 class ApiGeneralController extends ApiBaseController

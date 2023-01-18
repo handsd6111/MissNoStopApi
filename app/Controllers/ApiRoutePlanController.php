@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Controllers\ApiBaseControllers\ApiRoutePlanBaseController;
+use App\Controllers\ApiRoutePlanBaseController;
 use Exception;
 
 /**

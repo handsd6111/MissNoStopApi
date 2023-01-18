@@ -8,7 +8,7 @@ class MetroModel extends BaseModel
 {
     /**
      * 取得所有捷運系統資料
-     * @return array 捷運系統資料
+     * @return mixed 捷運系統資料
      */
     function get_systems()
     {

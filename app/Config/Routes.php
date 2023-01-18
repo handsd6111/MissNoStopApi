@@ -43,7 +43,7 @@ $routes->group('api', static function ($routes)
     $routes->group('General', static function ($routes)
     {
         // /api/General/City 取得縣市資料
-        $routes->get('City', 'ApiController::get_cities');
+        $routes->get('City', 'ApiGeneralController::get_cities');
     });
 
     // 公車相關 api

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers\ApiBaseControllers;
+namespace App\Controllers;
 
 use App\Controllers\BaseController;
 use App\Models\BaseModel;
@@ -15,6 +15,8 @@ class ApiBaseController extends BaseController
      * 參數驗證失敗訊息
      */
     public $validateErrMsg = "";
+
+    public $baseModel;
 
     /**
      * 縣市代碼最大長度

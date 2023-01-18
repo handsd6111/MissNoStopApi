@@ -2,12 +2,14 @@
 
 namespace App\Controllers;
 
-use App\Controllers\ApiBaseControllers\ApiMetroBaseController;
+use App\Controllers\ApiMetroBaseController;
 use App\Models\MetroModel;
 use Exception;
 
 class ApiMetroController extends ApiMetroBaseController
 {
+    public $metroModel;
+
     // 載入模型
     function __construct()
     {

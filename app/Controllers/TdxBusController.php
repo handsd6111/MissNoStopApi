@@ -13,6 +13,13 @@ use stdClass;
 
 class TdxBusController extends TdxBaseController
 {
+    protected $cityModel;
+    protected $busArrivalModel;
+    protected $busModel;
+    protected $busRouteStationModel;
+    protected $busRouteModel;
+    protected $busStationModel;
+
     /**
      * 統一載入模型
      * @return void 不回傳值

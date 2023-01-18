@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Controllers\ApiBaseControllers;
+namespace App\Controllers;
 
-use App\Controllers\ApiBaseControllers\ApiBaseController;
+use App\Controllers\ApiBaseController;
 use App\Models\MetroModel;
 use Exception;
 use stdClass;
 
 class ApiMetroBaseController extends ApiBaseController
 {
+    public $metroModel;
+
     // 載入模型
     function __construct()
     {

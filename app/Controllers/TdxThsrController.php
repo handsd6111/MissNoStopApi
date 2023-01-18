@@ -56,6 +56,9 @@ class TdxThsrController extends TdxBaseController
         $thsrSataionModel = new ThsrStationModel();
 
         foreach ($result as $value) {
+
+            $this->terminalLog("正在取得 {$value->StationName->Zh_tw} ... ");
+
             $thsrSataionModel->save([
                 'HS_id' => $value->StationUID,
                 'HS_name_TC' => $value->StationName->Zh_tw,

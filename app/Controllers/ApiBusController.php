@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Controllers\ApiBaseControllers;
+namespace App\Controllers;
 
+use App\Controllers\ApiBaseController;
 use App\Models\BusModel;
 use Exception;
 
 class ApiBusController extends ApiBaseController
 {
+    public $busModel;
+
     // 載入模型
     function __construct()
     {

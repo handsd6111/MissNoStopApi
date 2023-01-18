@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Controllers\ApiBaseControllers;
+namespace App\Controllers;
 
+use App\Controllers\ApiBaseController;
 use App\Models\TRAModel;
 use Exception;
 
 class ApiTraController extends ApiBaseController
 {
+    public $TRAModel;
+
     // 載入模型
     function __construct()
     {

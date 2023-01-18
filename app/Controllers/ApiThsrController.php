@@ -1,12 +1,15 @@
 <?php
 
-namespace App\Controllers\ApiBaseControllers;
+namespace App\Controllers;
 
+use App\Controllers\ApiBaseController;
 use App\Models\THSRModel;
 use Exception;
 
 class ApiThsrController extends ApiBaseController
 {
+    public $THSRModel;
+
     // 載入模型
     function __construct()
     {
