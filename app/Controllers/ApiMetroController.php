@@ -58,7 +58,7 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("SystemId", $systemId, 4))
+            if (!$this->validate_param("SystemId", $systemId, parent::METRO_SYSTEM_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -90,7 +90,7 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 12))
+            if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -124,13 +124,15 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 12) || !$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
+            if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH)
+                || !$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             // 取得最近捷運站
-            $station = $this->metroModel->get_nearest_station($routeId, $longitude, $latitude, $limit)->get()->getResult();
+            $station = $this->metroModel->get_nearest_station($routeId, $longitude, $latitude)->get($limit)->getResult();
             
             // 重新排列資料
             $this->restructure_stations($station);
@@ -157,7 +159,8 @@ class ApiMetroController extends ApiMetroBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId) || !$this->validate_param("ToStationId", $toStationId))
+            if (!$this->validate_param("FromStationId", $fromStationId, parent::METRO_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, parent::METRO_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -168,20 +171,14 @@ class ApiMetroController extends ApiMetroBaseController
             // 取得起訖站皆行經的所有捷運子路線
             $subRoutes = $this->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
 
-            $arrivals = [];
-
-            // 取得每條路線的時刻表
-            for ($i = 0; $i < sizeof($subRoutes); $i++)
-            {
-                // 取得時刻表
-                $arrival = $this->get_arrival($fromStationId, $toStationId, $subRoutes[$i], $direction);
-
-                // 合併至 $arrivals
-                $arrivals = array_merge($arrivals, $arrival);
-            }
+            // 取得指定子路線的總運行時間
+            $durations = $this->get_durations($fromStationId, $toStationId, $subRoutes, $direction);
             
+            // 取得時刻表資料
+            $arrivals = $this->get_arrivals($fromStationId, $direction, $subRoutes, $durations);
+
             // 重新排列資料
-            $this->restructure_metro_arrivals($arrivals);
+            $this->restructure_arrivals($arrivals, $fromStationId, $toStationId);
 
             // 回傳資料
             return $this->send_response($arrivals);

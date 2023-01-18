@@ -60,7 +60,7 @@ class TRAModel extends BaseModel
      * 取得指定臺鐵路線及經緯度的最近臺鐵站資料查詢類別
      * @return mixed 查詢類別
      */
-    function get_nearest_station($routeId, $longitude, $latitude, $limit)
+    function get_nearest_station($routeId, $longitude, $latitude)
     {
         try
         {
@@ -92,8 +92,7 @@ class TRAModel extends BaseModel
                                 ) / 100 AS RS_distance"
                             )
                             ->where($condition)
-                            ->orderBy("RS_distance")
-                            ->limit($limit);
+                            ->orderBy("RS_distance");
         }
         catch (Exception $e)
         {

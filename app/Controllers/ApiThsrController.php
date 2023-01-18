@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\ApiBaseControllers;
 
 use App\Models\THSRModel;
 use Exception;
@@ -59,7 +59,8 @@ class ApiThsrController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, 11) || !$this->validate_param("ToStationId", $toStationId, 11))
+            if (!$this->validate_param("FromStationId", $fromStationId, parent::THSR_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, parent::THSR_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -89,7 +90,7 @@ class ApiThsrController extends ApiBaseController
             }
 
             // 重新排列時刻表資料
-            $this->restructure_arrivals($arrivals);
+            $this->restructure_arrivals_old($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);
@@ -115,13 +116,14 @@ class ApiThsrController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
+            if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             // 取得高鐵所有車站資料
-            $station = $this->THSRModel->get_nearest_station($longitude, $latitude, $limit)->get()->getResult();
+            $station = $this->THSRModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
 
             // 重新排列資料
             $this->restructure_stations($station);

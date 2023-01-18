@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers;
+namespace App\Controllers\ApiBaseControllers;
 
 use App\Models\BusModel;
 use Exception;
@@ -30,7 +30,7 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("CityId", $cityId, 3))
+            if (!$this->validate_param("CityId", $cityId, parent::CITY_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -62,7 +62,7 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 17))
+            if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
@@ -96,13 +96,15 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, 17) || !$this->validate_param("Longitude", $longitude) || !$this->validate_param("Latitude", $latitude))
+            if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH)
+                || !$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
+                || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
             // 取得指定公車路線及經緯度的最近車站資料
-            $station = $this->busModel->get_nearest_station($routeId, $longitude, $latitude, $limit)->get()->getResult();
+            $station = $this->busModel->get_nearest_station($routeId, $longitude, $latitude)->get($limit)->getResult();
 
             // 重新排列公車站資料
             $this->restructure_stations($station);
@@ -130,7 +132,8 @@ class ApiBusController extends ApiBaseController
         try
         {
             // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, 17) || !$this->validate_param("ToStationId", $toStationId, 17))
+            if (!$this->validate_param("FromStationId", $fromStationId, parent::BUS_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, parent::BUS_STATION_ID_LENGTH))
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
