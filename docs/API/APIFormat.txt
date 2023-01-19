@@ -268,21 +268,8 @@
 
 臺鐵
 
-/api/TRA/Route
-取得「臺鐵路線」資料
-
-[
-	[
-		RouteId: 路線代碼,
-		RouteName: {
-			TC: 中文路名,
-			EN: 英文路名
-		}
-	]
-]
-
-/api/TRA/StationOfRoute/{RouteId}
-取得指定路線的「臺鐵車站」資料
+/api/TRA/StationOfCity/{CityId}
+取得指定縣市的「臺鐵車站」資料
 
 [
 	[
@@ -319,31 +306,17 @@
 	]
 ]
 
-/api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude}/{Limit}
-取得指定路線、經緯度及回傳數量的「最近臺鐵車站」資料
-
-[
-	[
-		StationId: 車站代碼,
-		StationName: {
-			TC: 中文站名,
-			EN: 英文站名
-		},
-		StationLocation: {
-			CityId: 縣市代碼,
-			Longitude: 經度,
-			Latitude: 緯度
-		},
-		Sequence: 站序
-	]
-]
-
 /api/TRA/Arrival/{FromStationId}/{ToStationId}
 取得指定起訖站的「臺鐵時刻表」資料
 
 [
 	[
 		TrainId: 車次代碼,
+		RouteId: 路線代碼,
+		RouteName: {
+			"TC": 中文路線名稱,
+			"EN": 英文路線名稱
+		},
 		Schedule: {
 			DepartureTime: 起站發車時間,
 			ArrivalTime: 訖站抵達時間

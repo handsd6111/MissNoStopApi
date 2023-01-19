@@ -101,7 +101,7 @@ $routes->group('api', static function ($routes)
     $routes->group('TRA', static function ($routes)
     {
         // /api/TRA/Route 取得「臺鐵路線」資料
-        $routes->get('Route', 'ApiTraController::get_tra_routes');
+        // $routes->get('Route', 'ApiTraController::get_tra_routes');
         
         // /api/TRA/StationOfCity/{CityId} 取得指定縣市的「臺鐵車站」資料
         $routes->get('StationOfCity/(:segment)', 'ApiTraController::get_stations_by_city/$1');
