@@ -48,22 +48,22 @@ class ApiTraController extends ApiBaseController
     }
 
     /**
-     * 取得指定臺鐵路線的所有臺鐵站資料
-     * @param string 路線代碼
+     * 取得指定縣市的所有臺鐵站資料
+     * @param string $cityId 縣市代碼
      * @return array 臺鐵站資料
      */
-    function get_tra_stations($routeId)
+    function get_stations_by_city($cityId)
     {
         try
         {
             // 驗證參數
-            if (!$this->validate_param("RouteId", $routeId, parent::TRA_ROUTE_ID_LENGTH))
+            if (!$this->validate_param("RouteId", $cityId, parent::CITY_ID_LENGTH))
             {
                 return $this->send_response([], 400, (array) $this->validator->getErrors());
             }
 
             // 取得高鐵所有車站資料
-            $stations = $this->TRAModel->get_stations($routeId)->get()->getResult();
+            $stations = $this->TRAModel->get_stations_by_city($cityId)->get()->getResult();
 
             // 重新排列資料
             $this->restructure_stations($stations);
@@ -77,6 +77,37 @@ class ApiTraController extends ApiBaseController
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
+
+    /**
+     * 取得指定臺鐵路線的所有臺鐵站資料
+     * @param string 路線代碼
+     * @return array 臺鐵站資料
+     */
+    // function get_tra_stations($routeId)
+    // {
+    //     try
+    //     {
+    //         // 驗證參數
+    //         if (!$this->validate_param("RouteId", $routeId, parent::TRA_ROUTE_ID_LENGTH))
+    //         {
+    //             return $this->send_response([], 400, (array) $this->validator->getErrors());
+    //         }
+
+    //         // 取得高鐵所有車站資料
+    //         $stations = $this->TRAModel->get_stations($routeId)->get()->getResult();
+
+    //         // 重新排列資料
+    //         $this->restructure_stations($stations);
+
+    //         // 回傳資料
+    //         return $this->send_response($stations);
+    //     }
+    //     catch (Exception $e)
+    //     {
+    //         log_message("critical", $e->getMessage());
+    //         return $this->send_response([], 500, lang("Exception.exception"));
+    //     }
+    // }
 
     /**
      * 取得指定臺鐵路線及經緯度的最近臺鐵站資料
@@ -129,38 +160,11 @@ class ApiTraController extends ApiBaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            // 取得行駛方向（0：南下；1：北上）
-            $direction = 0;
-            if (intval(str_replace("TRA-", "", $fromStationId)) > intval(str_replace("TRA-", "", $toStationId)))
-            {
-                $direction = 1;
-            }
+            $trains = $this->TRAModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
 
-            // 取得行經指定臺鐵起訖站的所有車次
-            $trainIds = $this->TRAModel->get_trains_by_stations($fromStationId, $toStationId, $direction)->get()->getResult();
-
-            // 整理後的時刻表陣列
             $arrivals = [];
 
-            // 透過列車代碼及起訖站來查詢時刻表
-            for ($i = 0; $i < sizeof($trainIds); $i++)
-            {
-                $arrivalData = $this->TRAModel->get_arrivals($trainIds[$i]->RA_train_id, $fromStationId, $toStationId)->get()->getResult();
-                
-                if (sizeof($arrivalData) == 2)
-                {
-                    $arrivals[$i] = $arrivalData;
-                }
-            }
-
-            // 若查無資料則回傳「查無此路線資料」
-            if (!sizeof($arrivals))
-            {
-                return $this->send_response([], 200, lang("Query.dataNotAvailable"));
-            }
-
-            // 重新排序時刻表資料
-            $this->restructure_arrivals_old($arrivals);
+            $this->restructure_tra_arrivals($trains, $arrivals, $fromStationId);
 
             // 回傳資料
             return $this->send_response($arrivals);

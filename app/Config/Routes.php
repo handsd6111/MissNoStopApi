@@ -103,8 +103,8 @@ $routes->group('api', static function ($routes)
         // /api/TRA/Route 取得「臺鐵路線」資料
         $routes->get('Route', 'ApiTraController::get_tra_routes');
         
-        // /api/TRA/StationOfRoute/{RouteId} 取得指定路線的「臺鐵車站」資料
-        $routes->get('StationOfRoute/(:segment)', 'ApiTraController::get_tra_stations/$1');
+        // /api/TRA/StationOfCity/{CityId} 取得指定縣市的「臺鐵車站」資料
+        $routes->get('StationOfCity/(:segment)', 'ApiTraController::get_stations_by_city/$1');
         
         // /api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定經緯度的「最近臺鐵車站」資料
         $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiTraController::get_tra_nearest_station/$1/$2/$3');
