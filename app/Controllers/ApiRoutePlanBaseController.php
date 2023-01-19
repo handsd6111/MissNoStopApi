@@ -132,8 +132,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
                 {
                     return $this->get_cross_route_plan();
                 }
-                
-                $this->metroController->restructure_arrivals($arrivals, $startStationId, $endStationId);
+                $this->restructure_arrival($arrival, $startStationId, $endStationId);
 
                 return $arrival;
             }
