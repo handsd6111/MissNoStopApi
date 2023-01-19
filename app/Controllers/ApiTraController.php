@@ -160,11 +160,11 @@ class ApiTraController extends ApiBaseController
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
 
-            $trains = $this->TRAModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
+            $schedules = $this->TRAModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
 
             $arrivals = [];
 
-            $this->restructure_tra_arrivals($trains, $arrivals, $fromStationId);
+            $this->restructure_tra_arrivals($schedules, $arrivals, $fromStationId);
 
             // 回傳資料
             return $this->send_response($arrivals);

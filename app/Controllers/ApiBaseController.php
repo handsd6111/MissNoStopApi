@@ -357,17 +357,15 @@ class ApiBaseController extends BaseController
 
     /**
      * 重新排列高鐵時刻表資料
-     * @param array &$arrivals 時刻表陣列
-     * @return void 不回傳值
      */
-    function restructure_tra_arrivals(&$trains, &$arrivals, $fromStationId)
+    function restructure_tra_arrivals(&$schedules, &$arrivals, $fromStationId)
     {
         try
         {
-            for ($i = 0; $i < sizeof($trains); $i += 2)
+            for ($i = 0; $i < sizeof($schedules); $i += 2)
             {
-                $fromData = $trains[$i];
-                $toData   = $trains[$i+1];
+                $fromData = $schedules[$i];
+                $toData   = $schedules[$i+1];
 
                 if ($fromData->station_id != $fromStationId) continue;
 
@@ -378,6 +376,37 @@ class ApiBaseController extends BaseController
                         "TC" => $fromData->route_name_TC,
                         "EN" => $fromData->route_name_EN
                     ],
+                    "Schedule" => [
+                        "DepartureTime" => $fromData->arrival_time,
+                        "ArrivalTime"   => $toData->arrival_time
+                    ]
+                ];
+
+                array_push($arrivals, $data);
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列高鐵時刻表資料
+     */
+    function restructure_thsr_arrivals(&$schedules, &$arrivals, $fromStationId)
+    {
+        try
+        {
+            for ($i = 0; $i < sizeof($schedules); $i += 2)
+            {
+                $fromData = $schedules[$i];
+                $toData   = $schedules[$i+1];
+
+                if ($fromData->station_id != $fromStationId) continue;
+
+                $data = [
+                    "TrainId" => $fromData->train_id,
                     "Schedule" => [
                         "DepartureTime" => $fromData->arrival_time,
                         "ArrivalTime"   => $toData->arrival_time

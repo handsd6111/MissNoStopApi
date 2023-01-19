@@ -251,25 +251,6 @@
 	]
 ]
 
-/api/THSR/NearestStation/{Longitude}/{Latitude}/{Limit}
-取得指定經緯度及回傳數量的「最近高鐵車站」資料
-
-[
-	[
-		StationId: 車站代碼,
-		StationName: {
-			TC: 中文站名,
-			EN: 英文站名
-		},
-		StationLocation: {
-			CityId: 縣市代碼,
-			Longitude: 經度,
-			Latitude: 緯度
-		},
-		Sequence: 站序
-	]
-]
-
 /api/THSR/Arrival/{FromStationId}/{ToStationId}
 取得指定起訖站的「高鐵時刻表」資料
 
