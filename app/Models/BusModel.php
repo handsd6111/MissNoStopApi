@@ -30,7 +30,7 @@ class BusModel extends BaseModel
                                 BR_name_EN AS name_EN"
                             )
                             ->where($condition)
-                            ->groupBy("BR_id")
+                            ->groupBy("BR_name_TC")
                             ->orderBy("BR_id");
         }
         catch (Exception $e)
