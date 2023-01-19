@@ -545,26 +545,28 @@ class ApiRoutePlanBaseController extends ApiBaseController
         try
         {
             $size = sizeof($arrivals);
-            if ($size < 2)
-            {
-                return;
-            }
+
+            if ($size < 2) return;
+
             $secLastIndex = $size - 2;
             $lastIndex    = $size - 1;
             $secLastArrival = $arrivals[$secLastIndex];
             $lastArrival    = $arrivals[$lastIndex];
 
-            if ($secLastArrival["SubRouteId"] == $lastArrival["SubRouteId"])
-            {
-                $fromStationId = $secLastArrival["FromStationId"];
-                $toStationId   = $lastArrival["ToStationId"];
-                $departureTime = $secLastArrival["Schedule"]["DepartureTime"];
+            if ($secLastArrival["RouteId"] != $lastArrival["RouteId"] && $secLastArrival["SubRouteId"] == $lastArrival["SubRouteId"]) return;  
 
-                $newArrival = $this->get_arrival($fromStationId, $toStationId, $departureTime);
+            $fromStationId = $secLastArrival["FromStationId"];
+            $toStationId   = $lastArrival["ToStationId"];
+            $departureTime = $secLastArrival["Schedule"]["DepartureTime"];
 
-                $arrivals = array_slice($arrivals, 0, $secLastIndex);
-                array_push($arrivals, $newArrival);
-            }
+            $newArrival = $this->get_arrival($fromStationId, $toStationId, $departureTime);
+
+            $this->restructure_arrival($newArrival, $fromStationId, $toStationId);
+
+            if (!$newArrival) return;
+
+            $arrivals = array_slice($arrivals, 0, $secLastIndex);
+            array_push($arrivals, $newArrival);
         }
         catch (Exception $e)
         {

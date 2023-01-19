@@ -339,6 +339,8 @@ class ApiBaseController extends BaseController
         {
             for ($i = 0; $i < sizeof($fromArrivals); $i++)
             {
+                if (array_key_exists($i, $fromArrivals) || array_key_exists($i, $toArrivals)) break;
+                
                 $arrivals[$i] = [
                     "Sequence" => $i + 1,
                     "Schedule" => [

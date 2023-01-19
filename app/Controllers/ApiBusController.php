@@ -19,7 +19,7 @@ class ApiBusController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
         }
     }
     
@@ -49,7 +49,7 @@ class ApiBusController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([$e], 500, lang("Exception.exception"));
         }
     }
@@ -81,7 +81,7 @@ class ApiBusController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -116,7 +116,7 @@ class ApiBusController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -146,11 +146,11 @@ class ApiBusController extends ApiBaseController
             // 起站時刻表
             $toArrivals = $this->busModel->get_arrivals($route, $direction, $toStationId)->get()->getResult();
 
-            if (!sizeof($fromArrivals))
+            if (!$fromArrivals)
             {
                 return $this->send_response(["stationId" => $fromStationId], 400, lang("Query.stationNotFound"));
             }
-            if (!sizeof($toArrivals))
+            if (!$toArrivals)
             {
                 return $this->send_response(["stationId" => $toStationId], 400, lang("Query.stationNotFound"));
             }
@@ -165,7 +165,7 @@ class ApiBusController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
