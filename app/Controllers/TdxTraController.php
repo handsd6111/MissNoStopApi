@@ -223,7 +223,7 @@ class TdxTraController extends TdxBaseController
     public function getTraTrainAndArrival()
     {
         $accessToken = $this->getAccessToken();
-        $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/TRA/DailyTimetable/Today?%24top=30&%24format=JSON";
+        $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/TRA/DailyTimetable/Today?%24format=JSON";
         return $this->curlGet($url, $accessToken);
     }
 
@@ -259,7 +259,7 @@ class TdxTraController extends TdxBaseController
 
         foreach ($result as $value) {
 
-            $this->terminalLog("正在取得 {$value->DailyTrainInfo->TrainNo} ... ", true);
+            $this->terminalLog("正在取得車次為 {$value->DailyTrainInfo->TrainNo} 的資料 ... ", true);
 
             foreach ($value->StopTimes as $stopTime) {
                 $traArrivalModel->save([

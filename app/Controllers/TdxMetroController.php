@@ -353,9 +353,16 @@ class TdxMetroController extends TdxBaseController
                     $station->StationName->En = $station->StationName->Zh_tw;
                 }
 
+                $stationId = $station->StationUID;
+
+                if ($railSystem == "KLRT")
+                {
+                    $stationId = $this->getUID("KRTC", $station->StationID);
+                }
+
                 // 寫入車站資料
                 $this->MSModel->save([
-                    'MS_id'        => $station->StationUID,
+                    'MS_id'        => $stationId,
                     'MS_name_TC'   => $station->StationName->Zh_tw,
                     'MS_name_EN'   => $station->StationName->En,
                     'MS_city_id'   => $station->LocationCityCode,
@@ -481,6 +488,11 @@ class TdxMetroController extends TdxBaseController
             // 取得路線車站資料
             $subRoutes = $this->getMetroDuration($railSystem);
 
+            if ($railSystem == "KLRT")
+            {
+                $railSystem = "KRTC";
+            }
+
             // 取得相反的行駛方向
             $reverseDirection = [1, 0];
 
@@ -590,13 +602,24 @@ class TdxMetroController extends TdxBaseController
                 // 取得路線代碼
                 $routeId = $this->getUID($railSystem, $route->LineID);
 
+                if ($railSystem == "KLRT")
+                {
+                    $routeId = $this->getUID("KRTC", $route->LineID);
+                }
+
                 $this->terminalLog("Running data of $routeId ... ");
 
                 // 走遍路線的車站資料
                 foreach ($route->Stations as $station)
                 {
+                    $stationId = $this->getUID($railSystem, $station->StationID);
+
+                    if ($railSystem == "KLRT")
+                    {
+                        $stationId = $this->getUID("KRTC", $station->StationID);
+                    }
                     $this->MRSModel->save([
-                        "MRS_station_id" => $this->getUID($railSystem, $station->StationID),
+                        "MRS_station_id" => $stationId,
                         "MRS_route_id"   => $routeId,
                         "MRS_sequence"   => $station->Sequence
                     ]);
@@ -660,6 +683,12 @@ class TdxMetroController extends TdxBaseController
     {
         try
         {
+            if ($railSystem == "KLRT")
+            {
+                $this->setMetroKlrtSubRouteStation();
+                return;
+            }
+
             // 取得子路線捷運站資料
             $subRoutes = $this->getMetroSubRouteStation($railSystem);
 
@@ -689,6 +718,83 @@ class TdxMetroController extends TdxBaseController
                         "MSRS_sub_route_id" => $subRouteId,
                         "MSRS_direction"    => $direction,
                         "MSRS_sequence"     => $Station->Sequence
+                    ]);
+                }
+
+                // 印出花費時間
+                $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
+            }
+        }
+        catch (Exception $e)
+        {
+            $this->terminalLog($e, true, true);
+            log_message("critical", $e);
+        }
+    }
+
+    /**
+     * 取得捷運輕軌（子）路線車站資料
+     */
+    public function getMetroKlrtSubRouteStation()
+    {
+        try
+        {
+            $accessToken = $this->getAccessToken();
+            $url = "https://tdx.transportdata.tw/api/basic/v2/Rail/Metro/StationOfLine/KLRT?%24format=JSON";
+            return $this->curlGet($url, $accessToken);
+        }
+        catch (Exception $e)
+        {
+            $this->terminalLog($e, true, true);
+            log_message("critical", $e);
+        }
+    }
+
+
+    /**
+     * 寫入捷運輕軌（子）路線車站資料
+     */
+    function setMetroKlrtSubRouteStation()
+    {
+        try
+        {
+            // 取得子路線捷運站資料
+            $subRoutes = $this->getMetroKlrtSubRouteStation();
+
+            // 走遍子路線捷運站資料
+            foreach ($subRoutes as $subRoute)
+            {
+                // 開始計時
+                $startTime = $this->getTime();
+
+                // 取得子路線
+                $subRouteId = $this->getUID("KRTC", $subRoute->LineID);
+
+                $this->terminalLog("Running data of $subRouteId ... ");
+
+                // 路線上共有多少車站
+                $stationSize = sizeof($subRoute->Stations);
+
+                // 走遍子路線的所有捷運站
+                foreach ($subRoute->Stations as $Station)
+                {
+                    // 取得捷運站代碼
+                    $stationId = $this->getUID("KRTC", $Station->StationID);
+
+                    // 寫入去程資料
+                    $this->MSRSModel->save([
+                        "MSRS_station_id"   => $stationId,
+                        "MSRS_sub_route_id" => $subRouteId,
+                        "MSRS_direction"    => 0,
+                        "MSRS_sequence"     => $Station->Sequence
+                    ]);
+
+                    // 寫入返程資料
+                    $this->MSRSModel->save([
+                        "MSRS_station_id"   => $stationId,
+                        "MSRS_sub_route_id" => $subRouteId,
+                        "MSRS_direction"    => 1,
+                        "MSRS_sequence"     => $stationSize - intval($Station->Sequence) + 1
                     ]);
                 }
 
@@ -797,10 +903,24 @@ class TdxMetroController extends TdxBaseController
 
             // 取得時刻表資料
             $arrivals = $this->getMetroArrival($railSystem);
+            
+            if ($railSystem == "KLRT")
+            {
+                $railSystem = "KRTC";
+            }
 
             // 走遍時刻表資料
             foreach ($arrivals as $arrival)
             {
+                $this->terminalLog("Running data of $railSystem-{$arrival->StationID} ... ");
+
+                // 若今日無發車則跳過
+                if (!$arrival->ServiceDay->$weekDay)
+                {
+                    $this->terminalLog("not service day, skip ...", true);
+                    continue;
+                }
+
                 // 開始計時
                 $startTime = $this->getTime();
 
@@ -808,14 +928,6 @@ class TdxMetroController extends TdxBaseController
                 $subRouteId = $this->getUID($railSystem, $arrival->RouteID);
                 $stationId  = $this->getUID($railSystem, $arrival->StationID);
                 $direction  = $arrival->Direction;
-
-                 // 若今日無發車則跳過
-                if (!$arrival->ServiceDay->$weekDay)
-                {
-                    continue;
-                }
-
-                $this->terminalLog("Running data of $railSystem-{$arrival->StationID} ... ");
 
                 // 走遍時刻表
                 foreach ($arrival->Timetables as $timeTable)

@@ -8,6 +8,9 @@ use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use CodeIgniter\CLI\CLI;
+use Exception;
+
 
 /**
  * Class BaseController
@@ -48,6 +51,37 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
 
         // E.g.: $this->session = \Config\Services::session();
+    }
+
+    /**
+     * 在終端顯示訊息
+     * @param string $message 訊息
+     * @param bool $lineBreak 是否換行
+     * @param void 不回傳值
+     */
+    protected function terminalLog($message = "", $lineBreak = false, $preLineBreak = false)
+    {
+        try
+        {
+            $cli = new CLI();
+            if ($preLineBreak)
+            {
+                $cli::newLine();
+            }
+            $cli::print($message);
+            if ($lineBreak)
+            {
+                $cli::newLine();
+            }
+            if (ob_get_level() > 0)
+            {
+                ob_end_flush();  
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
     }
 
     /**

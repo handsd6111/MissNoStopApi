@@ -111,6 +111,8 @@ $routes->group('api', static function ($routes)
         
         // /api/TRA/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「臺鐵時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiTraController::get_tra_arrivals/$1/$2');
+        
+        $routes->get('ArrivalTest/(:segment)/(:segment)', 'ApiTraController::get_tra_arrivals_test/$1/$2');
     });
 });
 
@@ -156,7 +158,7 @@ $routes->group('tdx', static function ($routes) {
             $routes->cli('subRoute/(:alphanum)', 'TdxMetroController::setMetroSubRoute/$1'); // 單筆捷運系統的子路線
 
             $routes->cli('station', 'TdxMetroController::setMetroStationAll'); // 全部捷運系統的站點
-            $routes->cli('station/(:alphanum)', 'TdxMetroController::setMetroStation/$1'); // 單個捷運系統的站點 
+            $routes->cli('station/(:alphanum)', 'TdxMetroController::setMetroStation/$1'); // 單個捷運系統的站點
 
             $routes->cli('routeStation', 'TdxMetroController::setMetroRouteStationAll'); // 全部捷運系統車站與路線的關聯資料
             $routes->cli('routeStation/(:alphanum)', 'TdxMetroController::setMetroRouteStation/$1'); // 單個捷運系統車站與路線的關聯資料

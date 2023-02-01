@@ -138,7 +138,15 @@ class ApiRoutePlanBaseController extends ApiBaseController
             }
             catch (Exception $e)
             {
-                return $this->get_cross_route_plan();
+                try
+                {
+                    $routePlan = $this->get_cross_route_plan();
+                    return $routePlan;
+                }
+                catch (Exception $e)
+                {
+                    throw $e;
+                }
             }
         }
         catch (Exception $e)
@@ -183,6 +191,8 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
             // 從訖站一路至起站地逆向查詢時刻表資料
             $arrivals = $this->retrace_source($this->endStationId);
+
+            // $this->terminalLog(json_encode($arrivals), true);
 
             $this->fix_duplicate_sub_route($arrivals);
 
@@ -389,6 +399,10 @@ class ApiRoutePlanBaseController extends ApiBaseController
     {
         try
         {
+            if (!isset($this->stationAdjacency[$source]))
+            {
+                return;
+            }
             // 走訪源頭站所有鄰居站（源頭站與鄰居站同屬一路線）
             foreach ($this->stationAdjacency[$source] as $neighbor => $connected)
             {
@@ -570,7 +584,8 @@ class ApiRoutePlanBaseController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            throw $e;
+            log_message("alert", $e);
+            return $arrivals;
         }
     }
 

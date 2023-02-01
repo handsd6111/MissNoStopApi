@@ -7,8 +7,6 @@ use Exception;
 use App\Controllers\BaseController;
 use App\Models\TdxAuth;
 use \Config\Services as CS;
-use CodeIgniter\CLI\CLI;
-
 class TdxBaseController extends BaseController
 {
     /**
@@ -82,42 +80,11 @@ class TdxBaseController extends BaseController
      * @param &$id 代碼
      * @return string UID
      */
-    protected function getUID(&$prefix, &$id)
+    protected function getUID($prefix, $id)
     {
         try
         {
             return $prefix . "-" . $id;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 在終端顯示訊息
-     * @param string $message 訊息
-     * @param bool $lineBreak 是否換行
-     * @param void 不回傳值
-     */
-    protected function terminalLog($message = "", $lineBreak = false, $preLineBreak = false)
-    {
-        try
-        {
-            $cli = new CLI();
-            if ($preLineBreak)
-            {
-                $cli::newLine();
-            }
-            $cli::print($message);
-            if ($lineBreak)
-            {
-                $cli::newLine();
-            }
-            if (ob_get_level() > 0)
-            {
-                ob_end_flush();  
-            }
         }
         catch (Exception $e)
         {
