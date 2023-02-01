@@ -23,22 +23,24 @@ class ApiTraController extends ApiBaseController
         }
     }
 
-    /**
-     * 取得所有臺鐵路線資料
-     * @return array 路線資料
-     */
-    function get_tra_routes()
+    function get_tra_cities()
     {
         try
         {
-            // 取得臺鐵所有路線
-            $routes = $this->TRAModel->get_routes()->get()->getResult();
+            $cities = $this->TRAModel->get_cities()->get()->getResult();
 
-            // 重新排列資料
-            $this->restructure_routes($routes);
+            foreach ($cities as $i => $city)
+            {
+                $cities[$i] = [
+                    "CityId" => $city->city_id,
+                    "CityName" => [
+                        "TC" => $city->name_TC,
+                        "EN" => $city->name_EN
+                    ]
+                ];
+            }
 
-            // 回傳資料
-            return $this->send_response($routes);
+            return $this->send_response($cities);
         }
         catch (Exception $e)
         {

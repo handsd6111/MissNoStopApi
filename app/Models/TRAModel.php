@@ -6,23 +6,20 @@ use Exception;
 
 class TRAModel extends BaseModel
 {
-    /**
-     * 取得所有臺鐵路線資料查詢類別
-     * @return mixed 查詢類別
-     */
-    function get_routes()
+    function get_tra_cities()
     {
         try
         {
-            return $this->db->table("TRA_routes")
-                            ->select("RR_id AS route_id,
-                                      RR_name_TC AS name_TC,
-                                      RR_name_EN AS name_EN");
+            return $this->db->table("TRA_stations")
+                            ->join("cities", "C_id = RS_city_id")
+                            ->select("C_id as id,
+                                    C_name_TC as name_TC,
+                                    c_name_EN as name_EN")
+                            ->groupBy("C_id");
         }
         catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, "Exception error");
         }
     }
 
@@ -47,6 +44,7 @@ class TRAModel extends BaseModel
                                       RS_longitude AS longitude,
                                       RS_latitude AS latitude")
                             ->where($condition)
+                            ->groupBy("RS_id")
                             ->orderBy("RRS_sequence");
         }
         catch (Exception $e)
