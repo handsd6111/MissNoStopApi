@@ -87,6 +87,9 @@ $routes->group('api', static function ($routes)
     // 高鐵相關 api
     $routes->group('THSR', static function ($routes)
     {
+        // /api/THSR/City 取得高鐵有營運的縣市
+        $routes->get('City', 'ApiThsrController::get_thsr_cities');
+
         // /api/THSR/Station 取得「高鐵車站」資料
         $routes->get('Station', 'ApiThsrController::get_thsr_stations');
         

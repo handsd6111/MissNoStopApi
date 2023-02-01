@@ -23,6 +23,32 @@ class ApiThsrController extends ApiBaseController
         }
     }
 
+    function get_thsr_cities()
+    {
+        try
+        {
+            $cities = $this->THSRModel->get_thsr_cities()->get()->getResult();
+
+            foreach ($cities as $i => $city)
+            {
+                $cities[$i] = [
+                    "CityId" => $city->id,
+                    "CityName" => [
+                        "TC" => $city->name_TC,
+                        "EN" => $city->name_EN
+                    ]
+                ];
+            }
+
+            return $this->send_response($cities);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
     /**
      * 取得高鐵所有車站資料
      * 

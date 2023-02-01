@@ -7,6 +7,23 @@ use Exception;
 
 class THSRModel extends BaseModel
 {
+    function get_thsr_cities()
+    {
+        try
+        {
+            return $this->db->table("THSR_stations")
+                            ->join("cities", "C_id = HS_city_id")
+                            ->select("C_id as id,
+                                    C_name_TC as name_TC,
+                                    c_name_EN as name_EN")
+                            ->groupBy("C_id");
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+        }
+    }
+
     /**
      * 取得高鐵所有車站查詢類別
      * @return mixed 查詢類別

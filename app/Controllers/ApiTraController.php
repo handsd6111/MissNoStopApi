@@ -27,12 +27,12 @@ class ApiTraController extends ApiBaseController
     {
         try
         {
-            $cities = $this->TRAModel->get_cities()->get()->getResult();
+            $cities = $this->TRAModel->get_tra_cities()->get()->getResult();
 
             foreach ($cities as $i => $city)
             {
                 $cities[$i] = [
-                    "CityId" => $city->city_id,
+                    "CityId" => $city->id,
                     "CityName" => [
                         "TC" => $city->name_TC,
                         "EN" => $city->name_EN
