@@ -27,15 +27,15 @@ class ApiRoutePlanController extends ApiRoutePlanBaseController
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-
             $routePlan = $this->get_route_plan($fromStationId, $toStationId, $departureTime);
 
             return $this->send_response($routePlan);
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([$e->getMessage()], 500, lang("Exception.exception"));
+            log_message("critical", $e);
+            $this->terminalLog($e);
+            return $this->send_response($e, 500, lang("Exception.exception"));
         }
     }
 }

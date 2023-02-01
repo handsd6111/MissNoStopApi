@@ -65,7 +65,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
      * @var array 同一條路線上的轉乘車站鄰接矩陣
      * $this->stationAdjacency = [
      *      StationId: [
-     *          AdjacentStationId: 鄰接車站代碼,
+     *          AdjacentStationId: true
      *      ],
      * ];
      */
@@ -124,30 +124,48 @@ class ApiRoutePlanBaseController extends ApiBaseController
             $this->startStationId = $startStationId;
             $this->endStationId   = $endStationId;
             $this->departureTime  = $departureTime;
-            try
-            {
-                $arrival = $this->get_arrival($startStationId, $endStationId, $departureTime);
 
-                if (!$arrival)
-                {
-                    return $this->get_cross_route_plan();
-                }
-                $this->restructure_arrival($arrival, $startStationId, $endStationId);
+            $arrival = $this->get_arrival($startStationId, $endStationId, $departureTime);
 
-                return $arrival;
-            }
-            catch (Exception $e)
+            if (!$arrival)
             {
-                try
+                $arrival = $this->get_cross_route_plan();
+
+                $transferStationId = $this->get_transfer_station($startStationId);
+
+                if ($transferStationId != null)
                 {
-                    $routePlan = $this->get_cross_route_plan();
-                    return $routePlan;
-                }
-                catch (Exception $e)
-                {
-                    throw $e;
+                    $this->startStationId = $transferStationId;
+
+                    $newArrival = $this->get_cross_route_plan();
+
+                    if ($this->compareArrivals($arrival, $newArrival) > 0)
+                    {
+                        $arrival = $newArrival;
+                    }
                 }
             }
+            $this->restructure_arrival($arrival, $startStationId, $endStationId);
+
+            return $arrival;
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+            throw $e;
+        }
+    }
+
+    function compareArrivals(&$arrival1, &$arrival2)
+    {
+        try
+        {
+            helper("getTimeToSecond");
+
+            $time1 = time_to_sec($arrival1[ sizeof($arrival1) - 1 ]["Schedule"]["ArrivalTime"]);
+            $time2 = time_to_sec($arrival2[ sizeof($arrival2) - 1 ]["Schedule"]["ArrivalTime"]);
+
+            return $time1 <=> $time2;
         }
         catch (Exception $e)
         {
@@ -176,10 +194,8 @@ class ApiRoutePlanBaseController extends ApiBaseController
                 $source = array_shift($this->queue);
 
                 // 若已造訪此源頭站則跳過
-                if (isset($this->visited[$source]))
-                {
-                    continue;
-                }
+                if (isset($this->visited[$source])) continue;
+
                 // 紀錄源頭站已造訪
                 $this->visited[$source] = true;
 
@@ -191,8 +207,6 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
             // 從訖站一路至起站地逆向查詢時刻表資料
             $arrivals = $this->retrace_source($this->endStationId);
-
-            // $this->terminalLog(json_encode($arrivals), true);
 
             $this->fix_duplicate_sub_route($arrivals);
 
@@ -301,10 +315,10 @@ class ApiRoutePlanBaseController extends ApiBaseController
             {
                 $this->routeStations[$subRouteId] = [];
             }
-            if (!in_array($subRouteId, $subRoutes))
-            {
-                return;
-            }
+            if (!in_array($subRouteId, $subRoutes)) return;
+
+            if (in_array($stationId, $this->routeStations[$subRouteId])) return;
+            
             array_push($this->routeStations[$subRouteId], $stationId);
         }
         catch (Exception $e)
@@ -399,25 +413,17 @@ class ApiRoutePlanBaseController extends ApiBaseController
     {
         try
         {
-            if (!isset($this->stationAdjacency[$source]))
-            {
-                return;
-            }
             // 走訪源頭站所有鄰居站（源頭站與鄰居站同屬一路線）
             foreach ($this->stationAdjacency[$source] as $neighbor => $connected)
             {
                 // 若已造訪此鄰居站則跳過
-                if (isset($this->visited[$neighbor]))
-                {
-                    continue;
-                }
+                if (isset($this->visited[$neighbor])) continue;
+
                 // 拜訪鄰居
                 $visitSuccess = $this->visit_neighbor($source, $neighbor);
 
-                if (!$visitSuccess)
-                {
-                    continue;
-                }
+                if (!$visitSuccess) continue;
+
                 // 將鄰居及其轉乘站（若有）推入佇列
                 $this->add_to_queue($neighbor);
             }
@@ -485,17 +491,43 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
             if (!isset($this->src[$endStationId]))
             {
-                throw new Exception("車站 $stationId 尚未開放查詢", 400);
+                return [];
             }
             while ($this->src[$stationId] != -1)
             {
-                $source = $this->src[$stationId];
+                $source  = $this->src[$stationId];
                 $arrival = $this->arrivals[$source][$stationId];
+
+                if (!$this->is_on_same_route($source, $stationId))
+                {
+                    $stationId = $this->get_transfer_station($stationId);
+                }
                 $this->restructure_arrival($arrival, $source, $stationId);
+
                 array_unshift($arrivals, $arrival);
+                
                 $stationId = $source;
             }
             return $arrivals;
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    function is_on_same_route($station1, $station2)
+    {
+        try
+        {
+            $station1Route = $this->metroModel->get_route_by_station($station1)->get()->getResult()[0]->route_id;
+            $station2Route = $this->metroModel->get_route_by_station($station2)->get()->getResult()[0]->route_id;
+
+            if ($station1Route == $station2Route)
+            {
+                return true;
+            }
+            return false;
         }
         catch (Exception $e)
         {
@@ -507,6 +539,10 @@ class ApiRoutePlanBaseController extends ApiBaseController
     {
         try
         {
+            if (!isset($arrival->route_id))
+            {
+                return;
+            }
             $routeId       = $arrival->route_id;
             $subRouteId    = $arrival->sub_route_id;
 
@@ -756,7 +792,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
             if (!sizeof($subRoutes))
             {
-                throw new Exception("查無 $stationId 所屬的子路線", 400);
+                return [];
             }
             foreach ($subRoutes as $index => $subRoute)
             {
