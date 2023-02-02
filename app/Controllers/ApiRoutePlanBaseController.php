@@ -162,8 +162,19 @@ class ApiRoutePlanBaseController extends ApiBaseController
         {
             helper("getTimeToSecond");
 
-            $time1 = time_to_sec($arrival1[ sizeof($arrival1) - 1 ]["Schedule"]["ArrivalTime"]);
-            $time2 = time_to_sec($arrival2[ sizeof($arrival2) - 1 ]["Schedule"]["ArrivalTime"]);
+            $index1 = sizeof($arrival1) - 1;
+            $index2 = sizeof($arrival2) - 1;
+
+            if ($index1 < 0)
+            {
+                return 1;
+            }
+            if ($index2 < 0)
+            {
+                return -1;
+            }
+            $time1 = time_to_sec($arrival1[ $index1 ]["Schedule"]["ArrivalTime"]);
+            $time2 = time_to_sec($arrival2[ $index2 ]["Schedule"]["ArrivalTime"]);
 
             return $time1 <=> $time2;
         }
