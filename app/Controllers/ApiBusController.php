@@ -123,13 +123,12 @@ class ApiBusController extends ApiBaseController
 
     /**
      * 取得指定公車路線、行駛方向及起訖站的時刻表
-     * @param string $routeId 路線代碼
-     * @param int $direction 行駛方向
      * @param string $fromStationId 起站代碼
      * @param string $toStringId 訖站代碼
+     * @param int $direction 行駛方向
      * @return array 時刻表資料
      */
-    function get_bus_arrivals($route, $direction, $fromStationId, $toStationId)
+    function get_bus_arrivals($fromStationId, $toStationId, $direction)
     {
         try
         {
@@ -139,26 +138,19 @@ class ApiBusController extends ApiBaseController
             {
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
+            $route = $this->busModel->get_route_by_station($fromStationId, $toStationId)->get()->getResult();
 
-            // 起站時刻表
-            $fromArrivals = $this->busModel->get_arrivals($route, $direction, $fromStationId)->get()->getResult();
-
-            // 起站時刻表
-            $toArrivals = $this->busModel->get_arrivals($route, $direction, $toStationId)->get()->getResult();
-
-            if (!$fromArrivals)
+            if (!$route)
             {
-                return $this->send_response(["stationId" => $fromStationId], 400, lang("Query.stationNotFound"));
+                return $this->send_response([], 400, "查無符合條件的路線");
             }
-            if (!$toArrivals)
+            $arrivals = $this->busModel->get_arrival_new($fromStationId, $toStationId, $direction)->get()->getResult();
+
+            if (sizeof($arrivals) < 2)
             {
-                return $this->send_response(["stationId" => $toStationId], 400, lang("Query.stationNotFound"));
+                return $this->send_response([], 400, "查無符合條件的時刻表");
             }
-
-            $arrivals = [];
-
-            // 重新排序時刻表資料
-            $this->restructure_bus_arrivals($arrivals, $fromArrivals, $toArrivals);
+            $this->restructure_bus_arrivals($arrivals);
 
             // 回傳資料
             return $this->send_response($arrivals);

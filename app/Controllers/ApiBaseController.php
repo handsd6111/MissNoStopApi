@@ -329,27 +329,45 @@ class ApiBaseController extends BaseController
     /**
      * 重新排列時刻表資料
      * @param array &$arrivals 時刻表陣列
-     * @param array &$fromArrivals
-     * @param array &$toArrivals
      * @return void 不回傳值
      */
-    function restructure_bus_arrivals(&$arrivals, &$fromArrivals, &$toArrivals)
+    function restructure_bus_arrivals(&$arrivals)
     {
         try
         {
-            for ($i = 0; $i < sizeof($fromArrivals); $i++)
+            $fromArrival = $arrivals[0];
+            $toArrival   = $arrivals[1];
+
+            $newArrivals = [
+                "RouteId" => $fromArrival->route_id,
+                "RouteName" => [
+                    "TC" => $fromArrival->route_name_TC,
+                    "EN" => $fromArrival->route_name_EN
+                ],
+                "FromStationId" => $fromArrival->station_id,
+                "FromStationName" => [
+                    "TC" => $fromArrival->station_name_TC,
+                    "EN" => $fromArrival->station_name_EN,
+                ],
+                "ToStationId" => $toArrival->station_id,
+                "ToStationName" => [
+                    "TC" => $toArrival->station_name_TC,
+                    "EN" => $toArrival->station_name_EN,
+                ],
+                "Schedule" => []
+            ];
+            for ($i = 0; $i < sizeof($arrivals); $i += 2)
             {
-                if (array_key_exists($i, $fromArrivals) || array_key_exists($i, $toArrivals)) break;
-                
-                $arrivals[$i] = [
-                    "Sequence" => $i + 1,
-                    "Schedule" => [
-                        "DepartureTime" => $fromArrivals[$i]->arrival_time,
-                        "ArrivalTime"   => $toArrivals[$i]->arrival_time,
-                    ]
+                $fromArrival = $arrivals[$i];
+                $toArrival   = $arrivals[$i + 1];
+
+                $schedule = [
+                    "DepartureTime" => $fromArrival->arrival_time,
+                    "ArrivalTime"   => $toArrival->arrival_time
                 ];
+                array_push($newArrivals["Schedule"], $schedule);
             }
-            usort($arrivals, [ApiBaseController::class, "cmpArrivals"]);
+            $arrivals = $newArrivals;
         }
         catch (Exception $e)
         {
