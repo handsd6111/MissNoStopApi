@@ -100,15 +100,23 @@ class THSRModel extends BaseModel
         }
     }
 
+    /**
+     * 取得指定起訖站的高鐵時刻表查詢類別
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     * @return mixed 高鐵時刻表查詢類別
+     */
     function get_arrivals_by_stations($fromStationId, $toStationId)
     {
         try
         {
             $firstArrival = $this->db->table("THSR_arrivals")
-                                     ->select("HA_train_id,
-                                               HA_station_id,
-                                               HA_arrival_time,
-                                               HA_departure_time")
+                                     ->select(
+                                        "HA_train_id,
+                                        HA_station_id,
+                                        HA_arrival_time,
+                                        HA_departure_time"
+                                     )
                                      ->where("HA_station_id", $fromStationId)
                                      ->orWhere("HA_station_id", $toStationId)
                                      ->groupBy("HA_train_id")
@@ -117,19 +125,23 @@ class THSRModel extends BaseModel
                             ->fromSubquery($firstArrival, "first_arrival")
                             ->join("THSR_arrivals", "THSR_arrivals.HA_train_id = first_arrival.HA_train_id")
                             ->join("THSR_stations", "HS_id = THSR_arrivals.HA_station_id")
-                            ->select("THSR_arrivals.HA_train_id as train_id,
-                                      THSR_arrivals.HA_station_id as station_id,
-                                      THSR_arrivals.HA_arrival_time as arrival_time,
-                                      THSR_arrivals.HA_departure_time as departure_time")
+                            ->select(
+                                "THSR_arrivals.HA_train_id as train_id,
+                                THSR_arrivals.HA_station_id as station_id,
+                                THSR_arrivals.HA_arrival_time as arrival_time,
+                                THSR_arrivals.HA_departure_time as departure_time"
+                            )
                             ->where("THSR_arrivals.HA_station_id", $fromStationId)
                             ->orWhere("THSR_arrivals.HA_station_id", $toStationId)
-                            ->orderBy("THSR_arrivals.HA_train_id,
-                                       THSR_arrivals.HA_arrival_time");
+                            ->orderBy(
+                                "THSR_arrivals.HA_train_id,
+                                THSR_arrivals.HA_arrival_time"
+                            );
         }
         catch (Exception $e)
         {
             log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, "Exception error");
+            throw $e;
         }
     }
 
