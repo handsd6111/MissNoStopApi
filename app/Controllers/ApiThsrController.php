@@ -78,7 +78,7 @@ class ApiThsrController extends ApiBaseController
     /**
      * 取得高鐵指定起訖站時刻表資料
      * 
-     * 格式：/api/THSR/arrival/from/{StationId}/to/{StationId}
+     * 格式：/api/THSR/Arrival/{FromStationId}/{ToStationId}
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
      * @return array 起訖站時刻表資料
@@ -98,7 +98,22 @@ class ApiThsrController extends ApiBaseController
 
             $arrivals = [];
 
-            $this->restructure_thsr_arrivals($schedules, $arrivals, $fromStationId);
+            for ($i = 0; $i < sizeof($schedules); $i += 2)
+            {
+                $fromData = $schedules[$i];
+                $toData   = $schedules[$i+1];
+
+                if ($fromData->station_id != $fromStationId) continue;
+
+                $schedule = [
+                    "TrainId" => $fromData->train_id,
+                    "Schedule" => [
+                        "DepartureTime" => $fromData->departure_time,
+                        "ArrivalTime"   => $toData->arrival_time
+                    ]
+                ];
+                array_push($arrivals, $schedule);
+            }
 
             // 回傳資料
             return $this->send_response($arrivals);

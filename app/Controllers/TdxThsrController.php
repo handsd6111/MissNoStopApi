@@ -154,6 +154,7 @@ class TdxThsrController extends TdxBaseController
                     'HA_train_id' => $value->DailyTrainInfo->TrainNo,
                     'HA_station_id' => 'THSR-' . $stopTime->StationID,
                     'HA_arrival_time' => $stopTime->ArrivalTime,
+                    'HA_departure_time' => $stopTime->DepartureTime,
                     'HA_direction' => $value->DailyTrainInfo->Direction
                 ]);
             }
@@ -181,6 +182,7 @@ class TdxThsrController extends TdxBaseController
                     'HA_train_id' => $value->DailyTrainInfo->TrainNo,
                     'HA_station_id' => 'THSR-' . $stopTime->StationID,
                     'HA_arrival_time' => $stopTime->ArrivalTime,
+                    'HA_departure_time' => $stopTime->DepartureTime,
                     'HA_direction' => $value->DailyTrainInfo->Direction
                 ]);
             }

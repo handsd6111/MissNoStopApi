@@ -2,8 +2,6 @@
 
 namespace App\Models\ORM;
 
-use CodeIgniter\Model;
-
 class ThsrArrivalModel extends CompositeKey
 {
     protected $DBGroup          = 'default';
@@ -18,6 +16,7 @@ class ThsrArrivalModel extends CompositeKey
         'HA_train_id',
         'HA_station_id',
         'HA_arrival_time',
+        'HA_departure_time',
         'HA_direction'
     ];
 

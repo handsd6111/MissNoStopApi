@@ -81,6 +81,25 @@ class THSRModel extends BaseModel
         }
     }
 
+    function get_arrivals_search($stationId)
+    {
+        try
+        {
+            return $this->db->table("THSR_arrivals")
+                            ->select(
+                                "HA_train_id as train_id,
+                                HA_station_id as station_id,
+                                HA_arrival_time as arrival_time,
+                                HA_departure_time as departure_time"
+                            );
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            throw $e;
+        }
+    }
+
     function get_arrivals_by_stations($fromStationId, $toStationId)
     {
         try
@@ -88,7 +107,8 @@ class THSRModel extends BaseModel
             $firstArrival = $this->db->table("THSR_arrivals")
                                      ->select("HA_train_id,
                                                HA_station_id,
-                                               HA_arrival_time")
+                                               HA_arrival_time,
+                                               HA_departure_time")
                                      ->where("HA_station_id", $fromStationId)
                                      ->orWhere("HA_station_id", $toStationId)
                                      ->groupBy("HA_train_id")
@@ -99,7 +119,8 @@ class THSRModel extends BaseModel
                             ->join("THSR_stations", "HS_id = THSR_arrivals.HA_station_id")
                             ->select("THSR_arrivals.HA_train_id as train_id,
                                       THSR_arrivals.HA_station_id as station_id,
-                                      THSR_arrivals.HA_arrival_time as arrival_time")
+                                      THSR_arrivals.HA_arrival_time as arrival_time,
+                                      THSR_arrivals.HA_departure_time as departure_time")
                             ->where("THSR_arrivals.HA_station_id", $fromStationId)
                             ->orWhere("THSR_arrivals.HA_station_id", $toStationId)
                             ->orderBy("THSR_arrivals.HA_train_id,

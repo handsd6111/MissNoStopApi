@@ -20,6 +20,9 @@ class THSRArrivals extends Migration
             "HA_arrival_time" => [
                 "type" => "TIME"
             ],
+            "HA_departure_time" => [
+                "type" => "TIME"
+            ],
             "HA_direction" => [
                 "type" => "TINYINT"
             ]
