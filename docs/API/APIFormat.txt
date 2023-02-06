@@ -168,7 +168,7 @@
 ]
 
 /api/Metro/NearestStation/{Longitude}/{Latitude}
-取得指定路線及經緯度的「最近捷運站」資料
+取得指定經緯度的「最近捷運站」資料
 
 [
 	{
@@ -344,7 +344,7 @@
 ]
 
 /api/TRA/NearestStation/{Longitude}/{Latitude}
-取得指定路線及經緯度的「最近臺鐵車站」資料
+取得指定經緯度的「最近臺鐵車站」資料
 
 [
 	{
