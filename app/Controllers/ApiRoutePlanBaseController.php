@@ -353,16 +353,12 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
                     for ($j = 0; $j < sizeof($stationIds); $j++)
                     {
-                        if ($i == $j)
-                        {
-                            continue;
-                        }
+                        if ($i == $j) continue;
+
                         $toStationId = $stationIds[$j];
 
-                        if ($fromStationId == $toStationId)
-                        {
-                            continue;
-                        }
+                        if ($fromStationId == $toStationId) continue;
+                        
                         $this->set_station_adjacency($fromStationId, $toStationId);
                     }
                 }
@@ -441,6 +437,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
         }
         catch (Exception $e)
         {
+            $this->terminalLog(json_encode($this->stationAdjacency));
             throw $e;
         }
     }
@@ -575,13 +572,13 @@ class ApiRoutePlanBaseController extends ApiBaseController
                 ],
                 "FromStationId" => $fromStationId,
                 "FromStationName" => [
-                    "TC" => $fromStationData->name_TC,
-                    "EN" => $fromStationData->name_EN
+                    "TC" => $fromStationData->station_name_TC,
+                    "EN" => $fromStationData->station_name_EN
                 ],
                 "ToStationId" => $toStationId,
                 "ToStationName" => [
-                    "TC" => $toStationData->name_TC,
-                    "EN" => $toStationData->name_EN
+                    "TC" => $toStationData->station_name_TC,
+                    "EN" => $toStationData->station_name_EN
                 ],
                 "Schedule" => [
                     "DepartureTime" => $arrival->departure_time,

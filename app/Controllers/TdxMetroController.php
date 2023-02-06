@@ -985,8 +985,15 @@ class TdxMetroController extends TdxBaseController
 
             $this->terminalLog("Running data of $railSystem ... ");
 
+            $forbiddenRoutes = [
+                "BR",
+                "Y"
+            ];
             foreach ($transfers as $transfer)
             {
+                if (in_array($transfer->FromLineNo, $forbiddenRoutes)) continue;
+                if (in_array($transfer->ToLineNo, $forbiddenRoutes)) continue;
+
                 // 寫入轉乘資料（資料已含雙向）
                 $this->MTModel->save([
                     "MT_from_station_id" => $this->getUID($railSystem, $transfer->FromStationID),
