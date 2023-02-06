@@ -263,10 +263,11 @@ class TdxTraController extends TdxBaseController
 
             foreach ($value->StopTimes as $stopTime) {
                 $traArrivalModel->save([
-                    'RA_train_id' => $value->DailyTrainInfo->TrainNo,
-                    'RA_station_id' => $stopTime->StationID,
-                    'RA_arrival_time' => $stopTime->ArrivalTime,
-                    'RA_direction' => $value->DailyTrainInfo->Direction
+                    'RA_train_id'       => $value->DailyTrainInfo->TrainNo,
+                    'RA_station_id'     => $stopTime->StationID,
+                    'RA_arrival_time'   => $stopTime->ArrivalTime,
+                    'RA_departure_time' => $stopTime->DepartureTime,
+                    'RA_direction'      => $value->DailyTrainInfo->Direction
                 ]);
             }
         }
@@ -293,17 +294,16 @@ class TdxTraController extends TdxBaseController
                 'RT_id' => $value->DailyTrainInfo->TrainNo,
                 'RT_departure_date' => $value->TrainDate
             ]);
-
             foreach ($value->StopTimes as $stopTime) {
                 $traArrivalModel->save([
-                    'RA_train_id' => $value->DailyTrainInfo->TrainNo,
-                    'RA_station_id' => 'TRA-' . $stopTime->StationID,
-                    'RA_arrival_time' => $stopTime->ArrivalTime,
-                    'RA_direction' => $value->DailyTrainInfo->Direction
+                    'RA_train_id'       => $value->DailyTrainInfo->TrainNo,
+                    'RA_station_id'     => 'TRA-' . $stopTime->StationID,
+                    'RA_arrival_time'   => $stopTime->ArrivalTime,
+                    'RA_departure_time' => $stopTime->DepartureTime,
+                    'RA_direction'      => $value->DailyTrainInfo->Direction
                 ]);
             }
         }
-
         return 1;
     }
 }

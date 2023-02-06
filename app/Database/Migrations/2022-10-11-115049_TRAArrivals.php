@@ -20,6 +20,9 @@ class TRAArrivals extends Migration
             "RA_arrival_time" => [
                 "type" => "TIME"
             ],
+            "RA_departure_time" => [
+                "type" => "TIME"
+            ],
             "RA_direction" => [
                 "type" => "TINYINT"
             ]

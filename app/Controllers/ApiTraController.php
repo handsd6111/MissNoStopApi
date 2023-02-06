@@ -166,7 +166,27 @@ class ApiTraController extends ApiBaseController
 
             $arrivals = [];
 
-            $this->restructure_tra_arrivals($schedules, $arrivals, $fromStationId);
+            for ($i = 0; $i < sizeof($schedules); $i += 2)
+            {
+                $fromData = $schedules[$i];
+                $toData   = $schedules[$i+1];
+
+                if ($fromData->station_id != $fromStationId) continue;
+
+                $data = [
+                    "TrainId" => $fromData->train_id,
+                    "RouteId" => $fromData->route_id,
+                    "RouteName" => [
+                        "TC" => $fromData->route_name_TC,
+                        "EN" => $fromData->route_name_EN
+                    ],
+                    "Schedule" => [
+                        "DepartureTime" => $fromData->departure_time,
+                        "ArrivalTime"   => $toData->arrival_time
+                    ]
+                ];
+                array_push($arrivals, $data);
+            }
 
             // 回傳資料
             return $this->send_response($arrivals);
