@@ -177,39 +177,4 @@ class ApiTraController extends ApiBaseController
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
-
-    /**
-     * 取得指定臺鐵起訖站的時刻表資料
-     * @param string $fromStationId 起站代碼
-     * @param string $toStationId 訖站代碼
-     * @return array 時刻表資料
-     */
-    function get_tra_arrivals_test($fromStationId, $toStationId)
-    {
-        try
-        {
-            // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, parent::TRA_STATION_ID_LENGTH)
-                || !$this->validate_param("ToStationId", $toStationId, parent::TRA_STATION_ID_LENGTH))
-            {
-                return $this->send_response([], 400, $this->validateErrMsg);
-            }
-
-            $schedules = $this->TRAModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
-
-            return $this->send_response($schedules);
-
-            $arrivals = [];
-
-            $this->restructure_tra_arrivals($schedules, $arrivals, $fromStationId);
-
-            // 回傳資料
-            return $this->send_response($arrivals);
-        }
-        catch (Exception $e)
-        {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, lang("Exception.exception"));
-        }
-    }
 }

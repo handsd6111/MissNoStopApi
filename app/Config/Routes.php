@@ -114,8 +114,6 @@ $routes->group('api', static function ($routes)
         
         // /api/TRA/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「臺鐵時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiTraController::get_tra_arrivals/$1/$2');
-        
-        $routes->get('ArrivalTest/(:segment)/(:segment)', 'ApiTraController::get_tra_arrivals_test/$1/$2');
     });
 });
 
