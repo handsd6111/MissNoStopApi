@@ -155,36 +155,7 @@ class BusModel extends BaseModel
         }
     }
 
-    /**
-     * 取得指定公車路線、行駛方向及起訖站的時刻表查詢類別
-     * @param int $direction 行駛方向
-     * @param string $fromStationId 起站代碼
-     * @param string $toStringId 訖站代碼
-     * @return mixed 查詢類別
-     */
-    function get_arrivals($direction, $fromStationId)
-    {
-        try
-        {
-            $condition = [
-                "BA_station_id"    => $fromStationId,
-                "BA_direction"    => $direction
-            ];
-            return $this->db->table("bus_arrivals")
-                            ->select(
-                                "BA_station_id AS station_id,
-                                BA_arrival_time AS arrival_time"
-                            )
-                            ->where($condition)
-                            ->orderBy("BA_arrival_time");
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    function get_arrival_new($fromStationId, $toStationId, $direction)
+    function get_arrivals($fromStationId, $toStationId, $direction)
     {
         try
         {

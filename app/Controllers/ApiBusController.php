@@ -144,7 +144,7 @@ class ApiBusController extends ApiBaseController
             {
                 return $this->send_response([], 400, "查無符合條件的路線");
             }
-            $arrivals = $this->busModel->get_arrival_new($fromStationId, $toStationId, $direction)->get()->getResult();
+            $arrivals = $this->busModel->get_arrivals($fromStationId, $toStationId, $direction)->get()->getResult();
 
             if (sizeof($arrivals) < 2)
             {
