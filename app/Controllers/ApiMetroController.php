@@ -132,13 +132,40 @@ class ApiMetroController extends ApiMetroBaseController
             }
 
             // 取得最近捷運站
-            $station = $this->metroModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
-            
+            $stations = $this->metroModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
+
             // 重新排列資料
-            $this->restructure_stations($station);
+            for ($i = 0; $i < sizeof($stations); $i++)
+            {
+                $station = $stations[$i];
+
+                $stations[$i] = [
+                    "SystemId" => $station->system_id,
+                    "SystemName" => [
+                        "TC" => $station->system_name_TC,
+                        "EN" => $station->system_name_EN,
+                    ],
+                    "RouteId" => $station->route_id,
+                    "RouteName" => [
+                        "TC" => $station->route_name_TC,
+                        "EN" => $station->route_name_EN,
+                    ],
+                    "StationId"   => $station->station_id,
+                    "StationName" => [
+                        "TC" => $station->station_name_TC,
+                        "EN" => $station->station_name_EN
+                    ],
+                    "StationLocation" => [
+                        "CityId"   => $station->city_id,
+                        "Longitude" => $station->longitude,
+                        "Latitude"  => $station->latitude,
+                    ],
+                    "Sequence" => $station->sequence
+                ];
+            }
 
             // 回傳資料
-            return $this->send_response($station);
+            return $this->send_response($stations);
         }
         catch (Exception $e)
         {

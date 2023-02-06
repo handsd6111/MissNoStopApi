@@ -87,22 +87,44 @@ class ApiMetroBaseController extends ApiBaseController
     {
         try
         {
-            helper("time00To24");
+            $fromStationData = $this->metroModel->get_station($fromStationId)->get()->getResult()[0];
+            $toStationData   = $this->metroModel->get_station($toStationId)->get()->getResult()[0];
 
+            $firstArrival = $arrivals[0];
+
+            $newArrivals = [
+                "RouteId"       => $firstArrival->route_id,
+                "RouteName"     => [
+                    "TC" => $firstArrival->route_name_TC,
+                    "EN" => $firstArrival->route_name_EN
+                ],
+                "SubRouteId"    => $firstArrival->sub_route_id,
+                "SubRouteName"  => [
+                    "TC" => $firstArrival->sub_route_name_TC,
+                    "EN" => $firstArrival->sub_route_name_EN
+                ],
+                "FromStationId"   => $fromStationId,
+                "FromStationName" => [
+                    "TC" => $fromStationData->station_name_TC,
+                    "EN" => $fromStationData->station_name_EN,
+                ],
+                "ToStationId"   => $toStationId,
+                "ToStationName" => [
+                    "TC" => $toStationData->station_name_TC,
+                    "EN" => $toStationData->station_name_EN,
+                ],
+                "Schedule" => []
+            ];
             foreach ($arrivals as $i => $arrival)
             {
-                $arrivals[$i] = [
-                    "RouteId"       => $arrival->route_id,
-                    "SubRouteId"    => $arrival->sub_route_id,
-                    "FromStationId" => $fromStationId,
-                    "ToStationId"   => $toStationId,
-                    "Schedule" => [
-                        "DepartureTime" => $arrival->departure_time,
-                        "ArrivalTime"   => $arrival->arrival_time,
-                        "Duration"      => $arrival->duration
-                    ]
+                $schedule = [
+                    "DepartureTime" => $arrival->departure_time,
+                    "ArrivalTime"   => $arrival->arrival_time,
+                    "Duration"      => $arrival->duration
                 ];
+                array_push($newArrivals["Schedule"], $schedule);
             }
+            $arrivals = $newArrivals;
         }
         catch (Exception $e)
         {

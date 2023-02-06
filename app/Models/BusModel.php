@@ -105,12 +105,16 @@ class BusModel extends BaseModel
                             ->join("bus_route_stations", "BRS_station_id = BS_id")
                             ->join("bus_routes", "BR_id = BRS_route_id")
                             ->select(
-                                "BS_id AS station_id,
-                                BS_name_TC AS name_TC,
-                                BS_name_EN AS name_EN,
+                                "BR_id AS route_id,
+                                BR_name_TC AS route_name_TC,
+                                BR_name_EN AS route_name_EN,
+                                BS_id AS station_id,
+                                BS_name_TC AS station_name_TC,
+                                BS_name_EN AS station_name_EN,
                                 BS_city_id AS city_id,
                                 BS_longitude AS longitude,
                                 BS_latitude AS latitude,
+                                BRS_direction AS direction,
                                 FLOOR(
                                     SQRT(
                                         POWER(

@@ -106,13 +106,35 @@ class ApiBusController extends ApiBaseController
             }
 
             // 取得指定公車路線及經緯度的最近車站資料
-            $station = $this->busModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
+            $stations = $this->busModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
 
-            // 重新排列公車站資料
-            $this->restructure_stations($station);
+            // 重新排列資料
+            for ($i = 0; $i < sizeof($stations); $i++)
+            {
+                $station = $stations[$i];
+
+                $stations[$i] = [
+                    "RouteId" => $station->route_id,
+                    "RouteName" => [
+                        "TC" => $station->route_name_TC,
+                        "EN" => $station->route_name_EN,
+                    ],
+                    "StationId"   => $station->station_id,
+                    "StationName" => [
+                        "TC" => $station->station_name_TC,
+                        "EN" => $station->station_name_EN
+                    ],
+                    "StationLocation" => [
+                        "CityId"   => $station->city_id,
+                        "Longitude" => $station->longitude,
+                        "Latitude"  => $station->latitude,
+                    ],
+                    "Direction" => $station->direction
+                ];
+            }
 
             // 回傳資料
-            return $this->send_response($station);
+            return $this->send_response($stations);
         }
         catch (Exception $e)
         {

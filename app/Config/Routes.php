@@ -110,7 +110,7 @@ $routes->group('api', static function ($routes)
         $routes->get('StationOfCity/(:segment)', 'ApiTraController::get_stations_by_city/$1');
         
         // /api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定經緯度的「最近臺鐵車站」資料
-        $routes->get('NearestStation/(:segment)/(:segment)/(:segment)', 'ApiTraController::get_tra_nearest_station/$1/$2/$3');
+        $routes->get('NearestStation/(:segment)/(:segment)', 'ApiTraController::get_tra_nearest_station/$1/$2');
         
         // /api/TRA/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「臺鐵時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiTraController::get_tra_arrivals/$1/$2');

@@ -118,7 +118,7 @@ class ApiTraController extends ApiBaseController
      * @param int $limit 回傳數量
      * @return array 最近臺鐵站資料
      */
-    function get_tra_nearest_station($longitude, $latitude, $limit = 1)
+    function get_tra_nearest_station($longitude, $latitude)
     {
         try
         {
@@ -130,7 +130,7 @@ class ApiTraController extends ApiBaseController
             }
 
             // 取得臺鐵所有車站資料
-            $station = $this->TRAModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
+            $station = $this->TRAModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
 
             // 重新排列資料
             $this->restructure_stations($station);

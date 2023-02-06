@@ -119,8 +119,8 @@ class MetroModel extends BaseModel
             return $this->db->table("metro_stations")
                             ->select(
                                 "MS_id AS station_id,
-                                MS_name_TC AS name_TC,
-                                MS_name_EN AS name_EN,
+                                MS_name_TC AS station_name_TC,
+                                MS_name_EN AS station_name_EN,
                                 MS_city_id AS city_id,
                                 MS_longitude AS longitude,
                                 MS_latitude AS latitude"
@@ -177,10 +177,17 @@ class MetroModel extends BaseModel
             return $this->db->table("metro_stations")
                             ->join("metro_route_stations", "MRS_station_id = MS_id")
                             ->join("metro_routes", "MR_id = MRS_route_id")
+                            ->join("metro_systems", "MST_id = MR_system_id")
                             ->select(
-                                "MS_id AS station_id,
-                                MS_name_TC AS name_TC,
-                                MS_name_EN AS name_EN,
+                                "MST_id AS system_id,
+                                MST_name_TC AS system_name_TC,
+                                MST_name_EN AS system_name_EN,
+                                MR_id AS route_id,
+                                MR_name_TC AS route_name_TC,
+                                MR_name_EN AS route_name_EN,
+                                MS_id AS station_id,
+                                MS_name_TC AS station_name_TC,
+                                MS_name_EN AS station_name_EN,
                                 MS_city_id AS city_id,
                                 MS_longitude AS longitude,
                                 MS_latitude AS latitude,
@@ -228,9 +235,14 @@ class MetroModel extends BaseModel
             }
             return $this->db->table("metro_arrivals")
                             ->join("metro_sub_routes", "MSR_id = MA_sub_route_id")
+                            ->join("metro_routes", "MR_id = MSR_route_id")
                             ->select(
-                                "MSR_route_id AS route_id,
-                                MA_sub_route_id AS sub_route_id,
+                                "MR_id AS route_id,
+                                MR_name_TC AS route_name_TC,
+                                MR_name_EN AS route_name_EN,
+                                MSR_id AS sub_route_id,
+                                MSR_name_TC AS sub_route_name_TC,
+                                MSR_name_EN AS sub_route_name_EN,
                                 MA_arrival_time AS departure_time"
                             )
                             ->where($condition)
