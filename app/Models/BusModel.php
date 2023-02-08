@@ -189,4 +189,29 @@ class BusModel extends BaseModel
             throw $e;
         }
     }
+
+    function get_arrivals_of_route($routeId, $direction, $time)
+    {
+        try
+        {
+            return $this->db->table("bus_arrivals")
+                            ->join("bus_route_stations", "BRS_station_id = BA_station_id")
+                            ->join("bus_stations", "BS_id = BA_station_id")
+                            ->select(
+                                "BS_id as station_id,
+                                BS_name_TC as station_name_TC,
+                                BS_name_EN as station_name_EN,
+                                BA_arrival_time as arrival_time"
+                            )
+                            ->where("BRS_route_id", $routeId)
+                            ->where("BA_direction", $direction)
+                            ->where("BA_arrival_time >=", $time)
+                            ->groupBy("BA_station_id")
+                            ->orderBy("BRS_sequence");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
 }

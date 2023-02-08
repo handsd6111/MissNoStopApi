@@ -110,10 +110,26 @@
 	},
 	Schedule: [
 		{
-			DepartureTime: 起站發車時間,
-			ArrivalTime: 訖站抵達時間
+			ArrivalTime: 訖站抵達時間間,
+			DepartureTime: 起站發車時
 		}
 	]
+]
+
+/api/Bus/ArrivalOfRoute/{RouteId}/{DirectionId}/{Time}
+取得指定路線、行駛方向及最近時間的「公車路線時刻表」資料
+
+[
+	{
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		Schedule: {
+			ArrivalTime: 抵達時間
+		}
+	}
 ]
 
 ====================================================================================================================
@@ -222,8 +238,8 @@
 	},
 	Schedule: [
 		{
-			DepartureTime: 起站發車時間,
 			ArrivalTime: 訖站抵達時間
+			DepartureTime: 起站發車時間,
 		}
 	]
 ]
@@ -254,8 +270,8 @@
 			EN: 英文站名
 		},
 		Schedule: {
-			DepartureTime: 發車時間,
 			ArrivalTime: 到達時間,
+			DepartureTime: 發車時間,
 			Duration: 運行時間
 		}
 	}
@@ -312,8 +328,25 @@
 	{
 		TrainId: 車次代碼,
 		Schedule: {
-			DepartureTime: 起站發車時間,
 			ArrivalTime: 訖站抵達時間
+			DepartureTime: 起站發車時間,
+		}
+	}
+]
+
+/api/THSR/ArrivalOfTrain/{TrainId}
+取得指定路線、行駛方向及最近時間的「高鐵路線時刻表」資料
+
+[
+	{
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		Schedule: {
+			ArrivalTime: 抵達時間
+			DepartureTime: 發車時間
 		}
 	}
 ]
@@ -374,8 +407,25 @@
 			"EN": 英文路線名稱
 		},
 		Schedule: {
-			DepartureTime: 起站發車時間,
 			ArrivalTime: 訖站抵達時間
+			DepartureTime: 起站發車時間,
+		}
+	}
+]
+
+/api/TRA/ArrivalOfTrain/{TrainId}
+取得指定路線、行駛方向及最近時間的「臺鐵路線時刻表」資料
+
+[
+	{
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		Schedule: {
+			ArrivalTime: 抵達時間
+			DepartureTime: 發車時間
 		}
 	}
 ]

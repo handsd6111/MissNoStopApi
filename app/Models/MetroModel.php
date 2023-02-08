@@ -248,6 +248,37 @@ class MetroModel extends BaseModel
         }
     }
 
+    function get_arrivals_by_route($routeId, $direction, $time)
+    {
+        try
+        {
+            $ascendance = "ASC";
+
+            if ($direction == 1)
+            {
+                $ascendance = "DESC";
+            }
+            return $this->db->table("metro_arrivals")
+                            ->select(
+                                "MS_id as station_id,
+                                MS_name_TC as station_name_TC,
+                                MS_name_EN as station_name_EN,
+                                MA_arrival_time as arrival_time"
+                            )
+                            ->join("metro_route_stations", "MRS_station_id = MA_station_id")
+                            ->join("metro_stations", "MS_id = MA_station_id")
+                            ->where("MRS_route_id", $routeId)
+                            ->where("MA_direction", $direction)
+                            ->where("MA_arrival_time >=", $time)
+                            ->orderBy("MRS_sequence $ascendance")
+                            ->groupBy("MS_id");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
     /**
      * 取得時刻表查詢類別
      * @param string $fromStationId 車站代碼

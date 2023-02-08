@@ -60,6 +60,9 @@ $routes->group('api', static function ($routes)
 
         // /api/Bus/Arrival/{FromStationId}/{ToStationId}/{Direction} 取得指定起訖站及行駛方向的「公車時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)/(:segment)', 'ApiBusController::get_bus_arrivals/$1/$2/$3');
+
+        // /api/Bus/ArrivalOfRoute/{RouteId}/{Direction}/{Time} 取得指定路線、行駛方向及目前時間的「公車路線時刻表」資料
+        $routes->get('ArrivalOfRoute/(:segment)/(:num)/(:segment)', 'ApiBusController::get_bus_arrivals_by_route/$1/$2/$3');
     });
 
     // 捷運相關 api
@@ -80,6 +83,9 @@ $routes->group('api', static function ($routes)
         // /api/Metro/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「捷運時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiMetroController::get_metro_arrivals/$1/$2');
 
+        // /api/Metro/ArrivalOfRoute/{RouteId}/{Direction}/{Time} 取得指定路線、行駛方向及目前時間的「捷運路線時刻表」資料
+        $routes->get('ArrivalOfRoute/(:segment)/(:num)/(:segment)', 'ApiMetroController::get_metro_arrivals_by_route/$1/$2/$3');
+
         // /api/Metro/RoutePlan/{FromStationId}/{ToStationId}/{StartTime}
         $routes->get('RoutePlan/(:segment)/(:segment)/(:segment)', 'ApiRoutePlanController::metro_route_plan/$1/$2/$3');
     });
@@ -98,6 +104,9 @@ $routes->group('api', static function ($routes)
         
         // /api/THSR/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「高鐵時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiThsrController::get_thsr_arrivals/$1/$2');
+
+        // /api/THSR/ArrivalOfTrain/{TrainId} 取得指定車次的「高鐵車次時刻表」資料
+        $routes->get('ArrivalOfTrain/(:segment)', 'ApiThsrController::get_thsr_arrivals_by_train/$1');
     });
 
     // 臺鐵相關 api
@@ -114,6 +123,9 @@ $routes->group('api', static function ($routes)
         
         // /api/TRA/Arrival/{FromStationId}/{ToStationId} 取得指定起訖站的「臺鐵時刻表」資料
         $routes->get('Arrival/(:segment)/(:segment)', 'ApiTraController::get_tra_arrivals/$1/$2');
+
+        // /api/TRA/ArrivalOfTrain/{TrainId} 取得指定車次的「臺鐵車次時刻表」資料
+        $routes->get('ArrivalOfTrain/(:segment)', 'ApiTraController::get_tra_arrivals_by_train/$1');
     });
 });
 

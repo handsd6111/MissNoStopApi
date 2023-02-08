@@ -125,6 +125,40 @@ class ApiThsrController extends ApiBaseController
         }
     }
 
+    function get_thsr_arrivals_by_train($trainId)
+    {
+        try
+        {
+            // 驗證參數
+            if (!$this->validate_param("TrainId", $trainId, parent::THSR_TRAIN_ID_LENGTH))
+            {
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+            $arrivals = $this->THSRModel->get_arrivals_by_train($trainId)->get()->getResult();
+
+            foreach($arrivals as $i => $arrival)
+            {
+                $arrivals[$i] = [
+                    "StationId" => $arrival->station_id,
+                    "StationName" => [
+                        "TC" => $arrival->station_name_TC,
+                        "EN" => $arrival->station_name_EN
+                    ],
+                    "Schedule" => [
+                        "ArrivalTime" => $arrival->arrival_time,
+                        "DepartureTime" =>$arrival->departure_time
+                    ]
+                ];
+            }
+            return $this->send_response($arrivals);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e->getMessage());
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
     /**
      * 取得高鐵指定經緯度最近車站
      * 

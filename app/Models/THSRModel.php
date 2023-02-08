@@ -145,6 +145,28 @@ class THSRModel extends BaseModel
         }
     }
 
+    function get_arrivals_by_train($trainId)
+    {
+        try
+        {
+            return $this->db->table("THSR_arrivals")
+                            ->join("THSR_stations", "HS_id = HA_station_id")
+                            ->select(
+                                "HA_station_id as station_id,
+                                HS_name_TC as station_name_TC,
+                                HS_name_EN as station_name_EN,
+                                HA_arrival_time as arrival_time,
+                                HA_departure_time as departure_time"
+                            )
+                            ->where("HA_train_id", $trainId)
+                            ->orderBy("HA_arrival_time");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
     /**
      * 取得高鐵指定經緯度最近車站查詢類別
      * @param float $longitude 經度

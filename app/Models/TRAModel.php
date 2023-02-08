@@ -19,7 +19,7 @@ class TRAModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            throw $e;
         }
     }
 
@@ -49,8 +49,7 @@ class TRAModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, "Exception error");
+            throw $e;
         }
     }
 
@@ -79,8 +78,7 @@ class TRAModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, "Exception error");
+            throw $e;
         }
     }
 
@@ -120,8 +118,7 @@ class TRAModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, "Exception error");
+            throw $e;
         }
     }
 
@@ -156,8 +153,29 @@ class TRAModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
-            return $this->send_response([], 500, "Exception error");
+            throw $e;
+        }
+    }
+
+    function get_arrivals_by_train($trainId)
+    {
+        try
+        {
+            return $this->db->table("TRA_arrivals")
+                            ->join("TRA_stations", "RS_id = RA_station_id")
+                            ->select(
+                                "RS_id as station_id,
+                                RS_name_TC as station_name_TC,
+                                RS_name_EN as station_name_EN,
+                                RA_arrival_time as arrival_time,
+                                RA_departure_time as departure_time"
+                            )
+                            ->where("RA_train_id", $trainId)
+                            ->orderBy("RA_arrival_time");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
         }
     }
 

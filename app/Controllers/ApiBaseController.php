@@ -24,19 +24,9 @@ class ApiBaseController extends BaseController
     const CITY_ID_LENGTH = 3;
 
     /**
-     * 捷運代碼最大長度
+     * 高鐵車次代碼最大長度
      */
-    const METRO_SYSTEM_ID_LENGTH = 4;
-
-    /**
-     * 公車站代碼最大長度
-     */
-    const BUS_STATION_ID_LENGTH = 17;
-
-    /**
-     * 捷運站代碼最大長度
-     */
-    const METRO_STATION_ID_LENGTH = 12;
+    const THSR_TRAIN_ID_LENGTH = 4;
 
     /**
      * 高鐵車站代碼最大長度
@@ -44,19 +34,29 @@ class ApiBaseController extends BaseController
     const THSR_STATION_ID_LENGTH = 11;
 
     /**
+     * 臺鐵車次代碼最大長度
+     */
+    const TRA_TRAIN_ID_LENGTH = 4;
+
+    /**
      * 臺鐵車站代碼最大長度
      */
     const TRA_STATION_ID_LENGTH = 11;
 
     /**
-     * 經緯度代碼最大長度
+     * 臺鐵路線代碼最大長度
      */
-    const LONGLAT_LENGTH = 12;
+    const TRA_ROUTE_ID_LENGTH = 5;
 
     /**
-     * 公車路線代碼最大長度
+     * 捷運代碼最大長度
      */
-    const BUS_ROUTE_ID_LENGTH = 17;
+    const METRO_SYSTEM_ID_LENGTH = 4;
+
+    /**
+     * 捷運站代碼最大長度
+     */
+    const METRO_STATION_ID_LENGTH = 12;
 
     /**
      * 捷運路線代碼最大長度
@@ -69,9 +69,19 @@ class ApiBaseController extends BaseController
     const METRO_SUB_ROUTE_ID_LENGTH = 12;
 
     /**
-     * 臺鐵路線代碼最大長度
+     * 公車站代碼最大長度
      */
-    const TRA_ROUTE_ID_LENGTH = 5;
+    const BUS_STATION_ID_LENGTH = 17;
+
+    /**
+     * 公車路線代碼最大長度
+     */
+    const BUS_ROUTE_ID_LENGTH = 17;
+
+    /**
+     * 經緯度代碼最大長度
+     */
+    const LONGLAT_LENGTH = 12;
 
     /**
      * 代碼安全長度

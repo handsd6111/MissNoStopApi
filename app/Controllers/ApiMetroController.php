@@ -215,4 +215,36 @@ class ApiMetroController extends ApiMetroBaseController
             return $this->get_caught_exception($e);
         }
     }
+
+    function get_metro_arrivals_by_route($routeId, $direction, $time)
+    {
+        try
+        {
+            // 驗證參數
+            if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH))
+            {
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+            $arrivals = $this->metroModel->get_arrivals_by_route($routeId, $direction, $time)->get()->getResult();
+
+            foreach($arrivals as $i => $arrival)
+            {
+                $arrivals[$i] = [
+                    "StationId" => $arrival->station_id,
+                    "StationName" => [
+                        "TC" => $arrival->station_name_TC,
+                        "EN" => $arrival->station_name_EN,
+                    ],
+                    "Schedule" => [
+                        "ArrivalTime" => $arrival->arrival_time
+                    ]
+                ];
+            }
+            return $this->send_response($arrivals);
+        }
+        catch (Exception $e)
+        {
+            return $this->get_caught_exception($e);
+        }
+    }
 }
