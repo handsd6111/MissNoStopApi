@@ -145,8 +145,8 @@ class ApiThsrController extends ApiBaseController
                         "EN" => $arrival->station_name_EN
                     ],
                     "Schedule" => [
-                        "ArrivalTime" => $arrival->arrival_time,
-                        "DepartureTime" =>$arrival->departure_time
+                        "DepartureTime" =>$arrival->departure_time,
+                        "ArrivalTime" => $arrival->arrival_time
                     ]
                 ];
             }

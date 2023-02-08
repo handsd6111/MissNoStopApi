@@ -129,7 +129,8 @@ class TRAModel extends BaseModel
             $firstArrival = $this->db->table("TRA_arrivals")
                                      ->select("RA_train_id,
                                                RA_station_id,
-                                               RA_arrival_time")
+                                               RA_arrival_time,
+                                               RA_departure_time")
                                      ->where("RA_station_id", $fromStationId)
                                      ->orWhere("RA_station_id", $toStationId)
                                      ->groupBy("RA_train_id")
@@ -145,7 +146,8 @@ class TRAModel extends BaseModel
                                       RR_name_EN as route_name_EN,
                                       TRA_arrivals.RA_train_id as train_id,
                                       TRA_arrivals.RA_station_id as station_id,
-                                      TRA_arrivals.RA_arrival_time as arrival_time")
+                                      TRA_arrivals.RA_arrival_time as arrival_time,
+                                      TRA_arrivals.RA_departure_time as departure_time")
                             ->where("TRA_arrivals.RA_station_id", $fromStationId)
                             ->orWhere("TRA_arrivals.RA_station_id", $toStationId)
                             ->orderBy("TRA_arrivals.RA_train_id,

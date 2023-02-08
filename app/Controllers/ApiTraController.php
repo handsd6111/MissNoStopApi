@@ -19,7 +19,7 @@ class ApiTraController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
         }
     }
 
@@ -44,7 +44,7 @@ class ApiTraController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -75,7 +75,7 @@ class ApiTraController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -106,7 +106,7 @@ class ApiTraController extends ApiBaseController
     //     }
     //     catch (Exception $e)
     //     {
-    //         log_message("critical", $e->getMessage());
+    //         log_message("critical", $e);
     //         return $this->send_response([], 500, lang("Exception.exception"));
     //     }
     // }
@@ -140,7 +140,7 @@ class ApiTraController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -164,8 +164,12 @@ class ApiTraController extends ApiBaseController
 
             $schedules = $this->TRAModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
 
+            if (sizeof($schedules) == 0)
+            {
+                return $this->send_response([], 400, "查無班次");
+            }
             $arrivals = [];
-
+            
             for ($i = 0; $i < sizeof($schedules); $i += 2)
             {
                 $fromData = $schedules[$i];
@@ -187,13 +191,11 @@ class ApiTraController extends ApiBaseController
                 ];
                 array_push($arrivals, $data);
             }
-
-            // 回傳資料
             return $this->send_response($arrivals);
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -218,8 +220,8 @@ class ApiTraController extends ApiBaseController
                         "EN" => $arrival->station_name_EN,
                     ],
                     "Schedule" => [
-                        "ArrivalTime" => $arrival->arrival_time,
-                        "DepartureTime" => $arrival->departure_time
+                        "DepartureTime" => $arrival->departure_time,
+                        "ArrivalTime" => $arrival->arrival_time
                     ]
                 ];
             }
@@ -227,7 +229,7 @@ class ApiTraController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
