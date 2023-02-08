@@ -87,44 +87,54 @@ class ApiMetroBaseController extends ApiBaseController
     {
         try
         {
-            $fromStationData = $this->metroModel->get_station($fromStationId)->get()->getResult()[0];
-            $toStationData   = $this->metroModel->get_station($toStationId)->get()->getResult()[0];
+            // $fromStationData = $this->metroModel->get_station($fromStationId)->get()->getResult()[0];
+            // $toStationData   = $this->metroModel->get_station($toStationId)->get()->getResult()[0];
 
-            $firstArrival = $arrivals[0];
+            // $firstArrival = $arrivals[0];
 
-            $newArrivals = [
-                "RouteId"       => $firstArrival->route_id,
-                "RouteName"     => [
-                    "TC" => $firstArrival->route_name_TC,
-                    "EN" => $firstArrival->route_name_EN
-                ],
-                "SubRouteId"    => $firstArrival->sub_route_id,
-                "SubRouteName"  => [
-                    "TC" => $firstArrival->sub_route_name_TC,
-                    "EN" => $firstArrival->sub_route_name_EN
-                ],
-                "FromStationId"   => $fromStationId,
-                "FromStationName" => [
-                    "TC" => $fromStationData->station_name_TC,
-                    "EN" => $fromStationData->station_name_EN,
-                ],
-                "ToStationId"   => $toStationId,
-                "ToStationName" => [
-                    "TC" => $toStationData->station_name_TC,
-                    "EN" => $toStationData->station_name_EN,
-                ],
-                "Schedule" => []
-            ];
+            // $newArrivals = [
+            //     "RouteId"       => $firstArrival->route_id,
+            //     "RouteName"     => [
+            //         "TC" => $firstArrival->route_name_TC,
+            //         "EN" => $firstArrival->route_name_EN
+            //     ],
+            //     "SubRouteId"    => $firstArrival->sub_route_id,
+            //     "SubRouteName"  => [
+            //         "TC" => $firstArrival->sub_route_name_TC,
+            //         "EN" => $firstArrival->sub_route_name_EN
+            //     ],
+            //     "FromStationId"   => $fromStationId,
+            //     "FromStationName" => [
+            //         "TC" => $fromStationData->station_name_TC,
+            //         "EN" => $fromStationData->station_name_EN,
+            //     ],
+            //     "ToStationId"   => $toStationId,
+            //     "ToStationName" => [
+            //         "TC" => $toStationData->station_name_TC,
+            //         "EN" => $toStationData->station_name_EN,
+            //     ],
+            //     "Schedule" => []
+            // ];
+            // foreach ($arrivals as $i => $arrival)
+            // {
+            //     $schedule = [
+            //         "DepartureTime" => $arrival->departure_time,
+            //         "ArrivalTime"   => $arrival->arrival_time,
+            //         "Duration"      => $arrival->duration
+            //     ];
+            //     array_push($newArrivals["Schedule"], $schedule);
+            // }
+            // $arrivals = $newArrivals;
+
             foreach ($arrivals as $i => $arrival)
             {
-                $schedule = [
-                    "DepartureTime" => $arrival->departure_time,
-                    "ArrivalTime"   => $arrival->arrival_time,
-                    "Duration"      => $arrival->duration
+                $arrivals[$i] = [
+                    "Schedule" => [
+                        "DepartureTime" => $arrival->departure_time,
+                        "ArrivalTime" => $arrival->arrival_time
+                    ]
                 ];
-                array_push($newArrivals["Schedule"], $schedule);
             }
-            $arrivals = $newArrivals;
         }
         catch (Exception $e)
         {
@@ -148,7 +158,7 @@ class ApiMetroBaseController extends ApiBaseController
             helper(["addTime", "time00To24"]);
 
             // 取得起站時刻表資料
-            $arrivals = $this->metroModel->get_arrivals($fromStationId, $direction, $subRoutes, $arrivalTime);
+            $arrivals = $this->metroModel->get_arrivals_minimum($fromStationId, $direction, $subRoutes, $arrivalTime);
 
             if ($arrivalTime != null)
             {

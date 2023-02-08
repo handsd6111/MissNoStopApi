@@ -216,6 +216,40 @@ class MetroModel extends BaseModel
 
     /**
      * 取得時刻表查詢類別
+     * @param string $stationId 車站代碼
+     * @param int $direction 行駛方向
+     * @param array $subRouteId 子路線代碼
+     * @return mixed 查詢類別
+     */
+    function get_arrivals_minimum($stationId, $direction, $subRoutes, $arrivalTime = null)
+    {
+        try
+        {
+            $condition = [
+                "MA_station_id"   => $stationId,
+                "MA_direction"    => $direction
+            ];
+            if ($arrivalTime != null)
+            {
+                $condition["MA_arrival_time >="] = $arrivalTime;
+            }
+            return $this->db->table("metro_arrivals")
+                            ->select(
+                                "MA_sub_route_id AS sub_route_id,
+                                MA_arrival_time AS departure_time"
+                            )
+                            ->where($condition)
+                            ->whereIn("MA_sub_route_id", $subRoutes)
+                            ->orderBy("MA_arrival_time");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 取得時刻表查詢類別
      * @param string $fromStationId 車站代碼
      * @param int $direction 行駛方向
      * @param array $subRouteId 子路線代碼
