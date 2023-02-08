@@ -19,7 +19,7 @@ class ApiThsrController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
         }
     }
 
@@ -44,7 +44,7 @@ class ApiThsrController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -70,7 +70,7 @@ class ApiThsrController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -120,7 +120,7 @@ class ApiThsrController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -154,7 +154,7 @@ class ApiThsrController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -190,7 +190,7 @@ class ApiThsrController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }

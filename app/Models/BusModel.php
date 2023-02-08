@@ -35,7 +35,7 @@ class BusModel extends BaseModel
         }
         catch (Exception $e)
         {
-            return $e;
+            throw $e;
         }
     }
 
@@ -52,7 +52,7 @@ class BusModel extends BaseModel
         }
         catch (Exception $e)
         {
-            return $e;
+            throw $e;
         }
     }
 
@@ -87,7 +87,7 @@ class BusModel extends BaseModel
         }
         catch (Exception $e)
         {
-            return $e;
+            throw $e;
         }
     }
 
@@ -134,7 +134,7 @@ class BusModel extends BaseModel
         }
         catch (Exception $e)
         {
-            return $e;
+            throw $e;
         }
     }
 

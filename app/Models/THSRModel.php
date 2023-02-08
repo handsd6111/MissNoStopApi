@@ -20,7 +20,6 @@ class THSRModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
         }
     }
 
@@ -43,7 +42,6 @@ class THSRModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
             throw $e;
         }
     }
@@ -76,7 +74,6 @@ class THSRModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
             throw $e;
         }
     }
@@ -95,7 +92,6 @@ class THSRModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
             throw $e;
         }
     }
@@ -140,7 +136,6 @@ class THSRModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
             throw $e;
         }
     }
@@ -202,7 +197,6 @@ class THSRModel extends BaseModel
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
             throw $e;
         }
     }
