@@ -257,11 +257,17 @@ class TdxTraController extends TdxBaseController
         $result = $this->getTraTrainAndArrival();
         $traArrivalModel = new TraArrivalModel();
 
-        foreach ($result as $value) {
+        helper("time00To24");
 
+        foreach ($result as $value)
+        {
             $this->terminalLog("正在取得車次為 {$value->DailyTrainInfo->TrainNo} 的資料 ... ", true);
 
-            foreach ($value->StopTimes as $stopTime) {
+            foreach ($value->StopTimes as $stopTime)
+            {
+                $stopTime->ArrivalTime = time_00_to_24($stopTime->ArrivalTime);
+                $stopTime->DepartureTime = time_00_to_24($stopTime->DepartureTime);
+                
                 $traArrivalModel->save([
                     'RA_train_id'       => $value->DailyTrainInfo->TrainNo,
                     'RA_station_id'     => $stopTime->StationID,
@@ -286,6 +292,8 @@ class TdxTraController extends TdxBaseController
         $traTrainModel = new TraTrainModel();
         $traArrivalModel = new TraArrivalModel();
 
+        helper("time00To24");
+
         foreach ($result as $value) {
 
             $this->terminalLog("正在取得 {$value->DailyTrainInfo->TrainNo} ... ", true);
@@ -294,7 +302,11 @@ class TdxTraController extends TdxBaseController
                 'RT_id' => $value->DailyTrainInfo->TrainNo,
                 'RT_departure_date' => $value->TrainDate
             ]);
-            foreach ($value->StopTimes as $stopTime) {
+            foreach ($value->StopTimes as $stopTime)
+            {
+                $stopTime->ArrivalTime = time_00_to_24($stopTime->ArrivalTime);
+                $stopTime->DepartureTime = time_00_to_24($stopTime->DepartureTime);
+
                 $traArrivalModel->save([
                     'RA_train_id'       => $value->DailyTrainInfo->TrainNo,
                     'RA_station_id'     => 'TRA-' . $stopTime->StationID,

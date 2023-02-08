@@ -191,6 +191,8 @@ class ApiTraController extends ApiBaseController
                 ];
                 array_push($arrivals, $data);
             }
+            usort($arrivals, [parent::class, "cmpArrivals"]);
+
             return $this->send_response($arrivals);
         }
         catch (Exception $e)

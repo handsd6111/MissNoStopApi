@@ -210,6 +210,8 @@ class TdxBusController extends TdxBaseController
                 $cityId    = $city["C_id"];
                 $cityName  = $city["C_name_EN"];
 
+                helper("time00To24");
+
                 // 若嘗試取得無資料的縣市則跳過
                 if (in_array($cityName, $unavailableCities))
                 {
@@ -235,6 +237,8 @@ class TdxBusController extends TdxBaseController
                         // 走遍此班表的所有停靠時間
                         foreach ($timeTable->StopTimes as $stopTime)
                         {
+                            $stopTime->ArrivalTime = time_00_to_24($stopTime->ArrivalTime);
+
                             if (!isset($timeTable->ServiceDay))
                             {
                                 $timeTable->ServiceDay = new stdClass();
