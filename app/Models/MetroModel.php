@@ -234,8 +234,10 @@ class MetroModel extends BaseModel
                 $condition["MA_arrival_time >="] = $arrivalTime;
             }
             return $this->db->table("metro_arrivals")
+                            ->join("metro_sub_routes", "MSR_id = MA_sub_route_id")
                             ->select(
-                                "MA_sub_route_id AS sub_route_id,
+                                "MSR_route_id AS route_id,
+                                MA_sub_route_id AS sub_route_id,
                                 MA_arrival_time AS departure_time"
                             )
                             ->where($condition)
