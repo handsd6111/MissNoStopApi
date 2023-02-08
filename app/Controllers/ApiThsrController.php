@@ -2,11 +2,11 @@
 
 namespace App\Controllers;
 
-use App\Controllers\ApiBaseController;
+use App\Controllers\ApiThsrBaseController;
 use App\Models\THSRModel;
 use Exception;
 
-class ApiThsrController extends ApiBaseController
+class ApiThsrController extends ApiThsrBaseController
 {
     public $THSRModel;
 
@@ -29,16 +29,9 @@ class ApiThsrController extends ApiBaseController
         {
             $cities = $this->THSRModel->get_thsr_cities()->get()->getResult();
 
-            foreach ($cities as $i => $city)
-            {
-                $cities[$i] = [
-                    "CityId" => $city->id,
-                    "CityName" => [
-                        "TC" => $city->name_TC,
-                        "EN" => $city->name_EN
-                    ]
-                ];
-            }
+            $this->restructure_cities($cities);
+
+            $this->log_access_success();
 
             return $this->send_response($cities);
         }
@@ -59,98 +52,13 @@ class ApiThsrController extends ApiBaseController
     {
         try
         {
-            // 取得高鐵所有車站資料
             $stations = $this->THSRModel->get_stations()->get()->getResult();
 
-            // 重新排列資料
             $this->restructure_stations($stations);
-
-            // 回傳資料
+            
+            $this->log_access_success();
+            
             return $this->send_response($stations);
-        }
-        catch (Exception $e)
-        {
-            log_message("critical", $e);
-            return $this->send_response([], 500, lang("Exception.exception"));
-        }
-    }
-
-    /**
-     * 取得高鐵指定起訖站時刻表資料
-     * 
-     * 格式：/api/THSR/Arrival/{FromStationId}/{ToStationId}
-     * @param string $fromStationId 起站代碼
-     * @param string $toStationId 訖站代碼
-     * @return array 起訖站時刻表資料
-     */
-    function get_thsr_arrivals($fromStationId, $toStationId)
-    {
-        try
-        {
-            // 驗證參數
-            if (!$this->validate_param("FromStationId", $fromStationId, parent::THSR_STATION_ID_LENGTH)
-                || !$this->validate_param("ToStationId", $toStationId, parent::THSR_STATION_ID_LENGTH))
-            {
-                return $this->send_response([], 400, $this->validateErrMsg);
-            }
-
-            $schedules = $this->THSRModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
-
-            $arrivals = [];
-
-            for ($i = 0; $i < sizeof($schedules); $i += 2)
-            {
-                $fromData = $schedules[$i];
-                $toData   = $schedules[$i+1];
-
-                if ($fromData->station_id != $fromStationId) continue;
-
-                $schedule = [
-                    "TrainId" => $fromData->train_id,
-                    "Schedule" => [
-                        "DepartureTime" => $fromData->departure_time,
-                        "ArrivalTime"   => $toData->arrival_time
-                    ]
-                ];
-                array_push($arrivals, $schedule);
-            }
-
-            // 回傳資料
-            return $this->send_response($arrivals);
-        }
-        catch (Exception $e)
-        {
-            log_message("critical", $e);
-            return $this->send_response([], 500, lang("Exception.exception"));
-        }
-    }
-
-    function get_thsr_arrivals_by_train($trainId)
-    {
-        try
-        {
-            // 驗證參數
-            if (!$this->validate_param("TrainId", $trainId, parent::THSR_TRAIN_ID_LENGTH))
-            {
-                return $this->send_response([], 400, $this->validateErrMsg);
-            }
-            $arrivals = $this->THSRModel->get_arrivals_by_train($trainId)->get()->getResult();
-
-            foreach($arrivals as $i => $arrival)
-            {
-                $arrivals[$i] = [
-                    "StationId" => $arrival->station_id,
-                    "StationName" => [
-                        "TC" => $arrival->station_name_TC,
-                        "EN" => $arrival->station_name_EN
-                    ],
-                    "Schedule" => [
-                        "DepartureTime" =>$arrival->departure_time,
-                        "ArrivalTime" => $arrival->arrival_time
-                    ]
-                ];
-            }
-            return $this->send_response($arrivals);
         }
         catch (Exception $e)
         {
@@ -176,17 +84,96 @@ class ApiThsrController extends ApiBaseController
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
                 || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
+            $stations = $this->THSRModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
 
-            // 取得高鐵所有車站資料
-            $station = $this->THSRModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
+            if (sizeof($stations) == 0)
+            {
+                $this->log_access_fail();
 
-            // 重新排列資料
-            $this->restructure_stations($station);
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
+            $this->restructure_stations($stations);
+            
+            $this->log_access_success();
 
-            // 回傳資料
-            return $this->send_response($station);
+            return $this->send_response($stations);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    /**
+     * 取得高鐵指定起訖站時刻表資料
+     * 
+     * 格式：/api/THSR/Arrival/{FromStationId}/{ToStationId}
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     * @return array 起訖站時刻表資料
+     */
+    function get_thsr_arrivals($fromStationId, $toStationId)
+    {
+        try
+        {
+            // 驗證參數
+            if (!$this->validate_param("FromStationId", $fromStationId, parent::THSR_STATION_ID_LENGTH)
+                || !$this->validate_param("ToStationId", $toStationId, parent::THSR_STATION_ID_LENGTH))
+            {
+                $this->log_validate_fail();
+
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+            $arrivals = $this->THSRModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
+
+            if (sizeof($arrivals) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
+            $this->restructure_arrivals($arrivals, $fromStationId);
+            
+            $this->log_access_success();
+
+            return $this->send_response($arrivals);
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+            return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    function get_thsr_arrivals_by_train($trainId)
+    {
+        try
+        {
+            // 驗證參數
+            if (!$this->validate_param("TrainId", $trainId, parent::THSR_TRAIN_ID_LENGTH))
+            {
+                $this->log_validate_fail();
+
+                return $this->send_response([], 400, $this->validateErrMsg);
+            }
+            $arrivals = $this->THSRModel->get_arrivals_by_train($trainId)->get()->getResult();
+
+            if (sizeof($arrivals) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
+            $this->restructure_arrivals_by_train($arrivals);
+            
+            $this->log_access_success();
+
+            return $this->send_response($arrivals);
         }
         catch (Exception $e)
         {

@@ -1,6 +1,6 @@
 <?php
     return [
-        "resultNotFOund" => "查無資料",
+        "resultNotFound" => "查無符合條件的資料",
         "stationNotFound" => "查無車站",
         "dataNotAvailable" => "查無此路線資料",
         "metroStationNotFound" => "查無捷運站",

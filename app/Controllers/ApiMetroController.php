@@ -39,6 +39,8 @@ class ApiMetroController extends ApiMetroBaseController
             // 重新排列資料
             $this->restructure_systems($systems);
 
+            $this->log_access_success();
+
             // 回傳資料
             return $this->send_response($systems);
         }
@@ -62,14 +64,21 @@ class ApiMetroController extends ApiMetroBaseController
             // 驗證參數
             if (!$this->validate_param("SystemId", $systemId, parent::METRO_SYSTEM_ID_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-
-            //取得路線
             $routes = $this->metroModel->get_routes($systemId)->get()->getResult();
 
-            // 重新排列資料
+            if (sizeof($routes) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
             $this->restructure_routes($routes);
+
+            $this->log_access_success();
 
             // 回傳資料
             return $this->send_response($routes);
@@ -94,14 +103,21 @@ class ApiMetroController extends ApiMetroBaseController
             // 驗證參數
             if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-
-            // 取得捷運站
             $stations = $this->metroModel->get_stations($routeId)->get()->getResult();
 
-            // 重新排列資料
+            if (sizeof($stations) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
             $this->restructure_stations($stations);
+
+            $this->log_access_success();
             
             // 回傳資料
             return $this->send_response($stations);
@@ -128,41 +144,21 @@ class ApiMetroController extends ApiMetroBaseController
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
                 || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-
-            // 取得最近捷運站
             $stations = $this->metroModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
-
-            // 重新排列資料
-            for ($i = 0; $i < sizeof($stations); $i++)
+            
+            if (sizeof($stations) == 0)
             {
-                $station = $stations[$i];
+                $this->log_access_fail();
 
-                $stations[$i] = [
-                    "SystemId" => $station->system_id,
-                    "SystemName" => [
-                        "TC" => $station->system_name_TC,
-                        "EN" => $station->system_name_EN,
-                    ],
-                    "RouteId" => $station->route_id,
-                    "RouteName" => [
-                        "TC" => $station->route_name_TC,
-                        "EN" => $station->route_name_EN,
-                    ],
-                    "StationId"   => $station->station_id,
-                    "StationName" => [
-                        "TC" => $station->station_name_TC,
-                        "EN" => $station->station_name_EN
-                    ],
-                    "StationLocation" => [
-                        "CityId"   => $station->city_id,
-                        "Longitude" => $station->longitude,
-                        "Latitude"  => $station->latitude,
-                    ],
-                    "Sequence" => $station->sequence
-                ];
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
+            $this->restructure_nearest_stations($stations);
+
+            $this->log_access_success();
 
             // 回傳資料
             return $this->send_response($stations);
@@ -189,23 +185,28 @@ class ApiMetroController extends ApiMetroBaseController
             if (!$this->validate_param("FromStationId", $fromStationId, parent::METRO_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::METRO_STATION_ID_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-
             // 取得行駛方向
             $direction = $this->get_direction($fromStationId, $toStationId);
-
             // 取得起訖站皆行經的所有捷運子路線
             $subRoutes = $this->get_sub_routes_by_stations($fromStationId, $toStationId, $direction);
-
             // 取得指定子路線的總運行時間
             $durations = $this->get_durations($fromStationId, $toStationId, $subRoutes, $direction);
-            
             // 取得時刻表資料
             $arrivals = $this->get_arrivals($fromStationId, $direction, $subRoutes, $durations);
 
-            // 重新排列資料
-            $this->restructure_arrivals($arrivals, $fromStationId, $toStationId);
+            if (sizeof($arrivals) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
+            $this->restructure_arrivals($arrivals);
+
+            $this->log_access_success();
 
             // 回傳資料
             return $this->send_response($arrivals);
@@ -223,24 +224,22 @@ class ApiMetroController extends ApiMetroBaseController
             // 驗證參數
             if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->metroModel->get_arrivals_by_route($routeId, $direction, $time)->get()->getResult();
 
-            foreach($arrivals as $i => $arrival)
+            if (sizeof($arrivals) == 0)
             {
-                $arrivals[$i] = [
-                    "StationId" => $arrival->station_id,
-                    "StationName" => [
-                        "TC" => $arrival->station_name_TC,
-                        "EN" => $arrival->station_name_EN,
-                    ],
-                    "Schedule" => [
-                        "ArrivalTime" => $arrival->arrival_time,
-                        "DepartureTime" => $arrival->arrival_time
-                    ]
-                ];
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
+            $this->restructure_arrivals_by_route($arrivals);
+            
+            $this->log_access_success();
+
             return $this->send_response($arrivals);
         }
         catch (Exception $e)

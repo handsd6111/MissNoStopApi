@@ -217,108 +217,6 @@ class ApiBaseController extends BaseController
     }
 
     /**
-     * 重新排列縣市資料
-     * @param array &$cities 縣市陣列
-     * @return void 不回傳值
-     */
-    function restructure_cities(&$cities)
-    {
-        try
-        {
-            foreach ($cities as $key => $value)
-            {
-                $cities[$key] = [
-                    "CityId"   => $value->city_id,
-                    "CityName" => [
-                        "TC" => $value->name_TC,
-                        "EN" => $value->name_EN
-                    ],
-                ];
-            }
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 重新排列路線資料
-     * @param array &$routes 路線資料
-     * @return void 不回傳值
-     */
-    function restructure_routes(&$routes)
-    {
-        try
-        {
-            foreach ($routes as $key => $value)
-            {
-                $routes[$key] = [
-                    "RouteId"   => $value->route_id,
-                    "RouteName" => [
-                        "TC" => $value->name_TC,
-                        "EN" => $value->name_EN
-                    ],
-                ];
-            }
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 重新排列車站資料
-     * @param array &$stations 車站資料
-     * @param bool $isArray 是否為陣列
-     * @return void 不回傳值
-     */
-    function restructure_stations(&$stations, $isArray = true)
-    {
-        try
-        {
-            $seq = 0;
-            // 走遍車站陣列
-            foreach ($stations as $key => $value)
-            {
-                $seq++;
-
-                // 若查無序號則使用自動遞增的 $seq
-                if (!isset($value->sequence))
-                {
-                    $value->sequence = $seq;
-                }
-
-                // 重新排列資料
-                $stations[$key] = [
-                    "StationId"   => $value->station_id,
-                    "StationName" => [
-                        "TC" => $value->name_TC,
-                        "EN" => $value->name_EN
-                    ],
-                    "StationLocation" => [
-                        "CityId"   => $value->city_id,
-                        "Longitude" => $value->longitude,
-                        "Latitude"  => $value->latitude,
-                    ],
-                    "Sequence" => $value->sequence
-                ];
-            }
-
-            // 若此資料非陣列則取第一筆資料
-            if (!$isArray && sizeof($stations) > 0)
-            {
-                $stations = $stations[0];
-            }
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
      * 比較 a 與 b 發車時間的大小
      * @param mixed $a
      * @param mixed $b
@@ -329,87 +227,6 @@ class ApiBaseController extends BaseController
         {
             // Spaceship Operator
             return $a["Schedule"]["DepartureTime"] <=> $b["Schedule"]["DepartureTime"];
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 重新排列時刻表資料
-     * @param array &$arrivals 時刻表陣列
-     * @return void 不回傳值
-     */
-    function restructure_bus_arrivals(&$arrivals)
-    {
-        try
-        {
-            $fromArrival = $arrivals[0];
-            $toArrival   = $arrivals[1];
-
-            $newArrivals = [
-                "RouteId" => $fromArrival->route_id,
-                "RouteName" => [
-                    "TC" => $fromArrival->route_name_TC,
-                    "EN" => $fromArrival->route_name_EN
-                ],
-                "FromStationId" => $fromArrival->station_id,
-                "FromStationName" => [
-                    "TC" => $fromArrival->station_name_TC,
-                    "EN" => $fromArrival->station_name_EN,
-                ],
-                "ToStationId" => $toArrival->station_id,
-                "ToStationName" => [
-                    "TC" => $toArrival->station_name_TC,
-                    "EN" => $toArrival->station_name_EN,
-                ],
-                "Schedule" => []
-            ];
-            for ($i = 0; $i < sizeof($arrivals); $i += 2)
-            {
-                $fromArrival = $arrivals[$i];
-                $toArrival   = $arrivals[$i + 1];
-
-                $schedule = [
-                    "DepartureTime" => $fromArrival->arrival_time,
-                    "ArrivalTime"   => $toArrival->arrival_time
-                ];
-                array_push($newArrivals["Schedule"], $schedule);
-            }
-            $arrivals = $newArrivals;
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 重新排列時刻表資料
-     * @param array &$arrivals 時刻表陣列
-     * @return void 不回傳值
-     */
-    function restructure_arrivals_old(&$arrivals)
-    {
-        try
-        {
-            foreach ($arrivals as $key => $value)
-            {
-                $arrivals[$key] = [
-                    "TrainId" => $value[0]->train_id,
-                    "RouteId" => $value[0]->route_id,
-                    "RouteName" => [
-                        "TC" => $value[0]->route_name_TC,
-                        "EN" => $value[0]->route_name_EN
-                    ],
-                    "Schedule" => [
-                        "DepartureTime" => $value[0]->arrival_time,
-                        "ArrivalTime"   => $value[1]->arrival_time
-                    ]
-                ];
-            }
-            usort($arrivals, [ApiBaseController::class, "cmpArrivals"]);
         }
         catch (Exception $e)
         {
@@ -437,6 +254,45 @@ class ApiBaseController extends BaseController
         {
             log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
+        }
+    }
+
+    function log_validate_fail()
+    {
+        try
+        {
+            log_message("notice", "{$_SERVER['REQUEST_URI']} 驗證失敗。IP: {$_SERVER['REMOTE_ADDR']}");
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+            throw $e;
+        }
+    }
+
+    function log_access_success()
+    {
+        try
+        {
+            log_message("notice", "{$_SERVER['REQUEST_URI']} 存取成功。IP: {$_SERVER['REMOTE_ADDR']}");
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+            throw $e;
+        }
+    }
+
+    function log_access_fail()
+    {
+        try
+        {
+            log_message("notice", "{$_SERVER['REQUEST_URI']} 存取失敗。IP: {$_SERVER['REMOTE_ADDR']}");
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+            throw $e;
         }
     }
 }

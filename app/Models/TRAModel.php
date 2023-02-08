@@ -38,8 +38,8 @@ class TRAModel extends BaseModel
                             ->join("TRA_route_stations", "RRS_station_id = RS_id")
                             ->select("RS_id AS station_id,
                                       RRS_sequence AS sequence,
-                                      RS_name_TC AS name_TC,
-                                      RS_name_EN AS name_EN,
+                                      RS_name_TC AS station_name_TC,
+                                      RS_name_EN AS station_name_EN,
                                       RS_city_id AS city_id,
                                       RS_longitude AS longitude,
                                       RS_latitude AS latitude")
@@ -68,8 +68,8 @@ class TRAModel extends BaseModel
                             ->join("TRA_stations", "RS_id = RRS_station_id")
                             ->select("RS_id AS station_id,
                                       RRS_sequence AS sequence,
-                                      RS_name_TC AS name_TC,
-                                      RS_name_EN AS name_EN,
+                                      RS_name_TC AS station_name_TC,
+                                      RS_name_EN AS station_name_EN,
                                       RS_city_id AS city_id,
                                       RS_longitude AS longitude,
                                       RS_latitude AS latitude")
@@ -94,8 +94,8 @@ class TRAModel extends BaseModel
                             ->join("TRA_stations", "RS_id = RRS_station_id")
                             ->select(
                                "RS_id AS station_id,
-                                RS_name_TC AS name_TC,
-                                RS_name_EN AS name_EN,
+                                RS_name_TC AS station_name_TC,
+                                RS_name_EN AS station_name_EN,
                                 RS_city_id AS city_id,
                                 RS_longitude AS longitude,
                                 RS_latitude AS latitude,

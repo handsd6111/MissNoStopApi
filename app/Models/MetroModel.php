@@ -149,8 +149,8 @@ class MetroModel extends BaseModel
                             ->join("metro_route_stations", "MS_id = MRS_station_id")
                             ->select(
                                 "MS_id AS station_id,
-                                MS_name_TC AS name_TC,
-                                MS_name_EN AS name_EN,
+                                MS_name_TC AS station_name_TC,
+                                MS_name_EN AS station_name_EN,
                                 MS_city_id AS city_id,
                                 MS_longitude AS longitude,
                                 MS_latitude AS latitude,

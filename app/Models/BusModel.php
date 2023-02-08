@@ -26,8 +26,8 @@ class BusModel extends BaseModel
                             ->join("bus_stations", "BRS_station_id = BS_id")
                             ->select(
                                 "BR_id AS route_id,
-                                BR_name_TC AS name_TC,
-                                BR_name_EN AS name_EN"
+                                BR_name_TC AS station_name_TC,
+                                BR_name_EN AS station_name_EN"
                             )
                             ->where($condition)
                             ->groupBy("BR_name_TC")
@@ -75,8 +75,8 @@ class BusModel extends BaseModel
                             ->join("bus_routes", "BR_id = BRS_route_id")
                             ->select(
                                 "BS_id AS station_id,
-                                BS_name_TC AS name_TC,
-                                BS_name_EN AS name_EN,
+                                BS_name_TC AS station_name_TC,
+                                BS_name_EN AS station_name_EN,
                                 BS_city_id AS city_id,
                                 BS_longitude AS longitude,
                                 BS_latitude AS latitude,

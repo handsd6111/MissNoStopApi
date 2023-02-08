@@ -76,62 +76,114 @@ class ApiMetroBaseController extends ApiBaseController
         }
     }
 
-    /**
-     * 重新排列捷運時刻表資料
-     * @param array &$arrivals 時刻表陣列
-     * @param string $fromStationId 起站代碼
-     * @param string $toStationId 訖站代碼
-     * @return void 不回傳值
-     */
-    function restructure_arrivals(&$arrivals, $fromStationId, $toStationId)
+    function restructure_stations(&$stations)
     {
         try
         {
-            // $fromStationData = $this->metroModel->get_station($fromStationId)->get()->getResult()[0];
-            // $toStationData   = $this->metroModel->get_station($toStationId)->get()->getResult()[0];
+            for ($i = 0; $i < sizeof($stations); $i++)
+            {
+                $station = $stations[$i];
 
-            // $firstArrival = $arrivals[0];
+                $stations[$i] = [
+                    "StationId"   => $station->station_id,
+                    "StationName" => [
+                        "TC" => $station->station_name_TC,
+                        "EN" => $station->station_name_EN
+                    ],
+                    "StationLocation" => [
+                        "CityId"   => $station->city_id,
+                        "Longitude" => $station->longitude,
+                        "Latitude"  => $station->latitude,
+                    ],
+                    "Sequence" => $station->sequence
+                ];
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
 
-            // $newArrivals = [
-            //     "RouteId"       => $firstArrival->route_id,
-            //     "RouteName"     => [
-            //         "TC" => $firstArrival->route_name_TC,
-            //         "EN" => $firstArrival->route_name_EN
-            //     ],
-            //     "SubRouteId"    => $firstArrival->sub_route_id,
-            //     "SubRouteName"  => [
-            //         "TC" => $firstArrival->sub_route_name_TC,
-            //         "EN" => $firstArrival->sub_route_name_EN
-            //     ],
-            //     "FromStationId"   => $fromStationId,
-            //     "FromStationName" => [
-            //         "TC" => $fromStationData->station_name_TC,
-            //         "EN" => $fromStationData->station_name_EN,
-            //     ],
-            //     "ToStationId"   => $toStationId,
-            //     "ToStationName" => [
-            //         "TC" => $toStationData->station_name_TC,
-            //         "EN" => $toStationData->station_name_EN,
-            //     ],
-            //     "Schedule" => []
-            // ];
-            // foreach ($arrivals as $i => $arrival)
-            // {
-            //     $schedule = [
-            //         "DepartureTime" => $arrival->departure_time,
-            //         "ArrivalTime"   => $arrival->arrival_time,
-            //         "Duration"      => $arrival->duration
-            //     ];
-            //     array_push($newArrivals["Schedule"], $schedule);
-            // }
-            // $arrivals = $newArrivals;
+    function restructure_nearest_stations(&$stations)
+    {
+        try
+        {
+            for ($i = 0; $i < sizeof($stations); $i++)
+            {
+                $station = $stations[$i];
 
+                $stations[$i] = [
+                    "SystemId" => $station->system_id,
+                    "SystemName" => [
+                        "TC" => $station->system_name_TC,
+                        "EN" => $station->system_name_EN,
+                    ],
+                    "RouteId" => $station->route_id,
+                    "RouteName" => [
+                        "TC" => $station->route_name_TC,
+                        "EN" => $station->route_name_EN,
+                    ],
+                    "StationId"   => $station->station_id,
+                    "StationName" => [
+                        "TC" => $station->station_name_TC,
+                        "EN" => $station->station_name_EN
+                    ],
+                    "StationLocation" => [
+                        "CityId"   => $station->city_id,
+                        "Longitude" => $station->longitude,
+                        "Latitude"  => $station->latitude,
+                    ],
+                    "Sequence" => $station->sequence
+                ];
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    /**
+     * 重新排列捷運時刻表資料
+     * @param array &$arrivals 時刻表陣列
+     * @return void 不回傳值
+     */
+    function restructure_arrivals(&$arrivals)
+    {
+        try
+        {
             foreach ($arrivals as $i => $arrival)
             {
                 $arrivals[$i] = [
                     "Schedule" => [
                         "DepartureTime" => $arrival->departure_time,
                         "ArrivalTime" => $arrival->arrival_time
+                    ]
+                ];
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    function restructure_arrivals_by_route(&$arrivals)
+    {
+        try
+        {
+            foreach($arrivals as $i => $arrival)
+            {
+                $arrivals[$i] = [
+                    "StationId" => $arrival->station_id,
+                    "StationName" => [
+                        "TC" => $arrival->station_name_TC,
+                        "EN" => $arrival->station_name_EN,
+                    ],
+                    "Schedule" => [
+                        "ArrivalTime" => $arrival->arrival_time,
+                        "DepartureTime" => $arrival->arrival_time
                     ]
                 ];
             }
@@ -355,6 +407,7 @@ class ApiMetroBaseController extends ApiBaseController
         try
         {
             $sequence = $this->metroModel->get_sub_route_sequence($stationId, $subRouteId, $direction)->get()->getResult();
+            
             if (!isset($sequence[0]->sequence))
             {
                 throw new Exception(lang("MetroQueries.stationNotFound"), 400);

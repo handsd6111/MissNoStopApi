@@ -2,11 +2,11 @@
 
 namespace App\Controllers;
 
-use App\Controllers\ApiBaseController;
+use App\Controllers\ApiBusBaseController;
 use App\Models\BusModel;
 use Exception;
 
-class ApiBusController extends ApiBaseController
+class ApiBusController extends ApiBusBaseController
 {
     public $busModel;
 
@@ -35,14 +35,21 @@ class ApiBusController extends ApiBaseController
             // 驗證參數
             if (!$this->validate_param("CityId", $cityId, parent::CITY_ID_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-
-            // 取得指定公車縣市的所有路線資料
             $routes = $this->busModel->get_routes($cityId)->get()->getResult();
 
-            // 重新排列公車路線資料
+            if (sizeof($routes) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
             $this->restructure_routes($routes);
+
+            $this->log_access_success();
 
             // 回傳資料
             return $this->send_response($routes);
@@ -67,14 +74,21 @@ class ApiBusController extends ApiBaseController
             // 驗證參數
             if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-
-            // 取得指定公車路線的所有車站資料
             $stations = $this->busModel->get_stations($routeId, $direction)->get()->getResult();
 
-            // 重新排列公車站資料
+            if (sizeof($stations) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
             $this->restructure_stations($stations);
+
+            $this->log_access_success();
 
             // 回傳資料
             return $this->send_response($stations);
@@ -91,10 +105,9 @@ class ApiBusController extends ApiBaseController
      * @param string $routeId 路線代碼
      * @param string $longitude 經度
      * @param string $latitude 緯度
-     * @param int $limit 回傳數量
      * @return array 公車站資料
      */
-    function get_bus_nearest_station($longitude, $latitude, $limit = 1)
+    function get_bus_nearest_station($longitude, $latitude)
     {
         try
         {
@@ -102,38 +115,22 @@ class ApiBusController extends ApiBaseController
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
              || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
+            $stations = $this->busModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
 
-            // 取得指定公車路線及經緯度的最近車站資料
-            $stations = $this->busModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
-
-            // 重新排列資料
-            for ($i = 0; $i < sizeof($stations); $i++)
+            if (sizeof($stations) == 0)
             {
-                $station = $stations[$i];
+                $this->log_access_fail();
 
-                $stations[$i] = [
-                    "RouteId" => $station->route_id,
-                    "RouteName" => [
-                        "TC" => $station->route_name_TC,
-                        "EN" => $station->route_name_EN,
-                    ],
-                    "StationId"   => $station->station_id,
-                    "StationName" => [
-                        "TC" => $station->station_name_TC,
-                        "EN" => $station->station_name_EN
-                    ],
-                    "StationLocation" => [
-                        "CityId"   => $station->city_id,
-                        "Longitude" => $station->longitude,
-                        "Latitude"  => $station->latitude,
-                    ],
-                    "Direction" => $station->direction
-                ];
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
+            $this->restructure_nearest_stations($stations);
 
-            // 回傳資料
+            $this->log_access_success();
+
             return $this->send_response($stations);
         }
         catch (Exception $e)
@@ -158,23 +155,30 @@ class ApiBusController extends ApiBaseController
             if (!$this->validate_param("FromStationId", $fromStationId, parent::BUS_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::BUS_STATION_ID_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $route = $this->busModel->get_route_by_station($fromStationId, $toStationId)->get()->getResult();
 
             if (!$route)
             {
-                return $this->send_response([], 400, "查無符合條件的路線");
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $arrivals = $this->busModel->get_arrivals($fromStationId, $toStationId, $direction)->get()->getResult();
 
             if (sizeof($arrivals) < 2)
             {
-                return $this->send_response([], 400, "查無符合條件的時刻表");
-            }
-            $this->restructure_bus_arrivals($arrivals);
+                $this->log_access_fail();
 
-            // 回傳資料
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
+            $this->restructure_arrivals($arrivals);
+
+            $this->log_access_success();
+
             return $this->send_response($arrivals);
         }
         catch (Exception $e)
@@ -191,24 +195,22 @@ class ApiBusController extends ApiBaseController
             // 驗證參數
             if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH))
             {
+                $this->log_validate_fail();
+
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->busModel->get_arrivals_of_route($routeId, $direction, $time)->get()->getResult();
 
-            foreach($arrivals as $i => $arrival)
+            if (sizeof($arrivals) == 0)
             {
-                $arrivals[$i] = [
-                    "StationId" => $arrival->station_id,
-                    "StationName" => [
-                        "TC" => $arrival->station_name_TC,
-                        "EN" => $arrival->station_name_EN,
-                    ],
-                    "Schedule" => [
-                        "DepartureTime" => $arrival->arrival_time,
-                        "ArrivalTime" => $arrival->arrival_time
-                    ]
-                ];
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
+            $this->restructure_arrivals_by_route($arrivals);
+
+            $this->log_access_success();
+
             return $this->send_response($arrivals);
         }
         catch (Exception $e)
