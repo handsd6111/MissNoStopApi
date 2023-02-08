@@ -17,18 +17,23 @@ class ApiGeneralController extends ApiBaseController
     {
         try
         {
-            // 取得縣市
             $cities = $this->baseModel->get_cities()->get()->getResult();
 
-            // 重新排列資料
-            $this->restructure_cities($cities);
-
-            // 回傳資料
+            foreach ($cities as $i => $city)
+            {
+                $cities[$i] = [
+                    "CityId" => $city->id,
+                    "CityName" => [
+                        "TC" => $city->name_TC,
+                        "EN" => $city->name_EN
+                    ]
+                ];
+            }
             return $this->send_response($cities);
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
