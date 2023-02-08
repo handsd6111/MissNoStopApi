@@ -236,7 +236,8 @@ class ApiMetroController extends ApiMetroBaseController
                         "EN" => $arrival->station_name_EN,
                     ],
                     "Schedule" => [
-                        "ArrivalTime" => $arrival->arrival_time
+                        "ArrivalTime" => $arrival->arrival_time,
+                        "DepartureTime" => $arrival->arrival_time
                     ]
                 ];
             }

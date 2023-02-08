@@ -117,7 +117,7 @@
 ]
 
 /api/Bus/ArrivalOfRoute/{RouteId}/{DirectionId}/{Time}
-取得指定路線、行駛方向及最近時間的「公車路線時刻表」資料
+取得指定路線、行駛方向及目前時間的「公車路線時刻表」資料
 
 [
 	{
@@ -128,6 +128,7 @@
 		},
 		Schedule: {
 			ArrivalTime: 抵達時間
+			DepartureTime: 發車時間
 		}
 	}
 ]
@@ -216,32 +217,29 @@
 取得指定起訖站的「捷運時刻表」資料
 
 [
-	RouteId: 路線代碼,
-	RouteName: {
-		TC: 中文路線名,
-		EN: 英文路線名
-	},
-	SubRouteId: 子路線代碼,
-	SubRouteName: {
-		TC: 中文子路線名,
-		EN: 英文子路線名
-	},
-	FromStationId: 起站代碼,
-	FromStationName: {
-		TC: 中文起站名,
-		EN: 英文起站名
-	},
-	ToStationId: 訖站代碼,
-	ToStationName: {
-		TC: 中文訖站名,
-		EN: 英文訖站名
-	},
 	Schedule: [
 		{
 			ArrivalTime: 訖站抵達時間
 			DepartureTime: 起站發車時間,
 		}
 	]
+]
+
+/api/Metro/ArrivalOfRoute/{RouteId}/{Direction}/{Time}
+取得指定路線、行駛方向及目前時間的「捷運路線時刻表」資料
+
+[
+	{
+		StationId: 車站代碼,
+		StationName: {
+			TC: 中文站名,
+			EN: 英文站名
+		},
+		Schedule: {
+			ArrivalTime: 抵達時間
+			DepartureTime: 發車時間
+		}
+	}
 ]
 
 /api/Metro/RoutePlan/{FromStationId}/{ToStationId}/{StartTime}
@@ -335,7 +333,7 @@
 ]
 
 /api/THSR/ArrivalOfTrain/{TrainId}
-取得指定路線、行駛方向及最近時間的「高鐵路線時刻表」資料
+取得指定路線的「高鐵路線時刻表」資料
 
 [
 	{
@@ -414,7 +412,7 @@
 ]
 
 /api/TRA/ArrivalOfTrain/{TrainId}
-取得指定路線、行駛方向及最近時間的「臺鐵路線時刻表」資料
+取得指定路線的「臺鐵路線時刻表」資料
 
 [
 	{
