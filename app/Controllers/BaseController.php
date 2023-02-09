@@ -57,18 +57,20 @@ abstract class BaseController extends Controller
      * 在終端顯示訊息
      * @param string $message 訊息
      * @param bool $lineBreak 是否換行
-     * @param void 不回傳值
+     * @param bool $preLineBreak 是否提前換行
      */
     protected function terminalLog($message = "", $lineBreak = false, $preLineBreak = false)
     {
         try
         {
             $cli = new CLI();
+
             if ($preLineBreak)
             {
                 $cli::newLine();
             }
             $cli::print($message);
+
             if ($lineBreak)
             {
                 $cli::newLine();
@@ -99,7 +101,6 @@ abstract class BaseController extends Controller
             "status" => $status,
             "message" => $message
         ];
-        
         $this->response->setJSON($result)->setStatusCode($status);
 
         return $this->response;

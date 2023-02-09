@@ -8,10 +8,9 @@ use Exception;
 class ApiGeneralController extends ApiBaseController
 {
     /**
-     * 取得縣市資料
-     * 
-     * 格式：/api/General/City
-     * @return array 縣市資料陣列
+     * /api/General/City
+     * 取得縣市資料陣列
+     * @return mixed 縣市資料陣列
      */
     function get_cities()
     {

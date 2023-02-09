@@ -88,7 +88,9 @@ class ApiBaseController extends BaseController
      */
     const SAFE_ID_LENGTH = 17;
 
-    // 載入模型
+    /**
+     * 載入模型
+     */
     function __construct()
     {
         try
@@ -97,7 +99,7 @@ class ApiBaseController extends BaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e->getMessage());
+            log_message("critical", $e);
             return $this->send_response([], 500, "Exception error");
         }
     }
@@ -106,7 +108,7 @@ class ApiBaseController extends BaseController
      * 驗證參數
      * @param string $name 參數名稱
      * @param string $param 參數值
-     * @param int $length 參數長度限制
+     * @param int $length 參數最大長度
      * @return bool 驗證結果
      */
     function validate_data($name, $param, $length)
@@ -147,24 +149,20 @@ class ApiBaseController extends BaseController
         {
             // 轉大寫
             $param = strtoupper($param);
-
             // 重置參數驗證失敗訊息
             $this->validateErrMsg = "";
-
             // 若參數驗證失敗則回傳錯誤
             if (!$this->validate_data($name, $param, $length))
             {
                 $this->validateErrMsg = $this->validator->getError();
                 return false;
             }
-
             // 若參數是經緯度且數值有異則回傳錯誤
             if ($this->is_coordniate($name) && !$this->is_valid_coordinate($param))
             {
                 $this->validateErrMsg = lang("Validation.longLatInvalid", ["param" => $param]);
                 return false;
             }
-
             // 回傳成功
             return true;
         }
@@ -183,11 +181,7 @@ class ApiBaseController extends BaseController
     {
         try
         {
-            if (!in_array($name, ["Longitude", "Latitude"]))
-            {
-                return false;
-            }
-            return true;
+            return in_array($name, ["Longitude", "Latitude"]);
         }
         catch (Exception $e)
         {
@@ -225,7 +219,6 @@ class ApiBaseController extends BaseController
     {
         try
         {
-            // Spaceship Operator
             return $a["Schedule"]["DepartureTime"] <=> $b["Schedule"]["DepartureTime"];
         }
         catch (Exception $e)
@@ -235,28 +228,8 @@ class ApiBaseController extends BaseController
     }
 
     /**
-     * 回傳抓到的例外
-     * @param mixed &$e 例外資料
-     * @return mixed 回傳資料
+     * 紀錄使用者存取 API 時參數驗證失敗的資訊
      */
-    function get_caught_exception(&$e)
-    {
-        try
-        {
-            log_message("critical", $e);
-            if ($e->getCode() == 500)
-            {
-                return $this->send_response([], 500, lang("Exception.exception"));
-            }
-            return $this->send_response([], 400, $e->getMessage());
-        }
-        catch (Exception $e)
-        {
-            log_message("critical", $e);
-            return $this->send_response([], 500, lang("Exception.exception"));
-        }
-    }
-
     function log_validate_fail()
     {
         try
@@ -270,6 +243,9 @@ class ApiBaseController extends BaseController
         }
     }
 
+    /**
+     * 記錄使用者存取 API 成功的資訊
+     */
     function log_access_success()
     {
         try
@@ -283,6 +259,9 @@ class ApiBaseController extends BaseController
         }
     }
 
+    /**
+     * 記錄使用者存取 API 失敗的資訊
+     */
     function log_access_fail()
     {
         try

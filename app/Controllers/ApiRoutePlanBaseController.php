@@ -107,7 +107,8 @@ class ApiRoutePlanBaseController extends ApiBaseController
         }
         catch (Exception $e)
         {
-            return $this->get_caught_exception($e);
+            log_message("critical", $e);
+            return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
 
@@ -115,6 +116,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
      * 取得路線規劃資料
      * @param string $startStationId 起站代碼
      * @param string $endStationId 訖站代碼
+     * @param string $departureTime 發車時間
      * @return array 路線規劃資料
      */
     function get_route_plan($startStationId, $endStationId, $departureTime)
@@ -156,6 +158,12 @@ class ApiRoutePlanBaseController extends ApiBaseController
         }
     }
 
+    /**
+     * 比較兩時刻表的大小
+     * @param mixed &$arrival1 時刻表 1
+     * @param mixed &$arrival2 時刻表 2
+     * @return int -1, 0, 1 分別代表「時刻表 1 小於時刻表 2」、「時刻表 1 等於時刻表 2」及「時刻表 1 大於時刻表 2」
+     */
     function compareArrivals(&$arrival1, &$arrival2)
     {
         try
@@ -185,6 +193,10 @@ class ApiRoutePlanBaseController extends ApiBaseController
         }
     }
 
+    /**
+     * 取得路線規劃資料
+     * @return mixed 路線規劃資料
+     */
     function get_cross_route_plan()
     {
         try
@@ -231,7 +243,6 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
     /**
      * 初始化轉乘資料
-     * @return void 不回傳值
      */
     function innitialize_algorithm_data()
     {
@@ -266,6 +277,9 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
     /**
      * 將指定起訖站寫入車站矩陣
+     * @param string $stationId 車站代碼
+     * @param string $transferStationId 車站的轉乘站代碼
+     * @param string $transferTime 轉成花費時間
      */
     function set_transfer_data($stationId, $transferStationId, $transferTime)
     {
@@ -288,7 +302,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
     /**
      * 將指定車站寫入「子路線車站」矩陣
-     * @return array 路線車站資料
+     * @param string $stationId 車站代碼
      */
     function set_route_stations($stationId)
     {
@@ -316,7 +330,10 @@ class ApiRoutePlanBaseController extends ApiBaseController
     }
 
     /**
-     * 寫入路線對應車站資料
+     * 寫入路線「對應車站」陣列
+     * @param string $subRouteId 子路線代碼
+     * @param string $stationId 車站代碼
+     * @param mixed $subRoutes 子路線陣列
      */
     function set_route_station($subRouteId, $stationId, $subRoutes)
     {
@@ -371,7 +388,9 @@ class ApiRoutePlanBaseController extends ApiBaseController
     }
 
     /**
-     * 將指定起訖站寫入車站鄰接矩陣
+     * 將指定起訖站寫入「車站鄰接矩陣」
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
      */
     function set_station_adjacency($fromStationId, $toStationId)
     {
@@ -414,7 +433,6 @@ class ApiRoutePlanBaseController extends ApiBaseController
     /**
      * 拜訪所有鄰居
      * @param string $source 源頭車站代碼
-     * @return void 不回傳值
      */
     function visit_neighbors($source)
     {
@@ -488,7 +506,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
     /**
      * 逆向查詢源頭並取得時刻表資料
      * @param string $endStationId 訖站代碼
-     * @return array 時刻表資料
+     * @return mixed 時刻表資料
      */
     function retrace_source($endStationId)
     {
@@ -524,6 +542,12 @@ class ApiRoutePlanBaseController extends ApiBaseController
         }
     }
 
+    /**
+     * 回傳指定兩車站是否位於同一路線上
+     * @param string $station1 車站 1 代碼
+     * @param string $station2 車站 2 代碼
+     * @return bool 兩車站是否位於同一路線上
+     */
     function is_on_same_route($station1, $station2)
     {
         try
@@ -543,6 +567,12 @@ class ApiRoutePlanBaseController extends ApiBaseController
         }
     }
 
+    /**
+     * 重新排序單個時刻表資料
+     * @param mixed &$arrival 時刻表
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
+     */
     function restructure_arrival(&$arrival, $fromStationId, $toStationId)
     {
         try
@@ -596,7 +626,6 @@ class ApiRoutePlanBaseController extends ApiBaseController
     /**
      * 修正子路線重複問題
      * @param array &$arrivals 時刻表
-     * @return void 不回傳值
      */
     function fix_duplicate_sub_route(&$arrivals)
     {
@@ -635,6 +664,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
     /**
      * 將車站推入佇列
+     * @param string $stationId 車站代碼
      */
     function add_to_queue($stationId)
     {
@@ -644,7 +674,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
             if (($transferStationId = $this->get_transfer_station($stationId)) != null)
             {
-            array_push($this->queue, $transferStationId);
+                array_push($this->queue, $transferStationId);
             }
         }
         catch (Exception $e)
@@ -654,7 +684,9 @@ class ApiRoutePlanBaseController extends ApiBaseController
     }
 
     /**
-     * 紀錄源頭
+     * 紀錄車站源頭
+     * @param string $source 源頭站代碼
+     * @param string $stationId 車站代碼
      */
     function set_source($source, $stationId)
     {
@@ -675,10 +707,9 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
     /**
      * 紀錄時刻表資料
-     * @param string $source 源頭
-     * @param string $stationId 車站
-     * @param array $arrival 時刻表資料
-     * @return void 不回傳值
+     * @param string $source 源頭站代碼
+     * @param string $stationId 車站代碼
+     * @param array $arrival 時刻表
      */
     function set_arrival($source, $stationId, $arrival)
     {
@@ -702,18 +733,22 @@ class ApiRoutePlanBaseController extends ApiBaseController
     }
 
     /**
-     * 紀錄抵達時間
+     * 紀錄指定車站的到站時間
+     * @param string $stationId 車站代碼
+     * @param string $arrivalTime 到站時間
      */
     function set_arrival_time($stationId, $arrivalTime)
     {
         try
         {
             helper("addTime");
+
             $this->arvTimes[$stationId] = $arrivalTime;
 
             if (($transferStationId = $this->get_transfer_station($stationId)) != null)
             {
                 $transferTime = $this->transferData[$stationId]["TransferTime"];
+                
                 $this->arvTimes[$transferStationId] = add_time($arrivalTime, $transferTime);
             }
         }
@@ -726,6 +761,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
     /**
      * 取得指定車站的最早抵達時間
      * @param string $stationId 車站代碼
+     * @param string $arrivalTime 到站時間
      * @return string 最早抵達時間
      */
     function get_arrival_time($stationId, $arrivalTime = "24:59:59")
@@ -745,11 +781,11 @@ class ApiRoutePlanBaseController extends ApiBaseController
     }
 
     /**
-     * 取得指定交通工具、起訖站及發車時間的最早班次資料
+     * 取得指定起訖站及發車時間的最早班次資料
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
      * @param string $arrivalTime 發車時間
-     * @return object 時刻表資料
+     * @return mixed 時刻表
      */
     function get_arrival($fromStationId, $toStationId, $arrivalTime)
     {

@@ -11,11 +11,12 @@ use Exception;
 class ApiRoutePlanController extends ApiRoutePlanBaseController
 {
     /**
-     * 規劃路線
+     * /api/Metro/RoutePlan/{FromStationId}/{ToStationId}/{StartTime}
+     * 取得指定起訖站及發車時間的「捷運路線規劃」資料
      * @param string $fromStationId 起站代碼
-     * @param string $toTransportName 訖站運輸工具名稱
      * @param string $toStationId 訖站代碼
-     * @return array 路線資料
+     * @param string $departureTime 發車時間
+     * @return array 捷運路線規劃資料
      */
     function metro_route_plan($fromStationId, $toStationId, $departureTime)
     {
@@ -26,6 +27,7 @@ class ApiRoutePlanController extends ApiRoutePlanBaseController
                 || !$this->validate_param("ToStationId", $toStationId, parent::METRO_STATION_ID_LENGTH))
             {
                 $this->log_validate_fail();
+                
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $routePlan = $this->get_route_plan($fromStationId, $toStationId, $departureTime);

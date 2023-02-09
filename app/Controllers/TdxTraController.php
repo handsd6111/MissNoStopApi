@@ -55,16 +55,18 @@ class TdxTraController extends TdxBaseController
     public function setTraStation()
     {
         $result = $this->getTraStation();
+
         $traStationModel = new TraStationModel();
 
-        foreach ($result as $value) {
+        foreach ($result as $value)
+        {
             $traStationModel->save([
-                'RS_id' => $value->StationUID,
-                'RS_name_TC' => $value->StationName->Zh_tw,
-                'RS_name_EN' => $value->StationName->En,
-                'RS_city_id' => $value->LocationCityCode,
+                'RS_id'        => $value->StationUID,
+                'RS_name_TC'   => $value->StationName->Zh_tw,
+                'RS_name_EN'   => $value->StationName->En,
+                'RS_city_id'   => $value->LocationCityCode,
                 'RS_longitude' => $value->StationPosition->PositionLon,
-                'RS_latitude' => $value->StationPosition->PositionLat
+                'RS_latitude'  => $value->StationPosition->PositionLat
             ]);
         }
 
@@ -103,6 +105,7 @@ class TdxTraController extends TdxBaseController
     public function setTraRoute()
     {
         $result = $this->getTraRoute();
+
         $traRouteModel = new TraRouteModel();
 
         foreach ($result as $value) {
@@ -110,7 +113,7 @@ class TdxTraController extends TdxBaseController
             $this->terminalLog("正在取得 {$value->LineID} ... ", true);
 
             $traRouteModel->save([
-                'RR_id' => $value->LineID,
+                'RR_id'      => $value->LineID,
                 'RR_name_TC' => $value->LineNameZh,
                 'RR_name_EN' => $value->LineNameEn
             ]);
@@ -150,14 +153,17 @@ class TdxTraController extends TdxBaseController
     public function setTraRouteStation()
     {
         $result = $this->getTraRouteStation();
+
         $traRouteStationModel = new TraRouteStationModel();
 
-        foreach ($result as $value) {
-            foreach ($value->Stations as $station) {
+        foreach ($result as $value)
+        {
+            foreach ($value->Stations as $station)
+            {
                 $traRouteStationModel->save([
                     'RRS_station_id' => 'TRA-' . $station->StationID,
-                    'RRS_route_id' => $value->LineID,
-                    'RRS_sequence' => $station->Sequence
+                    'RRS_route_id'   => $value->LineID,
+                    'RRS_sequence'   => $station->Sequence
                 ]);
             }
         }
@@ -235,11 +241,13 @@ class TdxTraController extends TdxBaseController
     public function setTraTrain()
     {
         $result = $this->getTraTrainAndArrival();
+
         $traTrainModel = new TraTrainModel();
 
-        foreach ($result as $value) {
+        foreach ($result as $value)
+        {
             $traTrainModel->save([
-                'RT_id' => $value->DailyTrainInfo->TrainNo,
+                'RT_id'             => $value->DailyTrainInfo->TrainNo,
                 'RT_departure_date' => $value->TrainDate
             ]);
         }
@@ -255,6 +263,7 @@ class TdxTraController extends TdxBaseController
     public function setTraArrival()
     {
         $result = $this->getTraTrainAndArrival();
+
         $traArrivalModel = new TraArrivalModel();
 
         helper("time00To24");
@@ -265,7 +274,7 @@ class TdxTraController extends TdxBaseController
 
             foreach ($value->StopTimes as $stopTime)
             {
-                $stopTime->ArrivalTime = time_00_to_24($stopTime->ArrivalTime);
+                $stopTime->ArrivalTime  = time_00_to_24($stopTime->ArrivalTime);
                 $stopTime->DepartureTime = time_00_to_24($stopTime->DepartureTime);
                 
                 $traArrivalModel->save([
@@ -289,22 +298,23 @@ class TdxTraController extends TdxBaseController
     public function setTraTrainANdArrival()
     {
         $result = $this->getTraTrainAndArrival();
-        $traTrainModel = new TraTrainModel();
+
+        $traTrainModel   = new TraTrainModel();
         $traArrivalModel = new TraArrivalModel();
 
         helper("time00To24");
 
-        foreach ($result as $value) {
-
+        foreach ($result as $value)
+        {
             $this->terminalLog("正在取得 {$value->DailyTrainInfo->TrainNo} ... ", true);
             
             $traTrainModel->save([
-                'RT_id' => $value->DailyTrainInfo->TrainNo,
+                'RT_id'             => $value->DailyTrainInfo->TrainNo,
                 'RT_departure_date' => $value->TrainDate
             ]);
             foreach ($value->StopTimes as $stopTime)
             {
-                $stopTime->ArrivalTime = time_00_to_24($stopTime->ArrivalTime);
+                $stopTime->ArrivalTime   = time_00_to_24($stopTime->ArrivalTime);
                 $stopTime->DepartureTime = time_00_to_24($stopTime->DepartureTime);
 
                 $traArrivalModel->save([

@@ -76,8 +76,8 @@ class TdxBaseController extends BaseController
 
     /**
      * 回傳指定前綴與代碼的 UID
-     * @param &$prefix 前綴
-     * @param &$id 代碼
+     * @param string $prefix 前綴
+     * @param string $id 代碼
      * @return string UID
      */
     protected function getUID($prefix, $id)
@@ -111,7 +111,7 @@ class TdxBaseController extends BaseController
     /**
      * 取得指定起始時間到現在的總花費時間
      * @param $startTime 起始時間
-     * @return string 總花費時間
+     * @return float 總花費時間
      */
     protected function getTimeTaken($startTime)
     {

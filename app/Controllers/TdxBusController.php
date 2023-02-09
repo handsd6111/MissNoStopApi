@@ -21,8 +21,7 @@ class TdxBusController extends TdxBaseController
     protected $busStationModel;
 
     /**
-     * 統一載入模型
-     * @return void 不回傳值
+     * 載入模型
      */
     public function __construct()
     {
@@ -49,6 +48,7 @@ class TdxBusController extends TdxBaseController
         try
         {
             $result = $this->cityModel->findAll();
+
             return $result;
         }
         catch (Exception $e)
@@ -79,7 +79,6 @@ class TdxBusController extends TdxBaseController
 
     /**
      * 寫入公車路線與車站資料
-     * @return void 不回傳值
      */
     public function setBusRouteStation()
     {
@@ -100,10 +99,8 @@ class TdxBusController extends TdxBaseController
                 $cityName  = $city["C_name_EN"];
 
                 $this->terminalLog("Running data of $cityName ... ");
-
                 // 取得指定縣市的公車路線與車站資料
                 $routes = $this->getBusRouteStation($cityName);
-
                 // 走遍指定縣市的路線列表
                 foreach ($routes as $route)
                 {
@@ -112,7 +109,6 @@ class TdxBusController extends TdxBaseController
                     {
                         $route->SubRouteName->En = $route->SubRouteName->Zh_tw;
                     }
-
                     $routeId = $this->getUID($cityId, $route->SubRouteID);
 
                     $this->busRouteModel->save([
@@ -120,7 +116,6 @@ class TdxBusController extends TdxBaseController
                         "BR_name_TC" => $route->SubRouteName->Zh_tw,
                         "BR_name_EN" => $route->SubRouteName->En
                     ]);
-
                     // 走遍指定路線的車站列表
                     foreach ($route->Stops as $station)
                     {
@@ -134,7 +129,6 @@ class TdxBusController extends TdxBaseController
                         {
                             continue;
                         }
-
                         $stationId = $this->getUID($cityId, $station->StopID);
 
                         $this->busStationModel->save([
@@ -192,15 +186,12 @@ class TdxBusController extends TdxBaseController
         try
         {
             helper(["getWeekDay", "terminalLog"]);
-
             // 取得縣市列表
             $cities = $this->getCities();
-
             // 無資料縣市
             $unavailableCities = [
                 "LienchiangCounty"
             ];
-
             // 走遍縣市列表
             foreach ($cities as $city)
             {
@@ -211,7 +202,6 @@ class TdxBusController extends TdxBaseController
                 $cityName  = $city["C_name_EN"];
 
                 helper("time00To24");
-
                 // 若嘗試取得無資料的縣市則跳過
                 if (in_array($cityName, $unavailableCities))
                 {
@@ -219,10 +209,8 @@ class TdxBusController extends TdxBaseController
                     continue;
                 }
                 $this->terminalLog("Running data of $cityName ... ");
-
                 // 取得指定公車縣市的時刻表
                 $arrivals = $this->getBusArrivals($cityName);
-
                 // 走遍指定縣市的時課表
                 foreach ($arrivals as $arrival)
                 {

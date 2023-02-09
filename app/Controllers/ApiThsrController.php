@@ -10,7 +10,9 @@ class ApiThsrController extends ApiThsrBaseController
 {
     public $THSRModel;
 
-    // 載入模型
+    /**
+     * 載入模型
+     */
     function __construct()
     {
         try
@@ -23,6 +25,10 @@ class ApiThsrController extends ApiThsrBaseController
         }
     }
 
+    /**
+     * /api/THSR/City
+     * 取得「高鐵營運縣市」資料
+     */
     function get_thsr_cities()
     {
         try
@@ -43,10 +49,9 @@ class ApiThsrController extends ApiThsrBaseController
     }
 
     /**
-     * 取得高鐵所有車站資料
-     * 
-     * 格式：/api/THSR/station
-     * @return array 高鐵站資料陣列
+     * /api/THSR/Station
+     * 取得「高鐵車站」資料
+     * @return mixed 高鐵站資料
      */
     function get_thsr_stations()
     {
@@ -68,19 +73,16 @@ class ApiThsrController extends ApiThsrBaseController
     }
 
     /**
-     * 取得高鐵指定經緯度最近車站
-     * 
-     * 格式：/api/THSR/station/long/{Longitude}/lat/{Latitude}
-     * @param float $longitude 經度（-180 ~ 180）
-     * @param float $latitude 緯度（-90 ~ 90）
-     * @param int $limit 回傳數量
-     * @return array 最近高鐵站資料陣列
+     * /api/THSR/NearestStation/{Longitude}/{Latitude}
+     * 取得指定經緯度的「最近高鐵車站」資料
+     * @param string $longitude 經度（-180 ~ 180）
+     * @param string $latitude 緯度（-90 ~ 90）
+     * @return mixed 最近高鐵站資料
      */
-    function get_thsr_nearest_station($longitude, $latitude, $limit = 1)
+    function get_thsr_nearest_station($longitude, $latitude)
     {
         try
         {
-            // 驗證參數
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
                 || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
@@ -88,7 +90,7 @@ class ApiThsrController extends ApiThsrBaseController
 
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-            $stations = $this->THSRModel->get_nearest_station($longitude, $latitude)->get($limit)->getResult();
+            $stations = $this->THSRModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
 
             if (sizeof($stations) == 0)
             {
@@ -110,18 +112,16 @@ class ApiThsrController extends ApiThsrBaseController
     }
 
     /**
-     * 取得高鐵指定起訖站時刻表資料
-     * 
-     * 格式：/api/THSR/Arrival/{FromStationId}/{ToStationId}
+     * /api/THSR/Arrival/{FromStationId}/{ToStationId}
+     * 取得指定起訖站的「高鐵時刻表」資料
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
-     * @return array 起訖站時刻表資料
+     * @return mixed 高鐵時刻表資料
      */
     function get_thsr_arrivals($fromStationId, $toStationId)
     {
         try
         {
-            // 驗證參數
             if (!$this->validate_param("FromStationId", $fromStationId, parent::THSR_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::THSR_STATION_ID_LENGTH))
             {
@@ -150,11 +150,16 @@ class ApiThsrController extends ApiThsrBaseController
         }
     }
 
+    /**
+     * /api/THSR/ArrivalOfTrain/{TrainId}
+     * 取得指定車次的「高鐵車次時刻表」資料
+     * @param string $trainId 車次代碼
+     * @return mixed 高鐵車次時刻表資料
+     */
     function get_thsr_arrivals_by_train($trainId)
     {
         try
         {
-            // 驗證參數
             if (!$this->validate_param("TrainId", $trainId, parent::THSR_TRAIN_ID_LENGTH))
             {
                 $this->log_validate_fail();

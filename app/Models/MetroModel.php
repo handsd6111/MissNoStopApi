@@ -218,7 +218,8 @@ class MetroModel extends BaseModel
      * 取得時刻表查詢類別
      * @param string $stationId 車站代碼
      * @param int $direction 行駛方向
-     * @param array $subRouteId 子路線代碼
+     * @param array $subRoutes 子路線陣列
+     * @param string $arrivalTime 目前時間
      * @return mixed 查詢類別
      */
     function get_arrivals_minimum($stationId, $direction, $subRoutes, $arrivalTime = null)

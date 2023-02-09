@@ -10,7 +10,9 @@ class ApiBusController extends ApiBusBaseController
 {
     public $busModel;
 
-    // 載入模型
+    /**
+     * 載入模型
+     */
     function __construct()
     {
         try
@@ -24,9 +26,10 @@ class ApiBusController extends ApiBusBaseController
     }
     
     /**
-     * 取得指定公車縣市的所有路線資料
-     * @param string $cityId 縣市代碼
-     * @return array 公車路線資料
+     * /api/Bus/Route/{CityId}
+     * 取得指定縣市的「公車路線」資料
+     * @param string $cityId
+     * @return mixed 公車路線資料
      */
     function get_bus_routes($cityId)
     {
@@ -62,10 +65,11 @@ class ApiBusController extends ApiBusBaseController
     }
 
     /**
-     * 取得指定公車路線與行駛方向的所有車站資料
+     * /api/Bus/StationOfRoute/{RouteId}/{Direction}
+     * 取得指定路線及行駛方向的「公車站」資料
      * @param string $routeId 路線代碼
      * @param int $direction 行駛方向
-     * @return array 公車站資料
+     * @return mixed 公車站資料
      */
     function get_bus_stations($routeId, $direction)
     {
@@ -101,11 +105,11 @@ class ApiBusController extends ApiBusBaseController
     }
 
     /**
-     * 取得指定公車路線及經緯度的最近車站資料
-     * @param string $routeId 路線代碼
+     * /api/Bus/NearestStation/{Longitude}/{Latitude}
+     * 取得指定經緯度的「最近公車站」資料
      * @param string $longitude 經度
      * @param string $latitude 緯度
-     * @return array 公車站資料
+     * @return mixed 最近公車站資料
      */
     function get_bus_nearest_station($longitude, $latitude)
     {
@@ -141,11 +145,12 @@ class ApiBusController extends ApiBusBaseController
     }
 
     /**
-     * 取得指定公車路線、行駛方向及起訖站的時刻表
+     * /api/Bus/Arrival/{FromStationId}/{ToStationId}/{Direction}
+     * 取得指定起訖站及行駛方向的「公車時刻表」資料
      * @param string $fromStationId 起站代碼
-     * @param string $toStringId 訖站代碼
+     * @param string $toStationId 訖站代碼
      * @param int $direction 行駛方向
-     * @return array 時刻表資料
+     * @return mixed 公車時刻表資料
      */
     function get_bus_arrivals($fromStationId, $toStationId, $direction)
     {
@@ -188,6 +193,14 @@ class ApiBusController extends ApiBusBaseController
         }
     }
 
+    /**
+     * /api/Bus/ArrivalOfRoute/{RouteId}/{Direction}/{Time}
+     * 取得指定路線、行駛方向及目前時間的「公車路線時刻表」資料
+     * @param string $routeId 路線代碼
+     * @param int $direction 行駛方向
+     * @param string $time 目前時間
+     * @return mixed 公車路線時刻表資料
+     */
     function get_bus_arrivals_by_route($routeId, $direction, $time)
     {
         try

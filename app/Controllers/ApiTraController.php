@@ -10,7 +10,9 @@ class ApiTraController extends ApiTraBaseController
 {
     public $TRAModel;
 
-    // 載入模型
+    /**
+     * 載入模型
+     */
     function __construct()
     {
         try
@@ -23,6 +25,11 @@ class ApiTraController extends ApiTraBaseController
         }
     }
 
+    /**
+     * /api/TRA/City
+     * 取得「臺鐵營運縣市」資料
+     * @return mixed 臺鐵營運縣市資料
+     */
     function get_tra_cities()
     {
         try
@@ -43,20 +50,20 @@ class ApiTraController extends ApiTraBaseController
     }
 
     /**
-     * 取得指定縣市的所有臺鐵站資料
+     * /api/TRA/StationOfCity/{CityId}
+     * 取得指定縣市的「臺鐵車站」資料
      * @param string $cityId 縣市代碼
-     * @return array 臺鐵站資料
+     * @return mixed 臺鐵車站資料
      */
     function get_stations_by_city($cityId)
     {
         try
         {
-            // 驗證參數
             if (!$this->validate_param("RouteId", $cityId, parent::CITY_ID_LENGTH))
             {
                 $this->log_validate_fail();
 
-                return $this->send_response([], 400, (array) $this->validator->getErrors());
+                return $this->send_response([], 400, $this->validateErrMsg);
             }
             $stations = $this->TRAModel->get_stations_by_city($cityId)->get()->getResult();
 
@@ -81,17 +88,15 @@ class ApiTraController extends ApiTraBaseController
     }
 
     /**
-     * 取得指定臺鐵路線及經緯度的最近臺鐵站資料
+     * /api/TRA/NearestStation/{RouteId}/{Longitude}/{Latitude} 取得指定經緯度的「最近臺鐵車站」資料
      * @param string 經度
      * @param string 緯度
-     * @param int $limit 回傳數量
-     * @return array 最近臺鐵站資料
+     * @return mixed 最近最近臺鐵車站資料
      */
     function get_tra_nearest_station($longitude, $latitude)
     {
         try
         {
-            // 驗證參數
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
                 || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
@@ -122,16 +127,16 @@ class ApiTraController extends ApiTraBaseController
     }
 
     /**
-     * 取得指定臺鐵起訖站的時刻表資料
+     * /api/TRA/Arrival/{FromStationId}/{ToStationId}
+     * 取得指定起訖站的「臺鐵時刻表」資料
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
-     * @return array 時刻表資料
+     * @return mixed 臺鐵時刻表資料
      */
     function get_tra_arrivals($fromStationId, $toStationId)
     {
         try
         {
-            // 驗證參數
             if (!$this->validate_param("FromStationId", $fromStationId, parent::TRA_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::TRA_STATION_ID_LENGTH))
             {
@@ -160,11 +165,16 @@ class ApiTraController extends ApiTraBaseController
         }
     }
 
+    /**
+     * /api/TRA/ArrivalOfTrain/{TrainId}
+     * 取得指定車次的「臺鐵車次時刻表」資料
+     * @param string $trainId 車次代碼
+     * @return mixed 臺鐵車次時刻表資料
+     */
     function get_tra_arrivals_by_train($trainId)
     {
         try
         {
-            // 驗證參數
             if (!$this->validate_param("TrainId", $trainId, parent::TRA_TRAIN_ID_LENGTH))
             {
                 $this->log_validate_fail();

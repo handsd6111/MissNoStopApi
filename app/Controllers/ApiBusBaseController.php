@@ -7,6 +7,10 @@ use Exception;
 
 class ApiBusBaseController extends ApiBaseController
 {
+    /**
+     * 重新排列路線資料陣列
+     * @param mixed &$routes 路線資料陣列
+     */
     function restructure_routes(&$routes)
     {
         try
@@ -28,6 +32,10 @@ class ApiBusBaseController extends ApiBaseController
         }
     }
 
+    /**
+     * 重新排列車站資料陣列
+     * @param mixed &$stations 車站資料陣列
+     */
     function restructure_stations(&$stations)
     {
         try
@@ -57,6 +65,10 @@ class ApiBusBaseController extends ApiBaseController
         }
     }
 
+    /**
+     * 重新排列最近車站資料陣列
+     * @param mixed &$stations 最近車站資料陣列
+     */
     function restructure_nearest_stations(&$stations)
     {
         try
@@ -92,9 +104,8 @@ class ApiBusBaseController extends ApiBaseController
     }
     
     /**
-     * 重新排列時刻表資料
-     * @param array &$arrivals 時刻表陣列
-     * @return void 不回傳值
+     * 重新排列時刻表資料陣列
+     * @param array &$arrivals 時刻表資料陣列
      */
     function restructure_arrivals(&$arrivals)
     {
@@ -140,6 +151,11 @@ class ApiBusBaseController extends ApiBaseController
         }
     }
 
+    
+    /**
+     * 重新排列路線時刻表資料陣列
+     * @param array &$arrivals 路線時刻表資料陣列
+     */
     function restructure_arrivals_by_route(&$arrivals)
     {
         try

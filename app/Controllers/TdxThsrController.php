@@ -53,6 +53,7 @@ class TdxThsrController extends TdxBaseController
     public function setThsrStation()
     {
         $result = $this->getThsrStation();
+
         $thsrSataionModel = new ThsrStationModel();
 
         foreach ($result as $value) {
@@ -60,15 +61,14 @@ class TdxThsrController extends TdxBaseController
             $this->terminalLog("正在取得 {$value->StationName->Zh_tw} ... ");
 
             $thsrSataionModel->save([
-                'HS_id' => $value->StationUID,
-                'HS_name_TC' => $value->StationName->Zh_tw,
-                'HS_name_EN' => $value->StationName->En,
-                'HS_city_id' => $value->LocationCityCode,
+                'HS_id'        => $value->StationUID,
+                'HS_name_TC'   => $value->StationName->Zh_tw,
+                'HS_name_EN'   => $value->StationName->En,
+                'HS_city_id'   => $value->LocationCityCode,
                 'HS_longitude' => $value->StationPosition->PositionLon,
-                'HS_latitude' => $value->StationPosition->PositionLat
+                'HS_latitude'  => $value->StationPosition->PositionLat
             ]);
         }
-
         return true;
     }
 
@@ -126,15 +126,16 @@ class TdxThsrController extends TdxBaseController
     public function setThsrTrain()
     {
         $result = $this->getThsrTrainAndArrival();
+
         $thsrTrainModel = new ThsrTrainModel();
 
-        foreach ($result as $value) {
+        foreach ($result as $value)
+        {
             $thsrTrainModel->save([
-                'HT_id' => $value->DailyTrainInfo->TrainNo,
+                'HT_id'             => $value->DailyTrainInfo->TrainNo,
                 'HT_departure_date' => $value->TrainDate
             ]);
         }
-
         return true;
     }
 
@@ -146,6 +147,7 @@ class TdxThsrController extends TdxBaseController
     public function setThsrArrival()
     {
         $result = $this->getThsrTrainAndArrival();
+
         $thsrArrivalModel = new ThsrArrivalModel();
 
         helper("time00To24");
@@ -154,15 +156,15 @@ class TdxThsrController extends TdxBaseController
         {
             foreach ($value->StopTimes as $stopTime)
             {
-                $stopTime->ArrivalTime = time_00_to_24($stopTime->ArrivalTime);
+                $stopTime->ArrivalTime   = time_00_to_24($stopTime->ArrivalTime);
                 $stopTime->DepartureTime = time_00_to_24($stopTime->DepartureTime);
                 
                 $thsrArrivalModel->save([
-                    'HA_train_id' => $value->DailyTrainInfo->TrainNo,
-                    'HA_station_id' => 'THSR-' . $stopTime->StationID,
-                    'HA_arrival_time' => $stopTime->ArrivalTime,
+                    'HA_train_id'       => $value->DailyTrainInfo->TrainNo,
+                    'HA_station_id'     => 'THSR-' . $stopTime->StationID,
+                    'HA_arrival_time'   => $stopTime->ArrivalTime,
                     'HA_departure_time' => $stopTime->DepartureTime,
-                    'HA_direction' => $value->DailyTrainInfo->Direction
+                    'HA_direction'      => $value->DailyTrainInfo->Direction
                 ]);
             }
         }
@@ -176,8 +178,9 @@ class TdxThsrController extends TdxBaseController
     public function setThsrTrainAndArrival()
     {
         $result = $this->getThsrTrainAndArrival();
+
         $thsrArrivalModel = new ThsrArrivalModel();
-        $thsrTrainModel = new ThsrTrainModel();
+        $thsrTrainModel   = new ThsrTrainModel();
 
         helper("time00To24");
 
@@ -187,18 +190,17 @@ class TdxThsrController extends TdxBaseController
                 'HT_id' => $value->DailyTrainInfo->TrainNo,
                 'HT_departure_date' => $value->TrainDate
             ]);
-
             foreach ($value->StopTimes as $stopTime)
             {
-                $stopTime->ArrivalTime = time_00_to_24($stopTime->ArrivalTime);
+                $stopTime->ArrivalTime   = time_00_to_24($stopTime->ArrivalTime);
                 $stopTime->DepartureTime = time_00_to_24($stopTime->DepartureTime);
 
                 $thsrArrivalModel->save([
-                    'HA_train_id' => $value->DailyTrainInfo->TrainNo,
-                    'HA_station_id' => 'THSR-' . $stopTime->StationID,
-                    'HA_arrival_time' => $stopTime->ArrivalTime,
+                    'HA_train_id'       => $value->DailyTrainInfo->TrainNo,
+                    'HA_station_id'     => 'THSR-' . $stopTime->StationID,
+                    'HA_arrival_time'   => $stopTime->ArrivalTime,
                     'HA_departure_time' => $stopTime->DepartureTime,
-                    'HA_direction' => $value->DailyTrainInfo->Direction
+                    'HA_direction'      => $value->DailyTrainInfo->Direction
                 ]);
             }
         }

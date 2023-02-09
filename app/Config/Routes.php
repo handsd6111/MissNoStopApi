@@ -86,14 +86,14 @@ $routes->group('api', static function ($routes)
         // /api/Metro/ArrivalOfRoute/{RouteId}/{Direction}/{Time} 取得指定路線、行駛方向及目前時間的「捷運路線時刻表」資料
         $routes->get('ArrivalOfRoute/(:segment)/(:num)/(:segment)', 'ApiMetroController::get_metro_arrivals_by_route/$1/$2/$3');
 
-        // /api/Metro/RoutePlan/{FromStationId}/{ToStationId}/{StartTime}
+        // /api/Metro/RoutePlan/{FromStationId}/{ToStationId}/{StartTime} 取得指定起訖站及發車時間的「捷運路線規劃」資料
         $routes->get('RoutePlan/(:segment)/(:segment)/(:segment)', 'ApiRoutePlanController::metro_route_plan/$1/$2/$3');
     });
 
     // 高鐵相關 api
     $routes->group('THSR', static function ($routes)
     {
-        // /api/THSR/City 取得高鐵有營運的縣市
+        // /api/THSR/City 取得「高鐵營運縣市」資料
         $routes->get('City', 'ApiThsrController::get_thsr_cities');
 
         // /api/THSR/Station 取得「高鐵車站」資料
@@ -112,7 +112,7 @@ $routes->group('api', static function ($routes)
     // 臺鐵相關 api
     $routes->group('TRA', static function ($routes)
     {
-        // /api/TRA/City 取得臺鐵有營運的縣市
+        // /api/TRA/City 取得「臺鐵營運縣市」資料
         $routes->get('City', 'ApiTraController::get_tra_cities');
 
         // /api/TRA/StationOfCity/{CityId} 取得指定縣市的「臺鐵車站」資料

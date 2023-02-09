@@ -118,14 +118,12 @@ class TdxMetroController extends TdxBaseController
                 {
                     $route->LineName->En = $route->LineName->Zh_tw;
                 }
-
                 $this->MRModel->save([
                     "MR_id"        => $routeId,
                     "MR_name_TC"   => $route->LineName->Zh_tw,
                     "MR_name_EN"   => $route->LineName->En,
                     "MR_system_id" => $railSystem
                 ]);
-
                 // 印出花費時間
                 $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
@@ -145,6 +143,7 @@ class TdxMetroController extends TdxBaseController
         try
         {
             $systems = $this->getMetroSystem();
+
             foreach ($systems as $system)
             {
                 $this->setMetroRoute($system->MST_id);
@@ -205,35 +204,32 @@ class TdxMetroController extends TdxBaseController
         {
             // 取得子路線資料
             $subRoutes = $this->getMetroSubRoute($railSystem);
-
+            
             // 若查無結果則停止
             if (empty($subRoutes))
             {
                 return false;
             }
-
             // 走遍子路線資料
             foreach ($subRoutes as $subRoute)
             {
                 // 開始計時
                 $startTime = $this->getTime();
                 $this->terminalLog("Running data of $railSystem-{$subRoute->RouteID} ... ");
-
+                
                 // 若子路線無中文名稱則以空白代替
                 if (!isset($subRoute->RouteName->Zh_tw))
                 {
                     $subRoute->RouteName->Zh_tw = "";
                 }
-
                 // 若子路線無英文名稱則以中文代替
                 if (!isset($subRoute->RouteName->Zh_tw))
                 {
                     $subRoute->RouteName->En = $subRoute->RouteName->Zh_tw;
                 }
-
                 // 取得路線代碼
                 $routeId = $this->getUID($subRoute->OperatorCode, $subRoute->LineID);
-
+                
                 // 寫入子路線資料
                 $this->MSRModel->save([
                     'MSR_id'       => $this->getUID($railSystem, $subRoute->RouteID),
@@ -241,7 +237,6 @@ class TdxMetroController extends TdxBaseController
                     'MSR_name_EN'  => $subRoute->RouteName->En,
                     'MSR_route_id' => $routeId
                 ]);
-
                 // 印出花費時間
                 $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
@@ -263,6 +258,7 @@ class TdxMetroController extends TdxBaseController
         try
         {
             $systems = $this->getMetroSystem();
+
             foreach ($systems as $system)
             {
                 $this->setMetroSubRoute($system->MST_id);
@@ -333,11 +329,12 @@ class TdxMetroController extends TdxBaseController
         {
             // 開始計時
             $startTime = $this->getTime();
-            $this->terminalLog("Running data of $railSystem stations ... ");
 
+            $this->terminalLog("Running data of $railSystem stations ... ");
+            
             // 取得車站資料
             $stations = $this->getMetroStation($railSystem);
-
+            
             // 走遍車站資料
             foreach ($stations as $station)
             {
@@ -346,20 +343,17 @@ class TdxMetroController extends TdxBaseController
                 {
                     $station->StationName->Zh_tw = "";
                 }
-
                 //若無英文站名則以中文站明代替
                 if (!isset($station->StationName->En))
                 {
                     $station->StationName->En = $station->StationName->Zh_tw;
                 }
-
                 $stationId = $station->StationUID;
 
                 if ($railSystem == "KLRT")
                 {
                     $stationId = $this->getUID("KRTC", $station->StationID);
                 }
-
                 // 寫入車站資料
                 $this->MSModel->save([
                     'MS_id'        => $stationId,
@@ -370,7 +364,6 @@ class TdxMetroController extends TdxBaseController
                     'MS_latitude'  => $station->StationPosition->PositionLat
                 ]);
             }
-
             // 印出花費時間
             $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
 
@@ -391,6 +384,7 @@ class TdxMetroController extends TdxBaseController
         try
         {
             $systems = $this->getMetroSystem();
+
             foreach ($systems as $system)
             {
                 $this->setMetroStation($system->MST_id);
@@ -492,41 +486,39 @@ class TdxMetroController extends TdxBaseController
             {
                 $railSystem = "KRTC";
             }
-
             // 取得相反的行駛方向
             $reverseDirection = [1, 0];
-
+            
             // 走遍每條路線
             foreach ($subRoutes as $subRoute)
             {
                 // 開始計時
                 $startTime = $this->getTime();
-
+                
                 // 若查無運行時間資料則跳過
                 if (!isset($subRoute->TravelTimes))
                 {
                     continue;
                 }
-
                 $this->terminalLog("Running data of $railSystem-{$subRoute->RouteID} ... ");
-
+                
                 // 取得子路線代碼、起訖站代碼及行駛方向
                 $subRouteId = $this->getUID($railSystem, $subRoute->RouteID);
-
+                
                 // 取得起訖站代碼
                 $fromStationId = $this->getUID($railSystem, $subRoute->TravelTimes[0]->FromStationID);
                 $toStationId   = $this->getUID($railSystem, $subRoute->TravelTimes[0]->ToStationID);
-
+                
                 // 取得行駛方向
                 $direction = $this->getStationsDirection($fromStationId, $toStationId);
-
+                
                 //走遍運行時間資料
                 foreach ($subRoute->TravelTimes as $travelTime)
                 {
                     // 取得捷運站代碼
                     $fromStationId = $this->getUID($railSystem, $travelTime->FromStationID);
                     $toStationId   = $this->getUID($railSystem, $travelTime->ToStationID);
-
+                    
                     // 寫入資料
                     $this->MDModel->save([
                         "MD_station_id"   => $fromStationId,
@@ -535,7 +527,6 @@ class TdxMetroController extends TdxBaseController
                         "MD_duration"     => $travelTime->RunTime,
                         "MD_stop_time"    => $travelTime->StopTime
                     ]);
-
                     // 寫入資料（相反方向）
                     $this->MDModel->save([
                         "MD_station_id"   => $toStationId,
@@ -545,7 +536,6 @@ class TdxMetroController extends TdxBaseController
                         "MD_stop_time"    => $travelTime->StopTime
                     ]);
                 }
-
                 // 印出花費時間
                 $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
@@ -606,7 +596,6 @@ class TdxMetroController extends TdxBaseController
                 {
                     $routeId = $this->getUID("KRTC", $route->LineID);
                 }
-
                 $this->terminalLog("Running data of $routeId ... ");
 
                 // 走遍路線的車站資料
@@ -624,11 +613,9 @@ class TdxMetroController extends TdxBaseController
                         "MRS_sequence"   => $station->Sequence
                     ]);
                 }
-
                 // 印出花費時間
                 $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
-
             return true;
         }
         catch (Exception $e)
@@ -646,6 +633,7 @@ class TdxMetroController extends TdxBaseController
         try
         {
             $systems = $this->getMetroSystem();
+
             foreach ($systems as $system)
             {
                 $this->setMetroRouteStation($system->MST_id);
@@ -720,7 +708,6 @@ class TdxMetroController extends TdxBaseController
                         "MSRS_sequence"     => $Station->Sequence
                     ]);
                 }
-
                 // 印出花費時間
                 $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
@@ -788,7 +775,6 @@ class TdxMetroController extends TdxBaseController
                         "MSRS_direction"    => 0,
                         "MSRS_sequence"     => $Station->Sequence
                     ]);
-
                     // 寫入返程資料
                     $this->MSRSModel->save([
                         "MSRS_station_id"   => $stationId,
@@ -797,7 +783,6 @@ class TdxMetroController extends TdxBaseController
                         "MSRS_sequence"     => $stationSize - intval($Station->Sequence) + 1
                     ]);
                 }
-
                 // 印出花費時間
                 $this->terminalLog($this->getTimeTaken($startTime) . " seconds taken.", true);
             }
@@ -908,7 +893,6 @@ class TdxMetroController extends TdxBaseController
             {
                 $railSystem = "KRTC";
             }
-
             // 走遍時刻表資料
             foreach ($arrivals as $arrival)
             {
@@ -920,7 +904,6 @@ class TdxMetroController extends TdxBaseController
                     $this->terminalLog("not service day, skip ...", true);
                     continue;
                 }
-
                 // 開始計時
                 $startTime = $this->getTime();
 
@@ -981,6 +964,7 @@ class TdxMetroController extends TdxBaseController
         {
             // 開始計時
             $startTime = $this->getTime();
+
             $transfers = $this->getMetroTransfer($railSystem);
 
             $this->terminalLog("Running data of $railSystem ... ");
@@ -1019,6 +1003,7 @@ class TdxMetroController extends TdxBaseController
         try
         {
             $systems = $this->getMetroSystem();
+            
             foreach ($systems as $system)
             {
                 $this->setMetroTransfer($system->MST_id);
