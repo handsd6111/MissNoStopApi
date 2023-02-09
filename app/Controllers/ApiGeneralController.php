@@ -21,7 +21,7 @@ class ApiGeneralController extends ApiBaseController
             foreach ($cities as $i => $city)
             {
                 $cities[$i] = [
-                    "CityId" => $city->id,
+                    "CityId" => $city->city_id,
                     "CityName" => [
                         "TC" => $city->name_TC,
                         "EN" => $city->name_EN
