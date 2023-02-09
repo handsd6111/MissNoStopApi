@@ -284,6 +284,7 @@ class ApiBaseController extends BaseController
 
     /**
      * 記錄使用者存取 API 失敗的資訊
+     * @param mixed $exception 錯誤資訊
      */
     function log_access_fail($exception = null)
     {
@@ -291,12 +292,13 @@ class ApiBaseController extends BaseController
         {
             $reqData = $this->get_request_data();
 
-            log_message("notice", "{Path} 存取失敗。IP: {IP}", $reqData);
-
             if ($exception != null)
             {
-                log_message("critical", $exception);
+                log_message("critical", "{Path} 存取失敗。IP: {IP}\n$exception", $reqData);
+
+                return;
             }
+            log_message("notice", "{Path} 存取失敗。IP: {IP}", $reqData);
         }
         catch (Exception $e)
         {
