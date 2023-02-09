@@ -21,7 +21,7 @@ class ApiThsrController extends ApiThsrBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
         }
     }
 
@@ -35,6 +35,12 @@ class ApiThsrController extends ApiThsrBaseController
         {
             $cities = $this->THSRModel->get_thsr_cities()->get()->getResult();
 
+            if (sizeof($cities) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
             $this->restructure_cities($cities);
 
             $this->log_access_success();
@@ -43,7 +49,7 @@ class ApiThsrController extends ApiThsrBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -59,6 +65,12 @@ class ApiThsrController extends ApiThsrBaseController
         {
             $stations = $this->THSRModel->get_stations()->get()->getResult();
 
+            if (sizeof($stations) == 0)
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
             $this->restructure_stations($stations);
             
             $this->log_access_success();
@@ -67,7 +79,7 @@ class ApiThsrController extends ApiThsrBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -106,7 +118,7 @@ class ApiThsrController extends ApiThsrBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -145,7 +157,7 @@ class ApiThsrController extends ApiThsrBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -182,7 +194,7 @@ class ApiThsrController extends ApiThsrBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }

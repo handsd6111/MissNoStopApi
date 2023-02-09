@@ -20,8 +20,8 @@ class ApiThsrBaseController extends ApiBaseController
                 $cities[$i] = [
                     "CityId" => $city->id,
                     "CityName" => [
-                        "TC" => $city->name_TC,
-                        "EN" => $city->name_EN
+                        "TC" => $city->station_name_TC,
+                        "EN" => $city->station_name_EN
                     ]
                 ];
             }
@@ -54,8 +54,7 @@ class ApiThsrBaseController extends ApiBaseController
                         "CityId"   => $station->city_id,
                         "Longitude" => $station->longitude,
                         "Latitude"  => $station->latitude,
-                    ],
-                    "Sequence" => $station->sequence
+                    ]
                 ];
             }
         }

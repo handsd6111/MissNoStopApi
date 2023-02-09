@@ -21,7 +21,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
         }
     }
     
@@ -59,7 +59,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([$e], 500, lang("Exception.exception"));
         }
     }
@@ -99,7 +99,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -139,7 +139,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -188,7 +188,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -228,7 +228,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }

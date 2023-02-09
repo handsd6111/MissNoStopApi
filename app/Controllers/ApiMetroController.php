@@ -21,7 +21,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -45,7 +45,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -82,7 +82,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -119,7 +119,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -158,7 +158,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -203,7 +203,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -243,7 +243,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }

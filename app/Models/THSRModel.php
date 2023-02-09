@@ -14,8 +14,8 @@ class THSRModel extends BaseModel
             return $this->db->table("THSR_stations")
                             ->join("cities", "C_id = HS_city_id")
                             ->select("C_id as id,
-                                    C_name_TC as name_TC,
-                                    c_name_EN as name_EN")
+                                    C_name_TC as station_name_TC,
+                                    c_name_EN as station_name_EN")
                             ->groupBy("C_id");
         }
         catch (Exception $e)
@@ -33,8 +33,8 @@ class THSRModel extends BaseModel
         {
             return $this->db->table("THSR_stations")
                             ->select("HS_id AS station_id,
-                                      HS_name_TC AS name_TC,
-                                      HS_name_EN AS name_EN,
+                                      HS_name_TC AS station_name_TC,
+                                      HS_name_EN AS station_name_EN,
                                       HS_city_id AS city_id,
                                       HS_longitude AS longitude,
                                       HS_latitude AS latitude")

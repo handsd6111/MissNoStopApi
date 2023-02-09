@@ -228,13 +228,34 @@ class ApiBaseController extends BaseController
     }
 
     /**
+     * 取得使用者存取紀錄
+     */
+    function get_request_data()
+    {
+        try
+        {
+            return [
+                "Path" => $this->request->getUri()->getPath(),
+                "IP"   => $this->request->getIPAddress()
+            ];
+        }
+        catch (Exception $e)
+        {
+            log_message("critical", $e);
+            throw $e;
+        }
+    }
+
+    /**
      * 紀錄使用者存取 API 時參數驗證失敗的資訊
      */
     function log_validate_fail()
     {
         try
         {
-            log_message("notice", "{$_SERVER['REQUEST_URI']} 驗證失敗。IP: {$_SERVER['REMOTE_ADDR']}");
+            $reqData = $this->get_request_data();
+
+            log_message("notice", "{Path} 驗證失敗。IP: {IP}", $reqData);
         }
         catch (Exception $e)
         {
@@ -250,7 +271,9 @@ class ApiBaseController extends BaseController
     {
         try
         {
-            log_message("notice", "{$_SERVER['REQUEST_URI']} 存取成功。IP: {$_SERVER['REMOTE_ADDR']}");
+            $reqData = $this->get_request_data();
+
+            log_message("info", "{Path} 存取成功。IP: {IP}", $reqData);
         }
         catch (Exception $e)
         {
@@ -262,11 +285,18 @@ class ApiBaseController extends BaseController
     /**
      * 記錄使用者存取 API 失敗的資訊
      */
-    function log_access_fail()
+    function log_access_fail($exception = null)
     {
         try
         {
-            log_message("notice", "{$_SERVER['REQUEST_URI']} 存取失敗。IP: {$_SERVER['REMOTE_ADDR']}");
+            $reqData = $this->get_request_data();
+
+            log_message("notice", "{Path} 存取失敗。IP: {IP}", $reqData);
+
+            if ($exception != null)
+            {
+                log_message("critical", $exception);
+            }
         }
         catch (Exception $e)
         {
