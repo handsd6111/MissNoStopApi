@@ -134,6 +134,8 @@ class ApiBusBaseController extends ApiBaseController
             ];
             for ($i = 0; $i < sizeof($arrivals); $i += 2)
             {
+                if (!isset($arrivals[$i + 1])) break;
+
                 $fromArrival = $arrivals[$i];
                 $toArrival   = $arrivals[$i + 1];
 

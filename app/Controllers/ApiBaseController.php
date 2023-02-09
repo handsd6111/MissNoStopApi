@@ -235,13 +235,12 @@ class ApiBaseController extends BaseController
         try
         {
             return [
-                "URL" => "http://192.168.137.120/" . $this->request->getUri()->getPath(),
+                "URL" => "http://{$_SERVER['SERVER_ADDR']}/" . $this->request->getUri()->getPath(),
                 "IP"   => $this->request->getIPAddress()
             ];
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
             throw $e;
         }
     }
@@ -259,7 +258,6 @@ class ApiBaseController extends BaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
             throw $e;
         }
     }
@@ -277,7 +275,6 @@ class ApiBaseController extends BaseController
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
             throw $e;
         }
     }
@@ -303,7 +300,6 @@ class ApiBaseController extends BaseController
         catch (Exception $e)
         {
             log_message("critical", $e);
-            throw $e;
         }
     }
 }
