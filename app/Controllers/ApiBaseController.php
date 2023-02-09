@@ -235,7 +235,7 @@ class ApiBaseController extends BaseController
         try
         {
             return [
-                "Path" => $this->request->getUri()->getPath(),
+                "URL" => "http://192.168.137.120/" . $this->request->getUri()->getPath(),
                 "IP"   => $this->request->getIPAddress()
             ];
         }
@@ -255,7 +255,7 @@ class ApiBaseController extends BaseController
         {
             $reqData = $this->get_request_data();
 
-            log_message("notice", "{Path} 驗證失敗。IP: {IP}", $reqData);
+            log_message("notice", "{URL} 驗證失敗。IP: {IP}", $reqData);
         }
         catch (Exception $e)
         {
@@ -273,7 +273,7 @@ class ApiBaseController extends BaseController
         {
             $reqData = $this->get_request_data();
 
-            log_message("info", "{Path} 存取成功。IP: {IP}", $reqData);
+            log_message("info", "{URL} 存取成功。IP: {IP}", $reqData);
         }
         catch (Exception $e)
         {
@@ -294,11 +294,11 @@ class ApiBaseController extends BaseController
 
             if ($exception != null)
             {
-                log_message("critical", "{Path} 存取失敗。IP: {IP}\n$exception", $reqData);
+                log_message("critical", "{URL} 存取失敗。IP: {IP}\n$exception", $reqData);
 
                 return;
             }
-            log_message("notice", "{Path} 存取失敗。IP: {IP}", $reqData);
+            log_message("notice", "{URL} 存取失敗。IP: {IP}", $reqData);
         }
         catch (Exception $e)
         {

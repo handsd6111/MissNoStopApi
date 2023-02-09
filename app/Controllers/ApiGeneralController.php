@@ -28,11 +28,13 @@ class ApiGeneralController extends ApiBaseController
                     ]
                 ];
             }
+            $this->log_access_success();
+
             return $this->send_response($cities);
         }
         catch (Exception $e)
         {
-            log_message("critical", $e);
+            $this->log_access_fail($e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
