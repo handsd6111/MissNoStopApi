@@ -91,6 +91,8 @@ class ApiThsrBaseController extends ApiBaseController
                 ];
                 array_push($newArrivals, $schedule);
             }
+            usort($newArrivals, [parent::class, "cmpArrivals"]);
+            
             $arrivals = $newArrivals;
         }
         catch (Exception $e)

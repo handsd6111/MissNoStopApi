@@ -115,6 +115,7 @@ class THSRModel extends BaseModel
                                      )
                                      ->where("HA_station_id", $fromStationId)
                                      ->orWhere("HA_station_id", $toStationId)
+                                     ->where("HA_departure_time >", "00:00:00")
                                      ->groupBy("HA_train_id")
                                      ->having("COUNT(HA_train_id) > 1");
             return $this->db->newQuery()
@@ -131,7 +132,7 @@ class THSRModel extends BaseModel
                             ->orWhere("THSR_arrivals.HA_station_id", $toStationId)
                             ->orderBy(
                                 "THSR_arrivals.HA_train_id,
-                                THSR_arrivals.HA_arrival_time"
+                                THSR_arrivals.HA_departure_time"
                             );
         }
         catch (Exception $e)
