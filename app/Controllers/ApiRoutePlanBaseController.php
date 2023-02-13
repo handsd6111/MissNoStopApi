@@ -129,7 +129,11 @@ class ApiRoutePlanBaseController extends ApiBaseController
 
             $arrival = $this->get_arrival($startStationId, $endStationId, $departureTime);
 
-            if (!$arrival)
+            $this->restructure_arrival($arrival, $startStationId, $endStationId);
+
+            $arrival = [$arrival];
+
+            if (true)
             {
                 $arrival = $this->get_cross_route_plan();
 
@@ -147,7 +151,6 @@ class ApiRoutePlanBaseController extends ApiBaseController
                     }
                 }
             }
-            $this->restructure_arrival($arrival, $startStationId, $endStationId);
 
             return $arrival;
         }
@@ -231,7 +234,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
             // 從訖站一路至起站地逆向查詢時刻表資料
             $arrivals = $this->retrace_source($this->endStationId);
 
-            $this->fix_duplicate_sub_route($arrivals);
+            $this->combine_duplicate_sub_routes($arrivals);
 
             return $arrivals;
         }
@@ -613,7 +616,7 @@ class ApiRoutePlanBaseController extends ApiBaseController
                 "Schedule" => [
                     "DepartureTime" => $arrival->departure_time,
                     "ArrivalTime"   => $arrival->arrival_time,
-                    "Duration"      => $arrival->duration
+                    "Duration"      => intval($arrival->duration)
                 ]
             ];
         }
@@ -627,33 +630,28 @@ class ApiRoutePlanBaseController extends ApiBaseController
      * 修正子路線重複問題
      * @param array &$arrivals 時刻表
      */
-    function fix_duplicate_sub_route(&$arrivals)
+    function combine_duplicate_sub_routes(&$arrivals)
     {
         try
         {
-            $size = sizeof($arrivals);
+            for ($i = 0; $i < sizeof($arrivals) - 1; $i++)
+            {
+                $arrival     = $arrivals[$i];
+                $nextArrival = $arrivals[$i + 1];
 
-            if ($size < 2) return;
+                if ($arrival["SubRouteId"] != $nextArrival["SubRouteId"]) continue;
 
-            $secLastIndex = $size - 2;
-            $lastIndex    = $size - 1;
-            $secLastArrival = $arrivals[$secLastIndex];
-            $lastArrival    = $arrivals[$lastIndex];
+                $arrival["ToStationId"]             = $nextArrival["ToStationId"];
+                $arrival["ToStationName"]           = $nextArrival["ToStationName"];
+                $arrival["Schedule"]["ArrivalTime"] = $nextArrival["Schedule"]["ArrivalTime"];
+                $arrival["Schedule"]["Duration"]    = $arrival["Schedule"]["Duration"] + $nextArrival["Schedule"]["Duration"];
 
-            if ($secLastArrival["RouteId"] != $lastArrival["RouteId"] && $secLastArrival["SubRouteId"] == $lastArrival["SubRouteId"]) return;  
+                $arrivals[$i] = $arrival;
+                
+                array_splice($arrivals, $i + 1, 1);
 
-            $fromStationId = $secLastArrival["FromStationId"];
-            $toStationId   = $lastArrival["ToStationId"];
-            $departureTime = $secLastArrival["Schedule"]["DepartureTime"];
-
-            $newArrival = $this->get_arrival($fromStationId, $toStationId, $departureTime);
-
-            $this->restructure_arrival($newArrival, $fromStationId, $toStationId);
-
-            if (!$newArrival) return;
-
-            $arrivals = array_slice($arrivals, 0, $secLastIndex);
-            array_push($arrivals, $newArrival);
+                $i--;
+            }
         }
         catch (Exception $e)
         {
