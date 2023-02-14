@@ -145,8 +145,9 @@ class ApiBusController extends ApiBusBaseController
     }
 
     /**
-     * /api/Bus/Arrival/{FromStationId}/{ToStationId}/{Direction}
+     * /api/Bus/Arrival/{RouteId}/{FromStationId}/{ToStationId}/{Direction}
      * 取得指定起訖站及行駛方向的「公車時刻表」資料
+     * @param string $routeId 路線代碼
      * @param string $fromStationId 起站代碼
      * @param string $toStationId 訖站代碼
      * @param int $direction 行駛方向

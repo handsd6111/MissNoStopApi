@@ -106,8 +106,10 @@ class ApiBusBaseController extends ApiBaseController
     /**
      * 重新排列時刻表資料陣列
      * @param array &$arrivals 時刻表資料陣列
+     * @param array &$fromArrivals 起站時刻表資料陣列
+     * @param array &$toArrivals 訖站時刻表資料陣列
      */
-    function restructure_arrivals(&$arrivals, $fromArrivals, $toArrivals)
+    function restructure_arrivals(&$arrivals, &$fromArrivals, &$toArrivals)
     {
         try
         {

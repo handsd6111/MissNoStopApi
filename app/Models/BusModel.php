@@ -18,9 +18,6 @@ class BusModel extends BaseModel
     {
         try
         {
-            $condition = [
-                "BS_city_id" => $cityId
-            ];
             return $this->db->table("bus_routes")
                             ->join("bus_route_stations", "BR_id = BRS_route_id")
                             ->join("bus_stations", "BRS_station_id = BS_id")
@@ -29,7 +26,7 @@ class BusModel extends BaseModel
                                 BR_name_TC AS station_name_TC,
                                 BR_name_EN AS station_name_EN"
                             )
-                            ->where($condition)
+                            ->where("BS_city_id", $cityId)
                             ->groupBy("BR_name_TC")
                             ->orderBy("BR_id");
         }
@@ -66,10 +63,6 @@ class BusModel extends BaseModel
     {
         try
         {
-            $condition = [
-                "BR_id" => $routeId,
-                "BRS_direction" => $direction
-            ];
             return $this->db->table("bus_stations")
                             ->join("bus_route_stations", "BRS_station_id = BS_id")
                             ->join("bus_routes", "BR_id = BRS_route_id")
@@ -82,7 +75,8 @@ class BusModel extends BaseModel
                                 BS_latitude AS latitude,
                                 BRS_sequence AS sequence"
                             )
-                            ->where($condition)
+                            ->where("BR_id", $routeId)
+                            ->where("BRS_direction", $direction)
                             ->orderBy("BRS_sequence");
         }
         catch (Exception $e)
@@ -159,6 +153,13 @@ class BusModel extends BaseModel
         }
     }
 
+    /**
+     * 取得指定路線、車站及行駛方向的時刻表
+     * @param string $routeId 路線代碼
+     * @param string $stationId 車站代碼
+     * @param string $direction 行駛方向
+     * @return mixed 查詢類別
+     */
     function get_arrivals_of_station($routeId, $stationId, $direction)
     {
         try
@@ -188,38 +189,13 @@ class BusModel extends BaseModel
         }
     }
 
-    function get_arrivals($routeId, $fromStationId, $toStationId, $direction)
-    {
-        try
-        {
-            return $this->db->table("bus_arrivals")
-                            ->join("bus_stations", "BS_id = BA_station_id")
-                            ->join("bus_route_stations", "BRS_station_id = BA_station_id")
-                            ->join("bus_routes", "BR_id = BRS_route_id")
-                            ->select(
-                                "BR_id as route_id,
-                                BR_name_TC as route_name_TC,
-                                BR_name_EN as route_name_EN,
-                                BS_id as station_id,
-                                BS_name_TC as station_name_TC,
-                                BS_name_EN as station_name_EN,
-                                BA_direction as direction,
-                                BA_arrival_time AS arrival_time"
-                            )
-                            ->where("BR_id", $routeId)
-                            ->where("BA_direction", $direction)
-                            ->groupStart()
-                                ->where("BA_station_id", $fromStationId)
-                                ->orWhere("BA_station_id", $toStationId)
-                            ->groupEnd()
-                            ->orderBy("BA_arrival_time");
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
+    /**
+     * 取得指定路線、行駛方向及目前時間的時刻表
+     * @param string $routeId 路線代碼
+     * @param string $direction 行駛方向
+     * @param string $time 目前時間
+     * @return mixed 查詢類別
+     */
     function get_arrivals_of_route($routeId, $direction, $time)
     {
         try
