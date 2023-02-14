@@ -107,45 +107,38 @@ class ApiBusBaseController extends ApiBaseController
      * 重新排列時刻表資料陣列
      * @param array &$arrivals 時刻表資料陣列
      */
-    function restructure_arrivals(&$arrivals)
+    function restructure_arrivals(&$arrivals, $fromArrivals, $toArrivals)
     {
         try
         {
-            $fromArrival = $arrivals[0];
-            $toArrival   = $arrivals[1];
-
-            $newArrivals = [
-                "RouteId" => $fromArrival->route_id,
+            $arrivals = [
+                "RouteId" => $fromArrivals[0]->route_id,
                 "RouteName" => [
-                    "TC" => $fromArrival->route_name_TC,
-                    "EN" => $fromArrival->route_name_EN
+                    "TC" => $fromArrivals[0]->route_name_TC,
+                    "EN" => $fromArrivals[0]->route_name_EN
                 ],
-                "FromStationId" => $fromArrival->station_id,
+                "FromStationId" => $fromArrivals[0]->station_id,
                 "FromStationName" => [
-                    "TC" => $fromArrival->station_name_TC,
-                    "EN" => $fromArrival->station_name_EN,
+                    "TC" => $fromArrivals[0]->station_name_TC,
+                    "EN" => $fromArrivals[0]->station_name_EN,
                 ],
-                "ToStationId" => $toArrival->station_id,
+                "ToStationId" => $toArrivals[0]->station_id,
                 "ToStationName" => [
-                    "TC" => $toArrival->station_name_TC,
-                    "EN" => $toArrival->station_name_EN,
+                    "TC" => $toArrivals[0]->station_name_TC,
+                    "EN" => $toArrivals[0]->station_name_EN,
                 ],
                 "Schedule" => []
             ];
-            for ($i = 0; $i < sizeof($arrivals); $i += 2)
+            foreach ($fromArrivals as $i => $fromArrival)
             {
-                if (!isset($arrivals[$i + 1])) break;
-
-                $fromArrival = $arrivals[$i];
-                $toArrival   = $arrivals[$i + 1];
+                $toArrival = $toArrivals[$i];
 
                 $schedule = [
                     "DepartureTime" => $fromArrival->arrival_time,
                     "ArrivalTime"   => $toArrival->arrival_time
                 ];
-                array_push($newArrivals["Schedule"], $schedule);
+                $arrivals["Schedule"][$i] = $schedule;
             }
-            $arrivals = $newArrivals;
         }
         catch (Exception $e)
         {

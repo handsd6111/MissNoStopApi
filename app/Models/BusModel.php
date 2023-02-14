@@ -159,7 +159,7 @@ class BusModel extends BaseModel
         }
     }
 
-    function get_arrivals($fromStationId, $toStationId, $direction)
+    function get_arrivals_of_station($routeId, $stationId, $direction)
     {
         try
         {
@@ -177,12 +177,42 @@ class BusModel extends BaseModel
                                 BA_direction as direction,
                                 BA_arrival_time AS arrival_time"
                             )
+                            ->where("BR_id", $routeId)
+                            ->where("BA_direction", $direction)
+                            ->where("BA_station_id", $stationId)
+                            ->orderBy("BA_arrival_time");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
+    function get_arrivals($routeId, $fromStationId, $toStationId, $direction)
+    {
+        try
+        {
+            return $this->db->table("bus_arrivals")
+                            ->join("bus_stations", "BS_id = BA_station_id")
+                            ->join("bus_route_stations", "BRS_station_id = BA_station_id")
+                            ->join("bus_routes", "BR_id = BRS_route_id")
+                            ->select(
+                                "BR_id as route_id,
+                                BR_name_TC as route_name_TC,
+                                BR_name_EN as route_name_EN,
+                                BS_id as station_id,
+                                BS_name_TC as station_name_TC,
+                                BS_name_EN as station_name_EN,
+                                BA_direction as direction,
+                                BA_arrival_time AS arrival_time"
+                            )
+                            ->where("BR_id", $routeId)
+                            ->where("BA_direction", $direction)
                             ->groupStart()
                                 ->where("BA_station_id", $fromStationId)
                                 ->orWhere("BA_station_id", $toStationId)
                             ->groupEnd()
-                            ->where("BA_direction", $direction)
-                            ->orderBy("BA_direction, BA_arrival_time");
+                            ->orderBy("BA_arrival_time");
         }
         catch (Exception $e)
         {

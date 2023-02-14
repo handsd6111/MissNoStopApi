@@ -152,7 +152,7 @@ class ApiBusController extends ApiBusBaseController
      * @param int $direction 行駛方向
      * @return mixed 公車時刻表資料
      */
-    function get_bus_arrivals($fromStationId, $toStationId, $direction)
+    function get_bus_arrivals($routeId, $fromStationId, $toStationId, $direction)
     {
         try
         {
@@ -164,23 +164,18 @@ class ApiBusController extends ApiBusBaseController
 
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-            $route = $this->busModel->get_route_by_station($fromStationId, $toStationId)->get()->getResult();
+            $fromArrivals = $this->busModel->get_arrivals_of_station($routeId, $fromStationId, $direction)->get()->getResult();
+            $toArrivals   = $this->busModel->get_arrivals_of_station($routeId, $toStationId, $direction)->get()->getResult();
 
-            if (!$route)
+            $arrivals = [];
+
+            if (!sizeof($fromArrivals) || !sizeof($toArrivals))
             {
                 $this->log_access_fail();
 
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
-            $arrivals = $this->busModel->get_arrivals($fromStationId, $toStationId, $direction)->get()->getResult();
-
-            if (sizeof($arrivals) < 2)
-            {
-                $this->log_access_fail();
-
-                return $this->send_response([], 400, lang("Query.resultNotFound"));
-            }
-            $this->restructure_arrivals($arrivals);
+            $this->restructure_arrivals($arrivals, $fromArrivals, $toArrivals);
 
             $this->log_access_success();
 
