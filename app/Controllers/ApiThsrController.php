@@ -37,8 +37,6 @@ class ApiThsrController extends ApiThsrBaseController
 
             if (sizeof($cities) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_cities($cities);
@@ -67,13 +65,9 @@ class ApiThsrController extends ApiThsrBaseController
 
             if (sizeof($stations) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_stations($stations);
-            
-            $this->log_access_success();
             
             return $this->send_response($stations);
         }
@@ -98,21 +92,15 @@ class ApiThsrController extends ApiThsrBaseController
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
                 || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $stations = $this->THSRModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
 
             if (sizeof($stations) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_stations($stations);
-            
-            $this->log_access_success();
 
             return $this->send_response($stations);
         }
@@ -137,21 +125,15 @@ class ApiThsrController extends ApiThsrBaseController
             if (!$this->validate_param("FromStationId", $fromStationId, parent::THSR_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::THSR_STATION_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->THSRModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
 
             if (sizeof($arrivals) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals($arrivals, $fromStationId);
-            
-            $this->log_access_success();
 
             return $this->send_response($arrivals);
         }
@@ -174,21 +156,15 @@ class ApiThsrController extends ApiThsrBaseController
         {
             if (!$this->validate_param("TrainId", $trainId, parent::THSR_TRAIN_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->THSRModel->get_arrivals_by_train($trainId)->get()->getResult();
 
             if (sizeof($arrivals) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals_by_train($arrivals);
-            
-            $this->log_access_success();
 
             return $this->send_response($arrivals);
         }

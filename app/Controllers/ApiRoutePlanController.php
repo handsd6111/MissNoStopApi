@@ -26,13 +26,9 @@ class ApiRoutePlanController extends ApiRoutePlanBaseController
             if (!$this->validate_param("FromStationId", $fromStationId, parent::METRO_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::METRO_STATION_ID_LENGTH))
             {
-                $this->log_validate_fail();
-                
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $routePlan = $this->get_route_plan($fromStationId, $toStationId, $departureTime);
-            
-            $this->log_access_success();
 
             return $this->send_response($routePlan);
         }

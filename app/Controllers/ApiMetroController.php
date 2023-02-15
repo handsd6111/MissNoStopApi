@@ -39,8 +39,6 @@ class ApiMetroController extends ApiMetroBaseController
             
             $this->restructure_systems($systems);
 
-            $this->log_access_success();
-
             return $this->send_response($systems);
         }
         catch (Exception $e)
@@ -62,21 +60,15 @@ class ApiMetroController extends ApiMetroBaseController
         {
             if (!$this->validate_param("SystemId", $systemId, parent::METRO_SYSTEM_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $routes = $this->metroModel->get_routes($systemId)->get()->getResult();
 
             if (sizeof($routes) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_routes($routes);
-
-            $this->log_access_success();
 
             return $this->send_response($routes);
         }
@@ -99,22 +91,16 @@ class ApiMetroController extends ApiMetroBaseController
         {
             if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $stations = $this->metroModel->get_stations($routeId)->get()->getResult();
 
             if (sizeof($stations) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_stations($stations);
 
-            $this->log_access_success();
-            
             return $this->send_response($stations);
         }
         catch (Exception $e)
@@ -138,21 +124,15 @@ class ApiMetroController extends ApiMetroBaseController
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
                 || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $stations = $this->metroModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
             
             if (sizeof($stations) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_nearest_stations($stations);
-
-            $this->log_access_success();
 
             return $this->send_response($stations);
         }
@@ -177,8 +157,6 @@ class ApiMetroController extends ApiMetroBaseController
             if (!$this->validate_param("FromStationId", $fromStationId, parent::METRO_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::METRO_STATION_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $direction = $this->get_direction($fromStationId, $toStationId);
@@ -191,13 +169,9 @@ class ApiMetroController extends ApiMetroBaseController
 
             if (sizeof($arrivals) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals($arrivals);
-
-            $this->log_access_success();
 
             return $this->send_response($arrivals);
         }
@@ -223,16 +197,12 @@ class ApiMetroController extends ApiMetroBaseController
         {
             if (!$this->validate_param("RouteId", $routeId, parent::METRO_ROUTE_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->metroModel->get_arrivals_by_route($routeId, $direction, $time)->get()->getResult();
 
             if (sizeof($arrivals) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals_by_route($arrivals);

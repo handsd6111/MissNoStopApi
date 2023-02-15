@@ -37,8 +37,6 @@ class ApiTraController extends ApiTraBaseController
             $cities = $this->TRAModel->get_tra_cities()->get()->getResult();
 
             $this->restructure_cities($cities);
-            
-            $this->log_access_success();
 
             return $this->send_response($cities);
         }
@@ -69,13 +67,9 @@ class ApiTraController extends ApiTraBaseController
 
             if (sizeof($stations) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Exception.exception"));
             }
             $this->restructure_stations($stations);
-            
-            $this->log_access_success();
 
             // 回傳資料
             return $this->send_response($stations);
@@ -108,13 +102,9 @@ class ApiTraController extends ApiTraBaseController
 
             if (sizeof($stations) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_stations($stations);
-            
-            $this->log_access_success();
 
             // 回傳資料
             return $this->send_response($stations);
@@ -140,21 +130,15 @@ class ApiTraController extends ApiTraBaseController
             if (!$this->validate_param("FromStationId", $fromStationId, parent::TRA_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::TRA_STATION_ID_LENGTH))
             {
-                $this->log_validate_fail();
-                
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->TRAModel->get_arrivals_by_stations($fromStationId, $toStationId)->get()->getResult();
 
             if (sizeof($arrivals) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals($arrivals, $fromStationId);
-            
-            $this->log_access_success();
 
             return $this->send_response($arrivals);
         }
@@ -177,16 +161,12 @@ class ApiTraController extends ApiTraBaseController
         {
             if (!$this->validate_param("TrainId", $trainId, parent::TRA_TRAIN_ID_LENGTH))
             {
-                $this->log_validate_fail();
-                
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->TRAModel->get_arrivals_by_train($trainId)->get()->getResult();
 
             if (sizeof($arrivals) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals_by_train($arrivals);

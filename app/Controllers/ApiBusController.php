@@ -33,8 +33,6 @@ class ApiBusController extends ApiBusBaseController
 
             if (!sizeof($cities))
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_cities($cities);
@@ -61,21 +59,15 @@ class ApiBusController extends ApiBusBaseController
             // 驗證參數
             if (!$this->validate_param("CityId", $cityId, parent::CITY_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $routes = $this->busModel->get_routes($cityId)->get()->getResult();
 
             if (sizeof($routes) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_routes($routes);
-
-            $this->log_access_success();
 
             return $this->send_response($routes);
         }
@@ -100,21 +92,15 @@ class ApiBusController extends ApiBusBaseController
             // 驗證參數
             if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $stations = $this->busModel->get_stations($routeId, $direction)->get()->getResult();
 
             if (sizeof($stations) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_stations($stations);
-
-            $this->log_access_success();
 
             // 回傳資料
             return $this->send_response($stations);
@@ -141,21 +127,15 @@ class ApiBusController extends ApiBusBaseController
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
              || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $stations = $this->busModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
 
             if (sizeof($stations) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_nearest_stations($stations);
-
-            $this->log_access_success();
 
             return $this->send_response($stations);
         }
@@ -183,21 +163,15 @@ class ApiBusController extends ApiBusBaseController
             if (!$this->validate_param("FromStationId", $fromStationId, parent::BUS_STATION_ID_LENGTH)
                 || !$this->validate_param("ToStationId", $toStationId, parent::BUS_STATION_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->busModel->get_arrivals_of_stations($routeId, $fromStationId, $toStationId, $direction)->get()->getResult();
 
             if (!sizeof($arrivals))
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals($arrivals);
-
-            $this->log_access_success();
 
             return $this->send_response($arrivals);
         }
@@ -223,21 +197,15 @@ class ApiBusController extends ApiBusBaseController
             // 驗證參數
             if (!$this->validate_param("RouteId", $routeId, parent::BUS_ROUTE_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $arrivals = $this->busModel->get_arrivals_of_route($routeId, $direction, $time)->get()->getResult();
 
             if (sizeof($arrivals) == 0)
             {
-                $this->log_access_fail();
-
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals_by_route($arrivals);
-
-            $this->log_access_success();
 
             return $this->send_response($arrivals);
         }

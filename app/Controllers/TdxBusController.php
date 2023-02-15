@@ -202,12 +202,16 @@ class TdxBusController extends TdxBaseController
                 "YilanCounty",
                 "Keelung",
                 "Kaohsiung",
+                "KinmenCounty",
                 "MiaoliCounty",
                 "NantouCounty",
                 "NewTaipei",
                 "PenghuCounty",
                 "PingtungCounty",
-                "Taoyuan"
+                "Taoyuan",
+                "Tainan",
+                "Taipei",
+                "TaitungCounty"
             ];
             // 無資料縣市
             $unavailableCities = [
