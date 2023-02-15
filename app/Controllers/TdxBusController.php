@@ -192,6 +192,23 @@ class TdxBusController extends TdxBaseController
             // 取得縣市列表
             $cities = $this->getCities();
 
+            $skipCities = [
+                "ChanghuaCounty",
+                "Chiayi",
+                "ChiayiCounty",
+                "HsinchuCounty",
+                "Hsinchu",
+                "HualienCounty",
+                "YilanCounty",
+                "Keelung",
+                "Kaohsiung",
+                "MiaoliCounty",
+                "NantouCounty",
+                "NewTaipei",
+                "PenghuCounty",
+                "PingtungCounty",
+                "Taoyuan"
+            ];
             // 無資料縣市
             $unavailableCities = [
                 "LienchiangCounty"
@@ -199,6 +216,11 @@ class TdxBusController extends TdxBaseController
             // 走遍縣市列表
             foreach ($cities as $city)
             {
+                if (in_array($city["C_name_EN"], $skipCities))
+                {
+                    $this->terminalLog("Skipped {$city["C_name_EN"]}...", true);
+                    continue;
+                }
                 // 開始計時
                 $startTime = $this->getTime();
                 $week      = get_week_day(true);
@@ -228,8 +250,12 @@ class TdxBusController extends TdxBaseController
                     $direction = $arrival->Direction;
 
                     // 走遍此時刻表的所有班表
-                    foreach ($arrival->Timetables as $timeTable)
+                    foreach ($arrival->Timetables as $i => $timeTable)
                     {
+                        if (!isset($timeTable->TripID))
+                        {
+                            $timeTable->TripID = $i +1;
+                        }
                         $tripId = $timeTable->TripID;
 
                         // 走遍此班表的所有停靠時間

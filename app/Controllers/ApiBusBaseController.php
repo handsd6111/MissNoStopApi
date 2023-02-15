@@ -8,6 +8,31 @@ use Exception;
 class ApiBusBaseController extends ApiBaseController
 {
     /**
+     * 重新排列縣市資料陣列
+     * @param mixed &$cities 縣市資料陣列
+     */
+    function restructure_cities(&$cities)
+    {
+        try
+        {
+            foreach ($cities as $i => $city)
+            {
+                $cities[$i] = [
+                    "CityId" => $city->id,
+                    "CityName" => [
+                        "TC" => $city->name_TC,
+                        "EN" => $city->name_EN
+                    ]
+                ];
+            }
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+    
+    /**
      * 重新排列路線資料陣列
      * @param mixed &$routes 路線資料陣列
      */

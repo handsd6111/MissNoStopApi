@@ -43,12 +43,14 @@ $routes->group('api', static function ($routes)
     $routes->group('General', static function ($routes)
     {
         // /api/General/City 取得縣市資料
-        $routes->get('City', 'ApiGeneralController::get_cities');
+        $routes->get('City', 'ApiGeneralController::get_bus_cities');
     });
 
     // 公車相關 api
     $routes->group('Bus', static function ($routes)
     {
+        $routes->get('City', 'ApiBusController::get_bus_cities');
+
         // /api/Bus/Route/{CityId} 取得指定縣市的「公車路線」資料
         $routes->get('Route/(:alpha)', 'ApiBusController::get_bus_routes/$1');
 

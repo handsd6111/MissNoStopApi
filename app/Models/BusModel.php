@@ -9,6 +9,27 @@ use Exception;
  */
 class BusModel extends BaseModel
 {
+    function get_cities()
+    {
+        try
+        {
+            return $this->db->table("bus_arrivals")
+                            ->join("bus_stations", "BS_id = BA_station_id")
+                            ->join("cities", "C_id = BS_city_id")
+                            ->select(
+                                "C_id as id,
+                                C_name_TC as name_TC,
+                                C_name_EN as name_EN"
+                            )
+                            ->groupBy("C_id")
+                            ->orderBy("C_id");
+        }
+        catch (Exception $e)
+        {
+            throw $e;
+        }
+    }
+
     /**
      * 取得指定公車縣市的所有路線查詢類別
      * @param string $cityId 縣市代碼

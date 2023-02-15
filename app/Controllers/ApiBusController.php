@@ -24,6 +24,29 @@ class ApiBusController extends ApiBusBaseController
             $this->log_access_fail($e);
         }
     }
+
+    function get_bus_cities()
+    {
+        try
+        {
+            $cities = $this->busModel->get_cities()->get()->getResult();
+
+            if (!sizeof($cities))
+            {
+                $this->log_access_fail();
+
+                return $this->send_response([], 400, lang("Query.resultNotFound"));
+            }
+            $this->restructure_cities($cities);
+
+            return $this->send_response($cities);
+        }
+        catch (Exception $e)
+        {
+            $this->log_access_fail($e);
+            return $this->send_response([$e], 500, lang("Exception.exception"));
+        }
+    }
     
     /**
      * /api/Bus/Route/{CityId}
@@ -54,7 +77,6 @@ class ApiBusController extends ApiBusBaseController
 
             $this->log_access_success();
 
-            // 回傳資料
             return $this->send_response($routes);
         }
         catch (Exception $e)
