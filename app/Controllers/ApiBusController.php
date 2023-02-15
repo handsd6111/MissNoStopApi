@@ -165,18 +165,15 @@ class ApiBusController extends ApiBusBaseController
 
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
-            $fromArrivals = $this->busModel->get_arrivals_of_station($routeId, $fromStationId, $direction)->get()->getResult();
-            $toArrivals   = $this->busModel->get_arrivals_of_station($routeId, $toStationId, $direction)->get()->getResult();
+            $arrivals = $this->busModel->get_arrivals_of_stations($routeId, $fromStationId, $toStationId, $direction)->get()->getResult();
 
-            $arrivals = [];
-
-            if (!sizeof($fromArrivals) || !sizeof($toArrivals))
+            if (!sizeof($arrivals))
             {
                 $this->log_access_fail();
 
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
-            $this->restructure_arrivals($arrivals, $fromArrivals, $toArrivals);
+            $this->restructure_arrivals($arrivals);
 
             $this->log_access_success();
 

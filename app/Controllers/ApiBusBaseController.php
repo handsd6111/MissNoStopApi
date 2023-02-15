@@ -51,7 +51,7 @@ class ApiBusBaseController extends ApiBaseController
                         "EN" => $station->station_name_EN
                     ],
                     "StationLocation" => [
-                        "CityId"   => $station->city_id,
+                        "CityId"    => $station->city_id,
                         "Longitude" => $station->longitude,
                         "Latitude"  => $station->latitude,
                     ],
@@ -78,7 +78,7 @@ class ApiBusBaseController extends ApiBaseController
                 $station = $stations[$i];
 
                 $stations[$i] = [
-                    "RouteId" => $station->route_id,
+                    "RouteId"   => $station->route_id,
                     "RouteName" => [
                         "TC" => $station->route_name_TC,
                         "EN" => $station->route_name_EN,
@@ -89,7 +89,7 @@ class ApiBusBaseController extends ApiBaseController
                         "EN" => $station->station_name_EN
                     ],
                     "StationLocation" => [
-                        "CityId"   => $station->city_id,
+                        "CityId"    => $station->city_id,
                         "Longitude" => $station->longitude,
                         "Latitude"  => $station->latitude,
                     ],
@@ -109,38 +109,44 @@ class ApiBusBaseController extends ApiBaseController
      * @param array &$fromArrivals 起站時刻表資料陣列
      * @param array &$toArrivals 訖站時刻表資料陣列
      */
-    function restructure_arrivals(&$arrivals, &$fromArrivals, &$toArrivals)
+    function restructure_arrivals(&$arrivals)
     {
         try
         {
-            $arrivals = [
-                "RouteId" => $fromArrivals[0]->route_id,
+            $newArrivals = [
+                "RouteId"   => $arrivals[0]->route_id,
                 "RouteName" => [
-                    "TC" => $fromArrivals[0]->route_name_TC,
-                    "EN" => $fromArrivals[0]->route_name_EN
+                    "TC" => $arrivals[0]->route_name_TC,
+                    "EN" => $arrivals[0]->route_name_EN
                 ],
-                "FromStationId" => $fromArrivals[0]->station_id,
+                "FromStationId"   => $arrivals[0]->station_id,
                 "FromStationName" => [
-                    "TC" => $fromArrivals[0]->station_name_TC,
-                    "EN" => $fromArrivals[0]->station_name_EN,
+                    "TC" => $arrivals[0]->station_name_TC,
+                    "EN" => $arrivals[0]->station_name_EN,
                 ],
-                "ToStationId" => $toArrivals[0]->station_id,
+                "ToStationId"   => $arrivals[1]->station_id,
                 "ToStationName" => [
-                    "TC" => $toArrivals[0]->station_name_TC,
-                    "EN" => $toArrivals[0]->station_name_EN,
+                    "TC" => $arrivals[1]->station_name_TC,
+                    "EN" => $arrivals[1]->station_name_EN,
                 ],
                 "Schedule" => []
             ];
-            foreach ($fromArrivals as $i => $fromArrival)
+            for ($i = 0; $i < sizeof($arrivals); $i += 2)
             {
-                $toArrival = $toArrivals[$i];
+                $fromArrival = $arrivals[$i];
+                $toArrival   = $arrivals[$i + 1];
 
                 $schedule = [
-                    "DepartureTime" => $fromArrival->arrival_time,
+                    "DepartureTime" => $fromArrival->departure_time,
                     "ArrivalTime"   => $toArrival->arrival_time
                 ];
-                $arrivals["Schedule"][$i] = $schedule;
+                array_push($newArrivals["Schedule"], $schedule);
             }
+            usort($newArrivals["Schedule"], function ($a, $b)
+            {
+                return $a["DepartureTime"] <=> $b["DepartureTime"];
+            });
+            $arrivals = $newArrivals;
         }
         catch (Exception $e)
         {
@@ -160,14 +166,14 @@ class ApiBusBaseController extends ApiBaseController
             foreach($arrivals as $i => $arrival)
             {
                 $arrivals[$i] = [
-                    "StationId" => $arrival->station_id,
+                    "StationId"   => $arrival->station_id,
                     "StationName" => [
                         "TC" => $arrival->station_name_TC,
                         "EN" => $arrival->station_name_EN,
                     ],
                     "Schedule" => [
                         "DepartureTime" => $arrival->arrival_time,
-                        "ArrivalTime" => $arrival->arrival_time
+                        "ArrivalTime"   => $arrival->arrival_time
                     ]
                 ];
             }

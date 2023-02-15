@@ -16,8 +16,11 @@ class BusArrivalModel extends CompositeKey
     protected $protectFields    = true;
     protected $allowedFields    = [
         "BA_station_id",
+        "BA_route_id",
+        "BA_trip_id",
         "BA_direction",
         "BA_arrival_time",
+        "BA_departure_time",
         "BA_arrives_today",
     ];
 
@@ -51,8 +54,9 @@ class BusArrivalModel extends CompositeKey
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
             'BA_station_id',
-            'BA_direction',
-            "BA_arrival_time"
+            'BA_route_id',
+            "BA_trip_id",
+            "BA_direction"
         ];
     }
 }

@@ -154,13 +154,14 @@ class BusModel extends BaseModel
     }
 
     /**
-     * 取得指定路線、車站及行駛方向的時刻表
+     * 取得指定路線、起訖站及行駛方向的時刻表
      * @param string $routeId 路線代碼
-     * @param string $stationId 車站代碼
+     * @param string $fromStationId 起站代碼
+     * @param string $toStationId 訖站代碼
      * @param string $direction 行駛方向
      * @return mixed 查詢類別
      */
-    function get_arrivals_of_station($routeId, $stationId, $direction)
+    function get_arrivals_of_stations($routeId, $fromStationId, $toStationId, $direction)
     {
         try
         {
@@ -175,13 +176,16 @@ class BusModel extends BaseModel
                                 BS_id as station_id,
                                 BS_name_TC as station_name_TC,
                                 BS_name_EN as station_name_EN,
+                                BA_trip_id as trip_id,
                                 BA_direction as direction,
-                                BA_arrival_time AS arrival_time"
+                                BA_arrival_time AS arrival_time,
+                                BA_departure_time AS departure_time"
                             )
+                            ->where("BA_arrives_today", 1)
                             ->where("BR_id", $routeId)
                             ->where("BA_direction", $direction)
-                            ->where("BA_station_id", $stationId)
-                            ->orderBy("BA_arrival_time");
+                            ->whereIn("BA_station_id", [$fromStationId, $toStationId])
+                            ->orderBy("BA_route_id, BA_trip_id, BRS_sequence");
         }
         catch (Exception $e)
         {
@@ -207,8 +211,11 @@ class BusModel extends BaseModel
                                 "BS_id as station_id,
                                 BS_name_TC as station_name_TC,
                                 BS_name_EN as station_name_EN,
-                                BA_arrival_time as arrival_time"
+                                BA_arrival_time as arrival_time,
+                                BA_departure_time as departure_time,
+                                BA_arrives_today as arrives_today"
                             )
+                            ->where("BA_arrives_today", 1)
                             ->where("BRS_route_id", $routeId)
                             ->where("BA_direction", $direction)
                             ->where("BA_arrival_time >=", $time)

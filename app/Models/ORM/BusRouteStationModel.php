@@ -17,6 +17,7 @@ class BusRouteStationModel extends CompositeKey
     protected $allowedFields    = [
         "BRS_station_id",
         "BRS_route_id",
+        "BRS_direction",
         "BRS_sequence",
     ];
 
@@ -50,7 +51,8 @@ class BusRouteStationModel extends CompositeKey
         $this->builder = $this->builder();
         $this->compositePrimaryKeys = [
             'BRS_station_id',
-            'BRS_route_id'
+            'BRS_route_id',
+            "BRS_direction"
         ];
     }
 }
