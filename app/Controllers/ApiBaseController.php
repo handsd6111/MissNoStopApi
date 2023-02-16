@@ -149,8 +149,10 @@ class ApiBaseController extends BaseController
         {
             // 轉大寫
             $param = strtoupper($param);
+            
             // 重置參數驗證失敗訊息
             $this->validateErrMsg = "";
+
             // 若參數驗證失敗則回傳錯誤
             if (!$this->validate_data($name, $param, $length))
             {
@@ -224,82 +226,6 @@ class ApiBaseController extends BaseController
         catch (Exception $e)
         {
             throw $e;
-        }
-    }
-
-    /**
-     * 取得使用者存取紀錄
-     */
-    function get_request_data()
-    {
-        try
-        {
-            return [
-                "URL" => "http://{$_SERVER['SERVER_ADDR']}/" . $this->request->getUri()->getPath(),
-                "IP"   => $this->request->getIPAddress()
-            ];
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 紀錄使用者存取 API 時參數驗證失敗的資訊
-     */
-    function log_validate_fail()
-    {
-        try
-        {
-            $reqData = $this->get_request_data();
-
-            log_message("notice", "{URL} 驗證失敗。IP: {IP}", $reqData);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 記錄使用者存取 API 成功的資訊
-     */
-    function log_access_success()
-    {
-        try
-        {
-            $reqData = $this->get_request_data();
-
-            log_message("info", "{URL} 存取成功。IP: {IP}", $reqData);
-        }
-        catch (Exception $e)
-        {
-            throw $e;
-        }
-    }
-
-    /**
-     * 記錄使用者存取 API 失敗的資訊
-     * @param mixed $exception 錯誤資訊
-     */
-    function log_access_fail($exception = null)
-    {
-        try
-        {
-            $reqData = $this->get_request_data();
-
-            if ($exception != null)
-            {
-                log_message("critical", "{URL} 存取失敗。IP: {IP}\n$exception", $reqData);
-
-                return;
-            }
-            log_message("notice", "{URL} 存取失敗。IP: {IP}", $reqData);
-        }
-        catch (Exception $e)
-        {
-            log_message("critical", $e);
         }
     }
 }

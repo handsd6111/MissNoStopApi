@@ -21,7 +21,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
         }
     }
 
@@ -41,7 +41,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([$e], 500, lang("Exception.exception"));
         }
     }
@@ -73,7 +73,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([$e], 500, lang("Exception.exception"));
         }
     }
@@ -102,12 +102,11 @@ class ApiBusController extends ApiBusBaseController
             }
             $this->restructure_stations($stations);
 
-            // 回傳資料
             return $this->send_response($stations);
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -141,7 +140,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -177,7 +176,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -211,7 +210,7 @@ class ApiBusController extends ApiBusBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }

@@ -21,7 +21,7 @@ class ApiTraController extends ApiTraBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
         }
     }
 
@@ -42,7 +42,7 @@ class ApiTraController extends ApiTraBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -59,8 +59,6 @@ class ApiTraController extends ApiTraBaseController
         {
             if (!$this->validate_param("RouteId", $cityId, parent::CITY_ID_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $stations = $this->TRAModel->get_stations_by_city($cityId)->get()->getResult();
@@ -76,7 +74,7 @@ class ApiTraController extends ApiTraBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -94,8 +92,6 @@ class ApiTraController extends ApiTraBaseController
             if (!$this->validate_param("Longitude", $longitude, parent::LONGLAT_LENGTH)
                 || !$this->validate_param("Latitude", $latitude, parent::LONGLAT_LENGTH))
             {
-                $this->log_validate_fail();
-
                 return $this->send_response([], 400, $this->validateErrMsg);
             }
             $stations = $this->TRAModel->get_nearest_station($longitude, $latitude)->get(1)->getResult();
@@ -111,7 +107,7 @@ class ApiTraController extends ApiTraBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -144,7 +140,7 @@ class ApiTraController extends ApiTraBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -170,14 +166,12 @@ class ApiTraController extends ApiTraBaseController
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals_by_train($arrivals);
-
-            $this->log_access_success();
             
             return $this->send_response($arrivals);
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }

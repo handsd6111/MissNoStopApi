@@ -34,7 +34,7 @@ class ApiRoutePlanController extends ApiRoutePlanBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response($e, 500, lang("Exception.exception"));
         }
     }

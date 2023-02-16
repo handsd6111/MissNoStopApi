@@ -5,7 +5,6 @@ namespace App\Filters;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use PhpParser\JsonDecoder;
 
 class AccessFilter implements FilterInterface
 {
@@ -47,15 +46,24 @@ class AccessFilter implements FilterInterface
             "URL" => "http://{$_SERVER['SERVER_ADDR']}{$_SERVER["REQUEST_URI"]}",
             "IP"   => $request->getIPAddress()
         ];
+        $message = json_decode($response->getJSON())->message;
+        
         $statusCode = $response->getStatusCode();
 
-        $message = json_decode($response->getJSON())->message;
+        $logLevel = "notice";
 
-        if ($statusCode == 200)
+        switch ($statusCode)
         {
-            log_message("info", "{URL} 存取成功。IP: {IP}", $requestData);
-            return;
+            case 200:
+                $logLevel = "info";
+                break;
+            case 400:
+                $logLevel = "warning";
+                break;
+            case 500:
+                $logLevel = "critical";
+                break;
         }
-        log_message("notice", "{URL} {$message}。IP: {IP}", $requestData);
+        log_message($logLevel, "{URL} {$message}。IP: {IP}", $requestData);
     }
 }

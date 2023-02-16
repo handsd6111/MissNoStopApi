@@ -21,7 +21,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -43,7 +43,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -74,7 +74,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -105,7 +105,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -138,7 +138,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -177,7 +177,7 @@ class ApiMetroController extends ApiMetroBaseController
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
@@ -206,14 +206,12 @@ class ApiMetroController extends ApiMetroBaseController
                 return $this->send_response([], 400, lang("Query.resultNotFound"));
             }
             $this->restructure_arrivals_by_route($arrivals);
-            
-            $this->log_access_success();
 
             return $this->send_response($arrivals);
         }
         catch (Exception $e)
         {
-            $this->log_access_fail($e);
+            log_message("critical", $e);
             return $this->send_response([], 500, lang("Exception.exception"));
         }
     }
