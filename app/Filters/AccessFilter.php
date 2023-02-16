@@ -42,15 +42,18 @@ class AccessFilter implements FilterInterface
      */
     public function after(RequestInterface $request, ResponseInterface $response, $arguments = null)
     {
+        $serverIp    = $request->getServer("SERVER_ADDR");
+        $clientIp    = $request->getIPAddress();
+        $requestPath = $request->getServer("REQUEST_URI");
+        $requestUrl  = "http://" . $serverIp . $requestPath;
+
         $requestData = [
-            "URL" => "http://{$_SERVER['SERVER_ADDR']}{$_SERVER["REQUEST_URI"]}",
-            "IP"   => $request->getIPAddress()
+            "URL" => $requestUrl,
+            "IP"  => $clientIp
         ];
         $message = json_decode($response->getJSON())->message;
         
         $statusCode = $response->getStatusCode();
-
-        $logLevel = "notice";
 
         switch ($statusCode)
         {
@@ -63,6 +66,8 @@ class AccessFilter implements FilterInterface
             case 500:
                 $logLevel = "critical";
                 break;
+            default:
+                $logLevel = "notice";
         }
         log_message($logLevel, "{URL} {$message}。IP: {IP}", $requestData);
     }

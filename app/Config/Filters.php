@@ -72,8 +72,7 @@ class Filters extends BaseConfig
      */
     public $filters = [
         "accessfilter" => [
-            'after'  => 'api/*',
-            'before' => 'api/*'
+            'after'  => 'api/*'
         ]
     ];
 }
